@@ -1,0 +1,14 @@
+apiVersion: v2
+name: xrd-flex
+description: XRd flexible lab chart.
+type: application
+version: 0.1.0
+appVersion: "latest"
+
+dependencies:
+%{~ for i in range(length(nodes)) }
+- name: "${xrd_chart}"
+  version: "${xrd_chart_version}"
+  repository: "${xrd_chart_repository}"
+  alias: xrd${i + 1}
+%{~ endfor }

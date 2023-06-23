@@ -1,0 +1,45 @@
+%{~ for i, node_name in keys(nodes) }
+xrd${i + 1}:
+  # Image configuration
+  image:
+    repository: "${image_repository}"
+    tag: "${image_tag}"
+    pullPolicy: Always
+  resources:
+    limits:
+      memory: 8Gi
+      hugepages-1Gi: ${hugepages[node_name]}Gi
+  securityContext:
+    privileged: true
+  nodeSelector:
+      name: ${node_name}
+  persistence:
+    enabled: true
+    size: "6Gi"
+    accessModes:
+    - ReadWriteOnce
+    storageClass: "gp2"
+  config:
+    username: ${xr_root_user}
+    password: ${xr_root_password}
+    ascii: |
+      hostname xrd${i + 1}
+      logging console debugging
+      logging monitor debugging
+      interface Loopback0
+       ipv4 address ${i + 1}.${i + 1}.${i + 1}.${i + 1} 255.255.255.255
+      !
+      %{~ for j, interface_info in nodes[node_name].network_interfaces ~}
+      interface HundredGigE0/0/0/${j}
+       ipv4 address ${interface_info.private_ip_address} 255.255.255.0
+      !
+      %{~ endfor ~}
+    asciiEveryBoot: true
+  interfaces:
+    - type: pci
+      config:
+        last: ${length(nodes[node_name].network_interfaces)}
+  pciDriver: "igb_uio"
+  cpu:
+    cpuset: ${cpusets[node_name]}
+%{~ endfor }

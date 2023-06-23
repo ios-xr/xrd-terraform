@@ -1,0 +1,43 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ${name}
+  labels:
+    app: ${name}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ${name}
+  template:
+    metadata:
+      annotations:
+          k8s.v1.cni.cncf.io/networks: ${name}
+      labels:
+        app: ${name}
+    spec:
+      containers:
+        - name: main
+          image: "alpine:latest"
+          imagePullPolicy: IfNotPresent
+          tty: true
+          stdin: true
+      nodeSelector:
+        name: gamma
+---
+apiVersion: "k8s.cni.cncf.io/v1"
+kind: NetworkAttachmentDefinition
+metadata:
+  name: ${name}
+spec:
+  config: '{
+    "cniVersion": "0.3.1",
+    "type": "host-device",
+    "device": "${device}",
+    "ipam": {
+      "type": "static",
+      "addresses": [{"address": "${ip_address}", "gateway": "${gateway}"}],
+      "routes": ${ jsonencode([ for route in routes : { "dst" = route } ]) }
+    }
+  }'

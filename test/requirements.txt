@@ -1,0 +1,6 @@
+awscli
+boto3
+kubernetes
+pytest
+tenacity
+tftest

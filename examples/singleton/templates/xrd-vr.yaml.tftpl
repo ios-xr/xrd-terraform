@@ -1,0 +1,51 @@
+image:
+  repository: "${image_repository}"
+  tag: "${image_tag}"
+resources:
+  limits:
+    memory: 8Gi
+    hugepages-1Gi: 3Gi
+persistence:
+  enabled: true
+  storageClass: gp2
+nodeSelector:
+  name: "${node_name}"
+config:
+  username: ${xr_root_user}
+  password: ${xr_root_password}
+  ascii: |
+    hostname xrd1
+    logging console debugging
+    logging monitor debugging
+    line default
+     exec-timeout 0 0
+     width 0
+     length 0
+    !
+    call-home
+     service active
+     contact smart-licensing
+     profile CiscoTAC-1
+      active
+      destination transport-method email disable
+      destination transport-method http
+     !
+    !
+    %{~ if loopback_ip != null && loopback_ip != "" ~}
+    interface Loopback0
+     ipv4 address ${loopback_ip} 255.255.255.255
+    !
+    %{~ endif ~}
+    %{~ for i, ipv4_addr in interface_ipv4_addresses ~}
+    interface HundredGigE0/0/0/${i}
+     ipv4 address ${ipv4_addr} 255.255.255.0
+    !
+    %{~ endfor ~}
+  asciiEveryBoot: False
+interfaces:
+- type: pci
+  config:
+    last: ${interface_count}
+pciDriver: "igb_uio"
+cpu:
+  cpuset: ${cpuset}

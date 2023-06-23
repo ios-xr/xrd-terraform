@@ -1,0 +1,44 @@
+%{~ for i, node_name in keys(nodes) }
+xrd${i + 1}:
+  # Image configuration
+  image:
+    repository: "${image_repository}"
+    tag: "${image_tag}"
+    pullPolicy: Always
+  resources:
+    limits:
+      memory: 8Gi
+  securityContext:
+    privileged: true
+  nodeSelector:
+      xrd.node: ${node_name}
+  persistence:
+    enabled: true
+    size: "6Gi"
+    accessModes:
+    - ReadWriteOnce
+    storageClass: "gp2"
+  config:
+    username: ${xr_root_user}
+    password: ${xr_root_password}
+    ascii: |
+      hostname xrd${i + 1}
+      logging console debugging
+      logging monitor debugging
+      interface Loopback0
+       ipv4 address ${i + 1}.${i + 1}.${i + 1}.${i + 1} 255.255.255.255
+      !
+      %{~ for j, interface_info in nodes[node_name].network_interfaces ~}
+      interface GigabitEthernet0/0/0/${j}
+       ipv4 address ${interface_info.private_ip_address} 255.255.255.0
+      !
+      %{~ endfor ~}
+    asciiEveryBoot: true
+  interfaces:
+  %{~ for j, _ in nodes[node_name].network_interfaces }
+  - type: multus
+    config:
+      type: host-device
+      device: eth${j + 1}
+  %{~ endfor }
+%{~ endfor }

@@ -1,0 +1,142 @@
+#!/usr/bin/env bash
+# Quick-start script to bring up XRd in AWS.
+
+set -o errexit
+set -o nounset
+set -o pipefail
+
+usage()  {
+    >&2 cat << EOF
+USAGE:
+    aws-quickstart [OPTIONS] -u XR_USERNAME -p XR_PASSWORD
+
+EOF
+}
+
+long_usage() {
+    >&2 cat << EOF
+Create an AWS EKS cluster and run an XRd topology.
+
+EOF
+    usage
+    >&2 cat << EOF
+ARGS:
+    -u, --username
+           XR username.
+
+    -p, --password
+           XR password.
+
+OPTIONS:
+    -a, --ami
+            AMI ID of an image used to launch the EKS worker nodes (default: use
+            (or create) an AMI from the XRd Packer scripts at
+            https://github.com/ios-xr/xrd-packer)
+
+    --kubernetes-version
+            Kubernetes version to use.  This must be one of: 1.23, 1.24, 1.25, 1.26, 1.27
+            (default: 1.27).
+EOF
+}
+
+# Default arguments.
+AMI_ID=""
+KUBERNETES_VERSION="1.27"
+
+# Parse the arguments
+while [ $# -gt 0 ]; do
+  case $1 in
+    -u|--username )
+      XR_USERNAME="$2"
+      shift
+      ;;
+    -p|--password )
+      XR_PASSWORD="$2"
+      shift
+      ;;
+    -a|--ami )
+      AMI_ID="$2"
+      shift
+      ;;
+    --kubernetes-version )
+      KUBERNETES_VERSION="$2"
+      shift
+      ;;
+    -h|--help )
+      long_usage
+      exit 255
+      ;;
+  esac
+  shift
+done
+
+ERROR=""
+if [ -z "${XR_USERNAME:-}" ]; then
+  >&2 echo "error: XR username (-u|--username) must be specified"
+  ERROR=1
+fi
+if [ -z "${XR_PASSWORD:-}" ]; then
+  >&2 echo "error: XR password (-p|--password) must be specified"
+  ERROR=1
+fi
+
+if [ "${KUBERNETES_VERSION}" != "1.23" ] &&
+   [ "${KUBERNETES_VERSION}" != "1.24" ] &&
+   [ "${KUBERNETES_VERSION}" != "1.25" ] &&
+   [ "${KUBERNETES_VERSION}" != "1.26" ] &&
+   [ "${KUBERNETES_VERSION}" != "1.27" ]; then
+    >&2 echo "error: Kubernetes version (--kubernetes-version) must be one of: 1.23, 1.24, 1.25, 1.26, 1.27"
+    ERROR=1
+fi
+
+if [ -n "${ERROR}" ]; then
+    >&2 echo ""
+    usage
+    >&2 echo "For more information try --help."
+    exit 1
+fi
+
+run_packer () {
+  rm -rf xrd-packer
+  git clone https://github.com/ios-xr/xrd-packer xrd-packer
+  cd xrd-packer
+  packer init .
+  packer build -var kubernetes_version="$KUBERNETES_VERSION" amazon-ebs.pkr.hcl
+  cd ..
+  rm -rf xrd-packer
+}
+
+# If an AMI ID was not provided, check if an AMI created by the XRd Packer
+# template for the correct Kubernetes version.
+if [ -z "$AMI_ID" ]; then
+  first_image=$(aws ec2 describe-images \
+    --filters \
+      "Name=tag:Generated_By,Values=xrd-packer" \
+      "Name=tag:Kubernetes_Version,Values=${KUBERNETES_VERSION}" \
+    --query "Images[*].[ImageId]" \
+    --output text \
+    | head -n 1)
+  if [ -z "$first_image" ]; then
+    run_packer
+  fi
+fi
+
+# Run the XRd overlay terraform template.
+SCRIPT_DIR="$(dirname "$(realpath "$0")")"
+cd "$SCRIPT_DIR/examples/overlay"
+terraform init
+
+if [ -z "$AMI_ID" ]; then
+  NODE_AMI="null"
+else
+  NODE_AMI="\"$AMI_ID\""
+fi
+
+cat <<EOF > quickstart.auto.tfvars
+xr_root_user="$XR_USERNAME"
+xr_root_password="$XR_PASSWORD"
+cluster_version="$KUBERNETES_VERSION"
+node_ami=$NODE_AMI
+EOF
+
+terraform apply -auto-approve
