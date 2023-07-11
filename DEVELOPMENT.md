@@ -61,9 +61,13 @@ contents:
 
 ```
 module "flex" {
-  source = "git@wwwin-github.cisco.com:xrd/xrd-terraform.git//dev/flex"
-  node_count = <number of required nodes>
-  interface_count = <number of interfaces on each node>
+  source = "git@github.com:ios-xr/xrd-terraform.git//dev/flex"
+
+  xr_root_user     = <xr-root-user>
+  xr_root_password = <xr-root-password>
+
+  node_count      = <number-of-required-nodes>
+  interface_count = <number-of-required-interfaces>
 }
 ```
 
