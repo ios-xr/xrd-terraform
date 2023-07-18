@@ -109,8 +109,8 @@ resource "aws_subnet" "data" {
 }
 
 locals {
-  public_subnet_id   = data.aws_subnet.public
-  cluster_subnet_id  = data.aws_subnet.cluster
+  public_subnet_id   = data.aws_subnet.public.id
+  cluster_subnet_id  = data.aws_subnet.cluster.id
   access_a_subnet_id = aws_subnet.data[0].id
   trunk_1_subnet_id  = aws_subnet.data[1].id
   trunk_2_subnet_id  = aws_subnet.data[2].id
@@ -204,8 +204,11 @@ locals {
   nodes = {
     alpha = {
       ami                = local.xrd_ami
-      security_groups    = [aws_security_group.comms.id]
-      private_ip_address = "10.0.101.11"
+      security_groups    = [
+        data.aws_eks_cluster.this.vpc_config[0].cluster_security_group_id,
+        aws_security_group.comms.id,
+      ]
+      private_ip_address = "10.0.0.11"
       subnet_id          = local.cluster_subnet_id
       network_interfaces = [
         {
@@ -229,8 +232,11 @@ locals {
     beta = {
       ami                = local.xrd_ami
       subnet_id          = local.cluster_subnet_id
-      private_ip_address = "10.0.101.12"
-      security_groups    = [aws_security_group.comms.id]
+      private_ip_address = "10.0.0.12"
+      security_groups    = [
+        data.aws_eks_cluster.this.vpc_config[0].cluster_security_group_id,
+        aws_security_group.comms.id,
+      ]
       network_interfaces = [
         {
           subnet_id          = local.access_b_subnet_id
@@ -254,8 +260,11 @@ locals {
       # This is just running linux containers so could be smaller.
       ami                = data.aws_ami.eks_optimized.id
       subnet_id          = local.cluster_subnet_id
-      private_ip_address = "10.0.101.13"
-      security_groups    = [aws_security_group.comms.id]
+      private_ip_address = "10.0.0.13"
+      security_groups    = [
+        data.aws_eks_cluster.this.vpc_config[0].cluster_security_group_id,
+        aws_security_group.comms.id,
+      ]
       network_interfaces = [
         {
           subnet_id          = local.access_a_subnet_id
@@ -295,7 +304,6 @@ resource "helm_release" "xrd1" {
   name       = "xrd1"
   repository = "https://ios-xr.github.io/xrd-helm"
   chart      = "xrd-vrouter"
-  wait       = false
 
   values = [
     templatefile(
@@ -309,6 +317,8 @@ resource "helm_release" "xrd1" {
       }
     )
   ]
+
+  depends_on = [module.eks_config]
 }
 
 resource "helm_release" "xrd2" {
@@ -317,7 +327,6 @@ resource "helm_release" "xrd2" {
   name       = "xrd2"
   repository = "https://ios-xr.github.io/xrd-helm"
   chart      = "xrd-vrouter"
-  wait       = false
 
   values = [
     templatefile(
@@ -335,48 +344,26 @@ resource "helm_release" "xrd2" {
   depends_on = [module.eks_config]
 }
 
-data "kubectl_file_documents" "alpine1" {
-  count = local.create_workload ? 1 : 0
+module "simple_host1" {
+  source = "../../modules/aws/simple-host"
 
-  content = templatefile(
-    "${path.module}/templates/alpine.yaml.tftpl",
-    {
-      name       = "alpine1"
-      device     = "eth1"
-      ip_address = "10.0.1.10/24"
-      gateway    = "10.0.1.11"
-      routes     = ["10.0.4.0/24"]
-    }
-  )
-}
-
-resource "kubectl_manifest" "alpine1" {
-  for_each = try(data.kubectl_file_documents.alpine1[0].manifests, {})
-
-  yaml_body = each.value
+  name       = "simple-host1"
+  device     = "eth1"
+  ip_address = "10.0.1.10/24"
+  gateway    = "10.0.1.11"
+  routes     = ["10.0.4.0/24"]
 
   depends_on = [module.eks_config]
 }
 
-data "kubectl_file_documents" "alpine2" {
-  count = local.create_workload ? 1 : 0
+module "simple_host2" {
+  source = "../../modules/aws/simple-host"
 
-  content = templatefile(
-    "${path.module}/templates/alpine.yaml.tftpl",
-    {
-      name       = "alpine2"
-      device     = "eth2"
-      ip_address = "10.0.4.10/24"
-      gateway    = "10.0.4.12"
-      routes     = ["10.0.1.0/24"]
-    }
-  )
-}
-
-resource "kubectl_manifest" "alpine2" {
-  for_each = try(data.kubectl_file_documents.alpine2[0].manifests, {})
-
-  yaml_body = each.value
+  name       = "simple-host2"
+  device     = "eth2"
+  ip_address = "10.0.4.10/24"
+  gateway    = "10.0.4.12"
+  routes     = ["10.0.1.0/24"]
 
   depends_on = [module.eks_config]
 }
