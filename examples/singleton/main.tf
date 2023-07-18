@@ -201,11 +201,11 @@ module "node" {
     },
   ]
   private_ip_address = "10.0.0.10"
-  security_groups    = [
+  security_groups = [
     data.aws_eks_cluster.this.vpc_config[0].cluster_security_group_id,
     aws_security_group.comms.id,
   ]
-  subnet_id          = local.cluster_subnet_id
+  subnet_id = local.cluster_subnet_id
 }
 
 # Install the XRd workload into the cluster.

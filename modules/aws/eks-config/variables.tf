@@ -11,5 +11,5 @@ variable "oidc_issuer" {
 variable "wait" {
   description = "Whether to wait for resources to roll out"
   type        = bool
-  default = true
+  default     = true
 }
