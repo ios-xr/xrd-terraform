@@ -1,8 +1,8 @@
 .terraform.lock.hcl
 .terraform/
-*.auto.tfvars
+*.tfvars
 *.pem
 *.swp
 *.tfstate
-*.tfstate.backup
-*.tfstate.lock.info
+*.tfstate.*
+.helm/
