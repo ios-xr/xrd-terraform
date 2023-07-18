@@ -5,13 +5,12 @@ repos:
     hooks:
       - id: check-added-large-files
       - id: check-case-conflict
+      - id: check-executables-have-shebangs
       - id: check-merge-conflict
       - id: check-symlinks
-      - id: check-yaml
-      - id: debug-statements
       - id: end-of-file-fixer
       - id: mixed-line-ending
-      - id: requirements-txt-fixer
+        args: ["--fix=lf"]
       - id: trailing-whitespace
 
   - repo: https://github.com/codespell-project/codespell
@@ -23,6 +22,10 @@ repos:
     rev: v1.81.0
     hooks:
       - id: terraform_fmt
+      - id: terraform_validate
+        stages: ["manual"]
+      - id: terraform_tflint
+        stages: ["manual"]
 
   - repo: https://github.com/adrienverge/yamllint
     rev: v1.32.0
