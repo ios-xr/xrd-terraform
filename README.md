@@ -102,7 +102,7 @@ This repository contains several Terraform modules to assist with deploying
 XRd on AWS. There are two types of template:
 
   - "Building block" modules (sometimes called 'resource' modules) - these are
-    focussed on a single AWS area or resource, used to build a full
+    focused on a single AWS area or resource, used to build a full
     deployment stack.
   - "Example" modules (sometimes called 'infrastructure' modules) - these use
     the building block modules to bring up an entire example deployment.
@@ -117,7 +117,7 @@ The following building block modules are provided in the repository:
  - Bastion Node
  - Worker Node
 
-Each of these modules is focussed on bringing up a constrained set of
+Each of these modules is focused on bringing up a constrained set of
 AWS resources. These are used by the example modules describe below, and
 generally its expected that only developers will need to use these directly.
 As such, more detail for these modules can be found on the
