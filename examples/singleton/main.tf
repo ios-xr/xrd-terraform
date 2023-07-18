@@ -97,9 +97,8 @@ resource "aws_subnet" "data" {
   count = 3
 
   availability_zone = data.aws_subnet.cluster.availability_zone
+  cidr_block        = "10.0.${count.index + 1}.0/24"
   vpc_id            = data.aws_vpc.this.id
-
-  cidr_block = "10.0.${count.index + 1}.0/24"
   # @@@ name
 }
 
