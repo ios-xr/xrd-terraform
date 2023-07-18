@@ -203,8 +203,8 @@ locals {
 
   nodes = {
     alpha = {
-      ami                = local.xrd_ami
-      security_groups    = [
+      ami = local.xrd_ami
+      security_groups = [
         data.aws_eks_cluster.this.vpc_config[0].cluster_security_group_id,
         aws_security_group.comms.id,
       ]
@@ -233,7 +233,7 @@ locals {
       ami                = local.xrd_ami
       subnet_id          = local.cluster_subnet_id
       private_ip_address = "10.0.0.12"
-      security_groups    = [
+      security_groups = [
         data.aws_eks_cluster.this.vpc_config[0].cluster_security_group_id,
         aws_security_group.comms.id,
       ]
@@ -261,7 +261,7 @@ locals {
       ami                = data.aws_ami.eks_optimized.id
       subnet_id          = local.cluster_subnet_id
       private_ip_address = "10.0.0.13"
-      security_groups    = [
+      security_groups = [
         data.aws_eks_cluster.this.vpc_config[0].cluster_security_group_id,
         aws_security_group.comms.id,
       ]
