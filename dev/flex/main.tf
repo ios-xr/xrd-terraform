@@ -7,6 +7,11 @@ terraform {
       version = "~> 5.2"
     }
 
+    helm = {
+      source  = "hashicorp/helm"
+      version = "~> 2.9"
+    }
+
     http = {
       source  = "hashicorp/http"
       version = "~> 3.3"
@@ -17,6 +22,11 @@ terraform {
       version = "~> 1.14"
     }
 
+    kubernetes = {
+      source  = "hashicorp/kubernetes"
+      version = ">= 2.18"
+    }
+
     local = {
       source  = "hashicorp/local"
       version = "~> 2.4"
@@ -25,6 +35,11 @@ terraform {
     time = {
       source  = "hashicorp/time"
       version = "~> 0.9"
+    }
+
+    tls = {
+      source  = "hashicorp/tls"
+      version = ">= 4.0"
     }
   }
 }
@@ -125,10 +140,6 @@ resource "aws_subnet" "data" {
   availability_zone = data.aws_subnet.cluster.availability_zone
   cidr_block        = local.intra_subnets[count.index]
   vpc_id            = data.aws_vpc.this.id
-}
-
-data "aws_availability_zones" "available" {
-  state = "available"
 }
 
 data "aws_ec2_instance_type" "current" {

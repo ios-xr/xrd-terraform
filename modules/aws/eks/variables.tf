@@ -35,15 +35,3 @@ variable "public_access_cidrs" {
   type        = list(string)
   default     = null
 }
-
-variable "enable_iam_authenticator" {
-  description = "Whether to add the created IAM role for worker nodes to the Kubernetes aws-auth ConfigMap"
-  type        = bool
-  default     = true
-}
-
-variable "max_eni" {
-  description = "The maximum number of ENIs to use for pods on a worker node, added to the Kubernetes aws-node DaemonSet. Use `null` to  leave this unset"
-  type        = number
-  default     = 1
-}

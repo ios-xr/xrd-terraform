@@ -12,6 +12,11 @@ terraform {
       version = "~> 2.9"
     }
 
+    http = {
+      source  = "hashicorp/http"
+      version = "~> 3.3"
+    }
+
     kubectl = {
       source  = "gavinbunney/kubectl"
       version = "~> 1.14"
@@ -30,10 +35,6 @@ terraform {
 }
 
 data "aws_region" "current" {}
-
-data "aws_eks_cluster" "this" {
-  name = var.cluster_name
-}
 
 data "aws_iam_policy_document" "node" {
   statement {
