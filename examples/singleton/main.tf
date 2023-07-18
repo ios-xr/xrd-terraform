@@ -86,6 +86,13 @@ provider "kubernetes" {
   }
 }
 
+module "eks_config" {
+  source = "../../modules/aws/eks-config"
+
+  cluster_name = var.cluster_name
+  oidc_issuer  = data.aws_eks_cluster.this.identity[0].oidc[0].issuer
+}
+
 resource "aws_subnet" "data" {
   count = 3
 
@@ -161,13 +168,6 @@ module "xrd_ami" {
   count  = var.node_ami == null ? 1 : 0
 
   cluster_version = var.cluster_version
-}
-
-module "eks_config" {
-  source = "../../modules/aws/eks-config"
-
-  cluster_name = var.cluster_name
-  oidc_issuer  = data.aws_eks_cluster.this.identity[0].oidc[0].issuer
 }
 
 locals {
