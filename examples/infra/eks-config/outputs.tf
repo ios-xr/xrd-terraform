@@ -10,12 +10,12 @@ output "oidc_issuer" {
 
 output "oidc_provider" {
   description = "OIDC provider ARN for the cluster"
-  value       = aws_iam_openid_connect_provider.this.arn
+  value       = module.eks_config.oidc_provider
 }
 
 output "node_iam_instance_profile_name" {
   description = "Name of the IAM instance profile to be used for worker nodes"
-  value       = module.eks_config.aws_iam_instance_profile.node.name
+  value       = module.eks_config.node_iam_instance_profile_name
 }
 
 output "key_name" {

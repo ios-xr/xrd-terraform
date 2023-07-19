@@ -12,13 +12,6 @@ variable "cluster_version" {
   default     = "1.27"
 }
 
-variable "create_bastion" {
-  description = "Whether to create a bastion (gateway) node."
-  type        = bool
-  nullable    = false
-  default     = true
-}
-
 variable "create_nodes" {
   description = "Whether to create any worker nodes."
   type        = bool

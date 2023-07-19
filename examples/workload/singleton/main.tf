@@ -56,9 +56,13 @@ data "aws_subnet" "cluster" {
   cidr_block = "10.0.0.0/24"
 }
 
-data "aws_subnet" "public" {
-  vpc_id     = data.aws_vpc.this.id
-  cidr_block = "10.0.200.0/24"
+data "aws_security_group" "access" {
+  name   = "access"
+  vpc_id = data.aws_vpc.this.id
+}
+
+data "aws_iam_instance_profile" "node" {
+  name = "${var.cluster_name}-${data.aws_region.current.name}-node"
 }
 
 provider "helm" {
@@ -96,13 +100,6 @@ provider "kubernetes" {
   }
 }
 
-module "eks_config" {
-  source = "../../modules/aws/eks-config"
-
-  cluster_name = var.cluster_name
-  oidc_issuer  = data.aws_eks_cluster.this.identity[0].oidc[0].issuer
-}
-
 resource "aws_subnet" "data" {
   count = 3
 
@@ -113,28 +110,10 @@ resource "aws_subnet" "data" {
 }
 
 locals {
-  public_subnet_id  = data.aws_subnet.public.id
   cluster_subnet_id = data.aws_subnet.cluster.id
   data_1_subnet_id  = aws_subnet.data[0].id
   data_2_subnet_id  = aws_subnet.data[1].id
   data_3_subnet_id  = aws_subnet.data[2].id
-}
-
-resource "aws_security_group" "comms" {
-  name   = "comms"
-  vpc_id = data.aws_vpc.this.id
-  ingress {
-    from_port = 0
-    to_port   = 0
-    protocol  = -1
-    self      = true
-  }
-  egress {
-    from_port   = 0
-    to_port     = 0
-    protocol    = -1
-    cidr_blocks = ["0.0.0.0/0"]
-  }
 }
 
 resource "aws_security_group" "data" {
@@ -154,26 +133,8 @@ resource "aws_security_group" "data" {
   }
 }
 
-module "key_pair" {
-  source = "../../modules/aws/key-pair"
-
-  key_name = "${var.cluster_name}-instance"
-  download = true
-}
-
-module "bastion" {
-  source = "../../modules/aws/bastion"
-
-  count = var.create_bastion ? 1 : 0
-
-  instance_type      = "t3.nano"
-  key_name           = module.key_pair.key_name
-  security_group_ids = [aws_security_group.comms.id]
-  subnet_id          = local.public_subnet_id
-}
-
 module "xrd_ami" {
-  source = "../../modules/aws/xrd-ami"
+  source = "../../../modules/aws/xrd-ami"
   count  = var.node_ami == null ? 1 : 0
 
   cluster_version = var.cluster_version
@@ -184,14 +145,14 @@ locals {
 }
 
 module "node" {
-  source = "../../modules/aws/node"
+  source = "../../../modules/aws/node"
 
   name                 = "alpha"
   ami                  = local.xrd_ami
   cluster_name         = var.cluster_name
-  iam_instance_profile = module.eks_config.node_iam_instance_profile_name
+  iam_instance_profile = data.aws_iam_instance_profile.node.name
   instance_type        = var.node_instance_type
-  key_name             = module.key_pair.key_name
+  key_name             = "${var.cluster_name}-instance"
   network_interfaces = [
     {
       subnet_id          = local.data_1_subnet_id,
@@ -212,7 +173,7 @@ module "node" {
   private_ip_address = "10.0.0.10"
   security_groups = [
     data.aws_eks_cluster.this.vpc_config[0].cluster_security_group_id,
-    aws_security_group.comms.id,
+    data.aws_security_group.access.id,
   ]
   subnet_id = local.cluster_subnet_id
 }
@@ -260,6 +221,4 @@ resource "helm_release" "xrd1" {
       }
     )
   ]
-
-  depends_on = [module.eks_config]
 }

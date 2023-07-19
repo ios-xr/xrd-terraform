@@ -7,6 +7,11 @@ terraform {
       version = "~> 5.2"
     }
 
+    helm = {
+      source  = "hashicorp/helm"
+      version = "~> 2.9"
+    }
+
     http = {
       source  = "hashicorp/http"
       version = "~> 3.3"
@@ -90,14 +95,14 @@ resource "aws_security_group" "access" {
 }
 
 module "key_pair" {
-  source = "../../modules/aws/key-pair"
+  source = "../../../modules/aws/key-pair"
 
   key_name = "${var.cluster_name}-instance"
   download = true
 }
 
 module "bastion" {
-  source = "../../modules/aws/bastion"
+  source = "../../../modules/aws/bastion"
 
   instance_type      = "t3.nano"
   key_name           = module.key_pair.key_name
@@ -106,8 +111,9 @@ module "bastion" {
 }
 
 module "eks_config" {
-  source = "../../modules/aws/eks-config"
+  source = "../../../modules/aws/eks-config"
 
   cluster_name = var.cluster_name
   oidc_issuer  = data.aws_eks_cluster.this.identity[0].oidc[0].issuer
+  wait         = var.wait
 }

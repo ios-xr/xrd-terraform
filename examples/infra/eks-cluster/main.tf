@@ -14,7 +14,7 @@ data "aws_availability_zones" "available" {
 }
 
 module "vpc" {
-  source = "../../modules/aws/vpc"
+  source = "../../../modules/aws/vpc"
 
   name = "${var.cluster_name}-vpc"
   azs  = [data.aws_availability_zones.available.names[0]]
@@ -42,7 +42,7 @@ resource "aws_ec2_subnet_cidr_reservation" "this" {
 }
 
 module "eks" {
-  source = "../../modules/aws/eks"
+  source = "../../../modules/aws/eks"
 
   name               = var.cluster_name
   cluster_version    = var.cluster_version

@@ -56,9 +56,13 @@ data "aws_subnet" "cluster" {
   cidr_block = "10.0.0.0/24"
 }
 
-data "aws_subnet" "public" {
-  vpc_id     = data.aws_vpc.this.id
-  cidr_block = "10.0.200.0/24"
+data "aws_security_group" "access" {
+  name   = "access"
+  vpc_id = data.aws_vpc.this.id
+}
+
+data "aws_iam_instance_profile" "node" {
+  name = "${var.cluster_name}-${data.aws_region.current.name}-node"
 }
 
 provider "helm" {
@@ -100,13 +104,6 @@ locals {
   create_workload = var.create_nodes && var.create_workload
 }
 
-module "eks_config" {
-  source = "../../modules/aws/eks-config"
-
-  cluster_name = var.cluster_name
-  oidc_issuer  = data.aws_eks_cluster.this.identity[0].oidc[0].issuer
-}
-
 resource "aws_subnet" "data" {
   count = 4
 
@@ -119,7 +116,6 @@ resource "aws_subnet" "data" {
 }
 
 locals {
-  public_subnet_id   = data.aws_subnet.public.id
   cluster_subnet_id  = data.aws_subnet.cluster.id
   access_a_subnet_id = aws_subnet.data[0].id
   trunk_1_subnet_id  = aws_subnet.data[1].id
@@ -132,23 +128,6 @@ locals {
     data.aws_region.current.name,
   )
   image_repository = coalesce(var.image_repository, local.default_image_repository)
-}
-
-resource "aws_security_group" "comms" {
-  name   = "comms"
-  vpc_id = data.aws_vpc.this.id
-  ingress {
-    from_port = 0
-    to_port   = 0
-    protocol  = -1
-    self      = true
-  }
-  egress {
-    from_port   = 0
-    to_port     = 0
-    protocol    = -1
-    cidr_blocks = ["0.0.0.0/0"]
-  }
 }
 
 resource "aws_security_group" "data" {
@@ -168,24 +147,6 @@ resource "aws_security_group" "data" {
   }
 }
 
-module "key_pair" {
-  source = "../../modules/aws/key-pair"
-
-  key_name = "${var.cluster_name}-instance"
-  download = true
-}
-
-module "bastion" {
-  source = "../../modules/aws/bastion"
-
-  count = var.create_bastion ? 1 : 0
-
-  instance_type      = "t3.nano"
-  key_name           = module.key_pair.key_name
-  security_group_ids = [aws_security_group.comms.id]
-  subnet_id          = local.public_subnet_id
-}
-
 data "aws_ami" "eks_optimized" {
   most_recent = true
   owners      = ["amazon"]
@@ -202,7 +163,7 @@ data "aws_ami" "eks_optimized" {
 }
 
 module "xrd_ami" {
-  source = "../../modules/aws/xrd-ami"
+  source = "../../../modules/aws/xrd-ami"
   count  = var.node_ami == null ? 1 : 0
 
   cluster_version = var.cluster_version
@@ -216,7 +177,7 @@ locals {
       ami = local.xrd_ami
       security_groups = [
         data.aws_eks_cluster.this.vpc_config[0].cluster_security_group_id,
-        aws_security_group.comms.id,
+        data.aws_security_group.access.id,
       ]
       private_ip_address = "10.0.0.11"
       subnet_id          = local.cluster_subnet_id
@@ -245,7 +206,7 @@ locals {
       private_ip_address = "10.0.0.12"
       security_groups = [
         data.aws_eks_cluster.this.vpc_config[0].cluster_security_group_id,
-        aws_security_group.comms.id,
+        data.aws_security_group.access.id,
       ]
       network_interfaces = [
         {
@@ -273,7 +234,7 @@ locals {
       private_ip_address = "10.0.0.13"
       security_groups = [
         data.aws_eks_cluster.this.vpc_config[0].cluster_security_group_id,
-        aws_security_group.comms.id,
+        data.aws_security_group.access.id,
       ]
       network_interfaces = [
         {
@@ -292,16 +253,16 @@ locals {
 }
 
 module "node" {
-  source = "../../modules/aws/node"
+  source = "../../../modules/aws/node"
 
   for_each = var.create_nodes ? local.nodes : {}
 
   name                 = each.key
   ami                  = each.value.ami
   cluster_name         = var.cluster_name
-  iam_instance_profile = module.eks_config.node_iam_instance_profile_name
+  iam_instance_profile = data.aws_iam_instance_profile.node.name
   instance_type        = var.node_instance_type
-  key_name             = module.key_pair.key_name
+  key_name             = "${var.cluster_name}-instance"
   network_interfaces   = each.value.network_interfaces
   private_ip_address   = each.value.private_ip_address
   security_groups      = each.value.security_groups
@@ -327,8 +288,6 @@ resource "helm_release" "xrd1" {
       }
     )
   ]
-
-  depends_on = [module.eks_config]
 }
 
 resource "helm_release" "xrd2" {
@@ -350,30 +309,24 @@ resource "helm_release" "xrd2" {
       }
     )
   ]
-
-  depends_on = [module.eks_config]
 }
 
 module "simple_host1" {
-  source = "../../modules/aws/simple-host"
+  source = "../../../modules/aws/simple-host"
 
   name       = "simple-host1"
   device     = "eth1"
   ip_address = "10.0.1.10/24"
   gateway    = "10.0.1.11"
   routes     = ["10.0.4.0/24"]
-
-  depends_on = [module.eks_config]
 }
 
 module "simple_host2" {
-  source = "../../modules/aws/simple-host"
+  source = "../../../modules/aws/simple-host"
 
   name       = "simple-host2"
   device     = "eth2"
   ip_address = "10.0.4.10/24"
   gateway    = "10.0.4.12"
   routes     = ["10.0.1.0/24"]
-
-  depends_on = [module.eks_config]
 }
