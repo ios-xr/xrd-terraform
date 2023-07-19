@@ -249,14 +249,9 @@ def stack(
     """
     # Use the current directory for the data dir (for plugin downloads, etc.)
     # and the state files.
-    eks_cluster_state_file = os.path.join(
-        os.getcwd(), "terraform-eks-cluster.tfstate"
-    )
-    overlay_state_file = os.path.join(
-        os.getcwd(), "terraform-overlay.tfstate"
-    )
-    data_dir = os.path.join(os.getcwd(), ".terraform")
-    os.environ["TF_DATA_DIR"] = data_dir
+    cwd = Path.cwd()
+    data_dir = cwd / ".terraform"
+    os.environ["TF_DATA_DIR"] = str(data_dir)
 
     # Run the terraform stack to provision AWS resources.
     tf_vars = {}
@@ -264,25 +259,34 @@ def stack(
         request.config.option.eks_kubernetes_version
     )
 
-    eks_cluster = os.path.realpath(
-        os.path.join(__file__, "../../examples/eks-cluster")
-    )
-    tf_eks_cluster = tftest.TerraformTest(eks_cluster)
-    tf_eks_cluster.setup()
+    this_dir = Path(__file__).resolve().parent
 
-    overlay = os.path.realpath(
-        os.path.join(__file__, "../../examples/overlay")
+    tf_eks_cluster = tftest.TerraformTest(
+        this_dir.parent / "examples" / "infra" / "eks-cluster"
     )
-    tf_overlay = tftest.TerraformTest(overlay)
+    tf_eks_config = tftest.TerraformTest(
+        this_dir.parent / "examples" / "infra" / "eks-config"
+    )
+    tf_overlay = tftest.TerraformTest(
+        this_dir.parent / "examples" / "workload" / "overlay"
+    )
+
+    tf_eks_cluster.setup()
+    tf_eks_config.setup()
     tf_overlay.setup(extra_files=["overlay.tfvars"])
 
     try:
         if not request.config.option.aws_skip_bringup:
-            tf_eks_cluster.apply(state=eks_cluster_state_file)
+            tf_eks_cluster.apply(
+                state=str(cwd / "terraform-eks-cluster.tfstate")
+            )
+            tf_eks_config.apply(
+                state=str(cwd / "terraform-eks-config.tfstate")
+            )
             tf_overlay.apply(
+                state=str(cwd / "terraform-overlay.tfstate"),
                 tf_vars=tf_vars,
                 tf_var_file="overlay.tfvars",
-                state=overlay_state_file,
             )
 
         # Ensure the Kubernetes config is updated.
@@ -301,11 +305,16 @@ def stack(
     finally:
         if not request.config.option.aws_skip_teardown:
             tf_overlay.destroy(
+                state=str(cwd / "terraform-overlay.tfstate"),
                 tf_vars=tf_vars,
                 tf_var_file="overlay.tfvars",
-                state=overlay_state_file,
             )
-            tf_eks_cluster.destroy(state=eks_cluster_state_file)
+            tf_eks_config.destroy(
+                state=str(cwd / "terraform-eks-config.tfstate")
+            )
+            tf_eks_cluster.destroy(
+                state=str(cwd / "terraform-eks-cluster.tfstate")
+            )
 
 
 @pytest.fixture(scope="session")
