@@ -100,10 +100,6 @@ provider "kubernetes" {
   }
 }
 
-locals {
-  create_workload = var.create_nodes && var.create_workload
-}
-
 resource "aws_subnet" "data" {
   count = 4
 
@@ -255,7 +251,7 @@ locals {
 module "node" {
   source = "../../../modules/aws/node"
 
-  for_each = var.create_nodes ? local.nodes : {}
+  for_each = local.nodes
 
   name                 = each.key
   ami                  = each.value.ami
@@ -270,8 +266,6 @@ module "node" {
 }
 
 resource "helm_release" "xrd1" {
-  count = local.create_workload ? 1 : 0
-
   name       = "xrd1"
   repository = "https://ios-xr.github.io/xrd-helm"
   chart      = "xrd-vrouter"
@@ -291,8 +285,6 @@ resource "helm_release" "xrd1" {
 }
 
 resource "helm_release" "xrd2" {
-  count = local.create_workload ? 1 : 0
-
   name       = "xrd2"
   repository = "https://ios-xr.github.io/xrd-helm"
   chart      = "xrd-vrouter"

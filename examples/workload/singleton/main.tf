@@ -180,8 +180,6 @@ module "node" {
 
 # Install the XRd workload into the cluster.
 locals {
-  create_workload = var.create_nodes && var.create_workload
-
   vrouter = var.xrd_platform == "vRouter"
 
   default_repo_names = {
@@ -198,8 +196,6 @@ locals {
 }
 
 resource "helm_release" "xrd1" {
-  count = local.create_workload ? 1 : 0
-
   name       = "xrd1"
   repository = "https://ios-xr.github.io/xrd-helm"
   chart      = local.vrouter ? "xrd-vrouter" : "xrd-control-plane"

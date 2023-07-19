@@ -12,13 +12,6 @@ variable "cluster_version" {
   default     = "1.27"
 }
 
-variable "create_nodes" {
-  description = "Whether to create any worker nodes."
-  type        = bool
-  nullable    = false
-  default     = true
-}
-
 variable "node_ami" {
   description = "Custom AMI to use for the worker nodes."
   type        = string
@@ -34,13 +27,6 @@ variable "node_instance_type" {
     condition     = contains(["m5.2xlarge", "m5n.2xlarge", "m5.24xlarge", "m5n.24xlarge"], var.node_instance_type)
     error_message = "Allowed values are m5.2xlarge, m5n.2xlarge, m5.24xlarge, m5n.24xlarge"
   }
-}
-
-variable "create_workload" {
-  description = "Whether to install the XRd Helm chart into the cluster."
-  type        = bool
-  nullable    = false
-  default     = true
 }
 
 variable "xrd_platform" {
