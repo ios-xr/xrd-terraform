@@ -91,8 +91,8 @@ routers, this is just intended for lab usage.
 To tear down all of the resources, run:
 
 ```
-cd examples/overlay
-terraform destroy
+terraform -chdir=examples/overlay destroy
+terraform -chdir=examples/eks-cluster destroy
 rm quickstart.auto.tfvars
 ```
 
@@ -125,18 +125,20 @@ As such, more detail for these modules can be found on the
 
 ### Example Modules
 
-There are three example modules in the repository:
+There are four example modules in the repository:
 
-  - [`singleton`](examples/singleton/README.md), which brings up a cluster
-    with a single worker node, and runs a single XRd workload on it.
-  - [`overlay`](examples/overlay/README.md),, which brings up a cluster with
-    a pair of back-to-back XRd instances running an overlay network using
-    GRE, IS-IS and L3VPN; and a pair of linux containers that communicate via
-    the overlay network.
-  - [`ha`](examples/ha/README.md), which brings up a cluster with a pair of
-    XRd instances with associated
-    [HA applications](https://github.com/ios-xr/xrd-ha-app) that facilitate
-    failover.
+  - [`eks-cluster`](examples/eks-cluster/README.md), which brings up a
+    minimal EKS cluster.  This serves as a base for other example modules.
+  - [`singleton`](examples/singleton/README.md), which brings up a single
+    worker node in a pre-provisioned EKS cluster, and runs a single XRd
+    workload on it.
+  - [`overlay`](examples/overlay/README.md), which brings up three worker nodes
+    in a pre-provisioned EKS cluster, and deploys a pair of back-to-back XRd
+    instances running an overlay network using GRE, IS-IS and L3VPN; and a pair
+    of linux containers that communicate via the overlay network.
+  - [`ha`](examples/ha/README.md), which deploys a pair of XRd instances with
+    associated [HA applications](https://github.com/ios-xr/xrd-ha-app) that
+    facilitate failover.
 
 ## Running Examples
 
@@ -145,70 +147,84 @@ listed [above](#requirements), including having an AMI suitable for running
 the required XRd platform available.
 
 Once you have satisfied the requirements, each example can be launched like
-any other Terraform module.
+any any other Terraform module.  The `eks-cluster` example provisions a
+minimal EKS cluster and serves as a base for the other example modules; you
+should therefore launch this example before others.
 
-Running the module will take around 20 minutes, most of which is
-taken up waiting for the EKS control plane to launch.
+Running the `eks-cluster` example takes around 15 minutes.  Other examples
+take around 5 minutes.
 
-Step-by-step instructions for this can be found in the following sections.
+The following sections walk through instantiating the `overlay` example.
 More details on all the Terraform command options can be found in the
 [Terraform CLI documentation](https://developer.hashicorp.com/terraform/cli).
 
 ### Bring-up
 
-Firstly, clone this repository and navigate to the example's directory.
+Firstly, clone this repository.
 
-Terraform needs to initialize all the submodules, which can be done by
-running:
+The `eks-cluster` example must be run first.  This provisions a minimal EKS
+cluster, and serves as a base for the other examples.
 
-```
-terraform init
-```
-
-Once Terraform has initialized, you should check the
-[`variables.tf`](variables.tf) file to find all the configuration options for
-the example.
-
-Create a file called `vars.tfvars` and set the configuration you want to
-use following the
-[variable definitions file format](https://developer.hashicorp.com/terraform/language/values/variables#variable-definitions-tfvars-files),
-e.g.:
+Use [`terraform
+init`](https://developer.hashicorp.com/terraform/cli/commands/init) and
+[`terraform
+apply`](https://developer.hashicorp.com/terraform/cli/commands/apply) to run
+the `eks-cluster` example:
 
 ```
-cluster_version = 1.26
-xr_root_user = "testuser"
-xr_root_password = "testpass"
+terraform -chdir=examples/eks-cluster init
+terraform -chdir=examples/eks-cluster apply
+```
+
+Terraform will show you a changeset and ask you to confirm that it should
+proceed.  It takes around 15 minutes to bring up the EKS cluster.
+
+When the apply is complete you can then run the `overlay` example.  The
+procedure is largely the same; although you should first check the
+[`variables.tf`](examples/overlay/variables.tf) file to find all the
+configuration options, and then create a file `vars.tfvars` to set the
+configuration options you want use following the [variable definitions file
+format](https://developer.hashicorp.com/terraform/language/values/variables#variable-definitions-tfvars-files):
+
+```
+cat <<- EOF
+  cluster_version = 1.26
+  xr_root_user = "root"
+  xr_root_password = "mypassword"
+EOF > vars.tfvars
 ```
 
 Terraform can then be run using the following command:
 
 ```
-terraform apply -var-file=vars.tfvars
+terraform -chdir=examples/overlay init
+terraform -chdir=examples/overlay apply -var-file=vars.tfvars
 ```
 
-Configuration options can also be configured on the CLI, e.g.:
+Configuration options can also be [configured on the
+CLI](https://developer.hashicorp.com/terraform/language/values/variables#variables-on-the-command-line):
 
 ```
-terraform apply -var cluster_version=1.26
+terraform -chdir=examples/overlay apply -var cluster_version=1.26
 ```
 
-Terraform will show you a changeset and ask you to confirm that it should
-proceed. Once you have done so, it will take around 20 minutes to completely
-bring up the example.
+It should take around 5 minutes to bring up the `overlay` example.
 
 ### Modification
 
 Once the topology has been launched, any changes you make to the configuration
 can be applied by modifying the configuration file and re-running the
-`terraform apply -var-file=vars.tfvars` command - Terraform will compute the
-minimal diff required to satisfy your new configuration and apply it.
+`terraform -chdir=examples/overlay apply -var-file=vars.tfvars` command -
+Terraform will compute the minimal diff required to satisfy your new
+configuration and apply it.
 
 ### Teardown
 
 When you've finished with the topology, it can be torn down with:
 
 ```
-terraform destroy -var-file=vars.tfvars
+terraform -chdir=examples/overlay destroy -var-file=vars.tfvars
+terraform -chdir=examples/eks-cluster destroy
 ```
 
 N.B. It is recommended to pass the same configuration to `terraform destroy`
