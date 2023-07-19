@@ -115,5 +115,4 @@ module "eks_config" {
 
   cluster_name = var.cluster_name
   oidc_issuer  = data.aws_eks_cluster.this.identity[0].oidc[0].issuer
-  wait         = var.wait
 }

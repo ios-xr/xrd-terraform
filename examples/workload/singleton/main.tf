@@ -199,7 +199,6 @@ resource "helm_release" "xrd1" {
   name       = "xrd1"
   repository = "https://ios-xr.github.io/xrd-helm"
   chart      = local.vrouter ? "xrd-vrouter" : "xrd-control-plane"
-  wait       = false
 
   values = [
     templatefile(

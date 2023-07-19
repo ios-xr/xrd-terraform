@@ -5,7 +5,7 @@ output "cluster_name" {
 
 output "oidc_issuer" {
   description = "OIDC issuer URL for the cluster"
-  value       = var.oidc_issuer
+  value       = module.eks_config.oidc_issuer
 }
 
 output "oidc_provider" {

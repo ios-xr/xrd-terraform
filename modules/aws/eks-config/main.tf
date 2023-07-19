@@ -129,7 +129,7 @@ resource "helm_release" "ebs_csi" {
     name  = "controller.serviceAccount.annotations.eks\\.amazonaws\\.com/role-arn"
     value = module.ebs_csi_irsa.role_arn
   }
-  wait = var.wait
+  wait = false
 }
 
 data "http" "multus_yaml" {
