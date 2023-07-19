@@ -17,6 +17,14 @@ There are two recommended flows for this:
      generic fully-connected infrastructure and edit the wrapper Helm
      chart it generates for your use-case.
 
+Both workflows assume an EKS cluster has already been provisioned; you can run
+the `eks-cluster` example to do this:
+
+```
+terraform -chdir=examples/eks-cluster init
+terraform -chdir=examples/eks-cluster apply
+```
+
 ### Copying an example
 
 To do this, copy the entire example folder to a new folder, e.g. to start
@@ -29,7 +37,7 @@ terraform init
 terraform apply
 ```
 
-Then make any changes you want an re-run `terraform apply` - Terraform
+Then make any changes you want and re-run `terraform apply` - Terraform
 will calculate the required minimal changeset and apply it.
 
 ### Using the flexible topology module
@@ -81,24 +89,15 @@ This can then be instantiated by the normal `terraform init` and
 
 By far the largest cost of any setup is the EC2 instances.
 
-Therefore, when a deployment is not in direct use, but is useful to keep
-available, all the worker nodes in the cluster should be stopped. There
-are two ways to do this:
+The cost of the EKS cluster itself is minimal in comparison; and note that the
+time taken to provision the EKS cluster (around 15 minutes) is much greater
+than the time taken to provision the workload (around 5 minutes).
 
-  1. Terminate all the worker nodes when the cluster is not required.
-     All of the example and developer modules in this repository support
-     setting `create_nodes=false` to achieve this. If you've written
-     your own module which does not support this, it can be achieved by
-     setting the `count` meta-argument in all calls out to the `node` module
-     to zero in your main Terraform module. Once this is done, re-run
-     `terraform apply` to implement the changes.  When the cluster is required
-     again, simply revert whatever change was made and run `terraform apply`
-     once more.
+It is therefore recommended that the workload is torn down when a deployment is
+not in direct use.  To do this run `terraform destroy` in your copied module,
+or in your module using the `flex` example; but do not run `terraform destroy`
+in the `eks-cluster` module.
 
-  2. Stop all the worker nodes when the cluster is not required. This requires
-     manual action in the AWS console or CLI to stop each worker node
-     individually. In this state you are still charged for any
-     allocated storage, but that is a trivial cost compared to the compute
-     costs which are not charged when the instance is stopped.  When the
-     cluster is required again the worker nodes can be started and the cluster
-     will resume.
+You can then run `terraform apply` in your module to bring up the workload
+again quickly, without having to wait 15 minutes for the EKS cluster to be
+provisioned.
