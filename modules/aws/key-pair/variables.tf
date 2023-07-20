@@ -4,9 +4,8 @@ variable "key_name" {
   nullable    = false
 }
 
-variable "download" {
-  description = "Whether to download the key to the local machine after creation"
-  type        = bool
-  nullable    = false
-  default     = false
+output "filename" {
+  description = "Path to the file that the key pair is written to"
+  value       = var.filename ? local_sensitive_file.this.filename : null
+  default     = null
 }
