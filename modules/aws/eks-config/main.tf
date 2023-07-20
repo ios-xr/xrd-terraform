@@ -61,7 +61,6 @@ resource "aws_iam_instance_profile" "node" {
   role = aws_iam_role.node.name
 }
 
-
 data "tls_certificate" "this" {
   url = var.oidc_issuer
 }
