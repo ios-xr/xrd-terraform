@@ -30,7 +30,7 @@ resource "kubectl_manifest" "this" {
   }
 
   yaml_body        = each.value
-  wait_for_rollout = false
+  wait_for_rollout = true
 }
 
 output "docs" {

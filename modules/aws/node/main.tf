@@ -11,6 +11,11 @@ terraform {
       source  = "hashicorp/kubernetes"
       version = ">= 2.18"
     }
+
+    time = {
+      source  = "hashicorp/time"
+      version = "~> 0.9"
+    }
   }
 }
 
@@ -186,7 +191,7 @@ resource "time_sleep" "wait" {
   create_duration = "5s"
 
   triggers = {
-    job_uid = kubernetes_job.wait.metadata[0].uid    
+    job_uid   = kubernetes_job.wait.metadata[0].uid
     node_name = var.name
   }
 }
