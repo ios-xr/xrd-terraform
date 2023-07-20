@@ -61,8 +61,11 @@ data "aws_security_group" "access" {
   vpc_id = data.aws_vpc.this.id
 }
 
-data "aws_iam_instance_profile" "node" {
-  name = "${var.cluster_name}-${data.aws_region.current.name}-node"
+data "kubernetes_config_map" "eks_config" {
+  metadata {
+    name      = "terraform-eks-config"
+    namespace = "kube-system"
+  }
 }
 
 provider "helm" {
@@ -150,9 +153,9 @@ module "node" {
   name                 = "alpha"
   ami                  = local.xrd_ami
   cluster_name         = var.cluster_name
-  iam_instance_profile = data.aws_iam_instance_profile.node.name
+  iam_instance_profile = data.kubernetes_config_map.eks_config.data.node_iam_instance_profile_name
   instance_type        = var.node_instance_type
-  key_name             = "${var.cluster_name}-instance"
+  key_name             = data.kubernetes_config_map.eks_config.data.key_name
   network_interfaces = [
     {
       subnet_id          = local.data_1_subnet_id,
