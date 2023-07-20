@@ -285,6 +285,8 @@ resource "helm_release" "xrd1" {
       }
     )
   ]
+
+  depends_on = [module.node["alpha"].ready]
 }
 
 resource "helm_release" "xrd2" {
@@ -304,6 +306,8 @@ resource "helm_release" "xrd2" {
       }
     )
   ]
+
+  depends_on = [module.node["beta"].ready]
 }
 
 module "simple_host1" {
@@ -314,6 +318,11 @@ module "simple_host1" {
   ip_address = "10.0.1.10/24"
   gateway    = "10.0.1.11"
   routes     = ["10.0.4.0/24"]
+  node_selector = {
+    name = "gamma"
+  }
+
+  depends_on = [module.node["gamma"].ready]
 }
 
 module "simple_host2" {
@@ -324,4 +333,9 @@ module "simple_host2" {
   ip_address = "10.0.4.10/24"
   gateway    = "10.0.4.12"
   routes     = ["10.0.1.0/24"]
+  node_selector = {
+    name = "gamma"
+  }
+
+  depends_on = [module.node["gamma"].ready]
 }

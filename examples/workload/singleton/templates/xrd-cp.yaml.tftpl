@@ -8,8 +8,6 @@ resources:
 persistence:
   enabled: true
   storageClass: gp2
-nodeSelector:
-  name: "${node_name}"
 affinity: |
   podAffinity:
     requiredDuringSchedulingIgnoredDuringExecution:
