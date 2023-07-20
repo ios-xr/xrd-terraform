@@ -26,3 +26,7 @@ output "xrd_cpuset" {
 output "network_interface" {
   value = aws_network_interface.this
 }
+
+output "name" {
+  value = kubernetes_job.wait.spec[0].template[0].spec[0].node_name
+}

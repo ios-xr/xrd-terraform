@@ -6,6 +6,11 @@ terraform {
       source  = "hashicorp/aws"
       version = ">= 5.0"
     }
+
+    kubernetes = {
+      source  = "hashicorp/kubernetes"
+      version = ">= 2.18"
+    }
   }
 }
 
@@ -148,4 +153,29 @@ resource "aws_network_interface" "this" {
   tags = {
     "node.k8s.amazonaws.com/no_manage" = "true"
   }
+}
+
+resource "kubernetes_job" "wait" {
+  metadata {
+    generate_name = "wait-for-node-ready-"
+    namespace     = "kube-system"
+  }
+  spec {
+    template {
+      metadata {}
+      spec {
+        container {
+          name    = "main"
+          image   = "alpine"
+          command = ["sh", "-c", "true"]
+        }
+        node_name      = var.name
+        restart_policy = "Never"
+      }
+    }
+  }
+  timeouts {
+    create = "5m"
+  }
+  wait_for_completion = true
 }
