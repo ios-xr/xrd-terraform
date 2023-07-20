@@ -207,7 +207,7 @@ resource "helm_release" "xrd1" {
     templatefile(
       local.vrouter ? "${path.module}/templates/xrd-vr.yaml.tftpl" : "${path.module}/templates/xrd-cp.yaml.tftpl",
       {
-        node_name                = "alpha"
+        node_name                = module.node.name
         image_repository         = local.image_repository
         image_tag                = var.image_tag
         xr_root_user             = var.xr_root_user
