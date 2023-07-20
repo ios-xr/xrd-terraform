@@ -169,7 +169,9 @@ resource "kubernetes_job" "wait" {
           image   = "alpine"
           command = ["sh", "-c", "true"]
         }
-        node_name      = var.name
+        node_selector = {
+          name = aws_instance.this.tags["Name"]
+        }
         restart_policy = "Never"
       }
     }

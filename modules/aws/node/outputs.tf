@@ -28,5 +28,5 @@ output "network_interface" {
 }
 
 output "name" {
-  value = kubernetes_job.wait.spec[0].template[0].spec[0].node_name
+  value = kubernetes_job.wait.spec[0].template[0].spec[0].node_selector["name"]
 }
