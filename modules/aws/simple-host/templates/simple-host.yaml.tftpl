@@ -34,9 +34,7 @@ spec:
             topologyKey: "kubernetes.io/hostname"
       %{ if node_selector != null ~}
       nodeSelector:
-        %{ for label, value in node_selector ~}
-        ${label}: ${value}
-        %{ endfor ~}
+        %{ for label, value in node_selector }${label}: ${value}%{ endfor }
       %{ endif ~}
 ---
 apiVersion: "k8s.cni.cncf.io/v1"
