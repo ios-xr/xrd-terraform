@@ -141,13 +141,13 @@ terraform_apply () {
     echo "node_ami=\"$AMI_ID\"" >> "$tfvars"
   fi
 
-  trap terraform_destroy ERR EXIT 
+  trap terraform_destroy ERR EXIT
 
   terraform -chdir="$SCRIPT_DIR"/examples/infra/eks-cluster apply -auto-approve -var cluster_version="$KUBERNETES_VERSION"
   terraform -chdir="$SCRIPT_DIR"/examples/infra/eks-config apply -auto-approve
   terraform -chdir="$SCRIPT_DIR"/examples/workload/overlay apply -auto-approve
 
-  trap - ERR EXIT 
+  trap - ERR EXIT
 }
 
 terraform_destroy () {
