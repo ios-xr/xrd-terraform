@@ -4,7 +4,7 @@ variable "key_name" {
   nullable    = false
 }
 
-output "filename" {
+variable "filename" {
   description = "Path to the file that the key pair is written to"
   value       = var.filename ? local_sensitive_file.this.filename : null
   default     = null
