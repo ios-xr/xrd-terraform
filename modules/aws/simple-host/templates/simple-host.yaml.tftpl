@@ -23,13 +23,6 @@ spec:
           imagePullPolicy: IfNotPresent
           tty: true
           stdin: true
-      initContainers:
-        - name: init-multus
-          image: busybox
-          command:
-            - "sh"
-            - "-c"
-            - "test -f /opt/cni/bin/multus"
       affinity:
         podAffinity:
           requiredDuringSchedulingIgnoredDuringExecution:
