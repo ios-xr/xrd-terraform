@@ -23,10 +23,6 @@ spec:
           imagePullPolicy: IfNotPresent
           tty: true
           stdin: true
-      initContainers:
-        - name: init-multus
-          image: busybox
-          command: ["sleep", "10"]
       affinity:
         podAffinity:
           requiredDuringSchedulingIgnoredDuringExecution:
