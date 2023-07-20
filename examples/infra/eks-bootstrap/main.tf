@@ -126,7 +126,7 @@ resource "kubernetes_config_map" "this" {
   data = {
     oidc_provider                  = module.eks_config.oidc_provider
     node_iam_instance_profile_name = module.eks_config.node_iam_instance_profile_name
-    key_pair_filename                       = module.key_pair.filename
+    key_pair_filename              = module.key_pair.filename
     key_name                       = module.key_pair.key_name
     bastion_public_ip              = module.bastion.public_ip
   }

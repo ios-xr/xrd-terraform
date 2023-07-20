@@ -19,6 +19,6 @@ variable "routes" {
 }
 
 variable "node_selector" {
-  type = map(string)
+  type    = map(string)
   default = null
 }

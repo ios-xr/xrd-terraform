@@ -6,6 +6,6 @@ variable "key_name" {
 
 variable "filename" {
   description = "Path to the file that the key pair is written to"
-  type = string
+  type        = string
   default     = null
 }

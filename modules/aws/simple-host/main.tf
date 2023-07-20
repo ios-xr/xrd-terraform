@@ -13,11 +13,11 @@ data "kubectl_file_documents" "this" {
   content = templatefile(
     "${path.module}/templates/simple-host.yaml.tftpl",
     {
-      name       = var.name
-      device     = var.device
-      ip_address = var.ip_address
-      gateway    = var.gateway
-      routes     = var.routes
+      name          = var.name
+      device        = var.device
+      ip_address    = var.ip_address
+      gateway       = var.gateway
+      routes        = var.routes
       node_selector = var.node_selector
     }
   )
