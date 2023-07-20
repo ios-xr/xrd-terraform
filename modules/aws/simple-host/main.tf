@@ -18,6 +18,7 @@ data "kubectl_file_documents" "this" {
       ip_address = var.ip_address
       gateway    = var.gateway
       routes     = var.routes
+      node_selector = var.node_selector
     }
   )
 }

@@ -17,3 +17,8 @@ variable "gateway" {
 variable "routes" {
   type = list(string)
 }
+
+variable "node_selector" {
+  type = map(string)
+  default = null
+}

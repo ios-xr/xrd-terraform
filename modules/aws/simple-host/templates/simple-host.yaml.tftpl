@@ -23,8 +23,21 @@ spec:
           imagePullPolicy: IfNotPresent
           tty: true
           stdin: true
+      affinity:
+        podAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+          - labelSelector:
+              matchLabels:
+                app=multus
+                name=multus
+                tier=node
+            topologyKey: "kubernetes.io/hostname"
+      %{ if node_selector != null ~}
       nodeSelector:
-        name: gamma
+        %{ for label, value in node_selector ~}
+        ${label}: ${value}
+        %{ endfor ~}
+      ${ endif ~}
 ---
 apiVersion: "k8s.cni.cncf.io/v1"
 kind: NetworkAttachmentDefinition
