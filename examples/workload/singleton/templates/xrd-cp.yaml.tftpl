@@ -8,17 +8,6 @@ resources:
 persistence:
   enabled: true
   storageClass: gp2
-affinity: |
-  podAffinity:
-    requiredDuringSchedulingIgnoredDuringExecution:
-      - labelSelector:
-          matchLabels:
-            app: multus
-            name: multus
-            tier: node
-        namespaces:
-          - kube-system
-        topologyKey: "kubernetes.io/hostname"
 config:
   username: ${xr_root_user}
   password: ${xr_root_password}
