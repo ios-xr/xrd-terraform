@@ -218,4 +218,6 @@ resource "helm_release" "xrd1" {
       }
     )
   ]
+
+  depends_on = [module.node.ready]
 }
