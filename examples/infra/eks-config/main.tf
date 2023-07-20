@@ -116,3 +116,17 @@ module "eks_config" {
   cluster_name = var.cluster_name
   oidc_issuer  = data.aws_eks_cluster.this.identity[0].oidc[0].issuer
 }
+
+resource "kubernetes_config_map" "this" {
+  metadata {
+    name      = "terraform-eks-config"
+    namespace = "kube-system"
+  }
+
+  data = {
+    oidc_provider                  = module.eks_config.oidc_provider
+    node_iam_instance_profile_name = module.eks_config.node_iam_instance_profile_name
+    key_name                       = module.key_pair.key_name
+    bastion_public_ip              = module.bastion.public_ip
+  }
+}

@@ -4,10 +4,3 @@ variable "cluster_name" {
   nullable    = false
   default     = "xrd-cluster"
 }
-
-variable "wait" {
-  description = "Whether to wait for resources to roll out"
-  type        = bool
-  nullable    = false
-  default     = true
-}
