@@ -37,7 +37,7 @@ spec:
         %{ for label, value in node_selector ~}
         ${label}: ${value}
         %{ endfor ~}
-      ${ endif ~}
+      %{ endif ~}
 ---
 apiVersion: "k8s.cni.cncf.io/v1"
 kind: NetworkAttachmentDefinition
