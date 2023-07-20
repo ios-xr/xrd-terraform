@@ -61,9 +61,16 @@ data "aws_subnet" "cluster" {
   cidr_block = "10.0.0.0/24"
 }
 
-data "aws_subnet" "public" {
-  vpc_id     = data.aws_vpc.this.id
-  cidr_block = "10.0.200.0/24"
+data "aws_security_group" "access" {
+  name   = "access"
+  vpc_id = data.aws_vpc.this.id
+}
+
+data "kubernetes_config_map" "eks_bootstrap" {
+  metadata {
+    name      = "terraform-eks-bootstrap"
+    namespace = "kube-system"
+  }
 }
 
 provider "helm" {
@@ -109,8 +116,6 @@ module "eks_config" {
 }
 
 locals {
-  create_bastion = var.create_bastion
-
   intra_subnets = [
     "10.0.1.0/24",
     "10.0.2.0/24",
@@ -161,26 +166,8 @@ locals {
 }
 
 locals {
-  public_subnet_id    = data.aws_subnet.public.id
   cluster_subnet_id   = data.aws_subnet.cluster.id
   cluster_subnet_cidr = data.aws_subnet.cluster.cidr_block
-}
-
-resource "aws_security_group" "comms" {
-  name   = "comms"
-  vpc_id = data.aws_vpc.this.id
-  ingress {
-    from_port = 0
-    to_port   = 0
-    protocol  = -1
-    self      = true
-  }
-  egress {
-    from_port   = 0
-    to_port     = 0
-    protocol    = -1
-    cidr_blocks = ["0.0.0.0/0"]
-  }
 }
 
 resource "aws_security_group" "data" {
@@ -198,24 +185,6 @@ resource "aws_security_group" "data" {
     protocol  = -1
     self      = true
   }
-}
-
-module "key_pair" {
-  source = "../../modules/aws/key-pair"
-
-  key_name = "${var.cluster_name}-instance"
-  download = true
-}
-
-module "bastion" {
-  source = "../../modules/aws/bastion"
-
-  count = local.create_bastion ? 1 : 0
-
-  instance_type      = "t3.nano"
-  key_name           = module.key_pair.key_name
-  security_group_ids = [aws_security_group.comms.id]
-  subnet_id          = local.public_subnet_id
 }
 
 module "xrd_ami" {
@@ -249,21 +218,19 @@ module "node" {
   name                 = each.key
   ami                  = var.node_ami != null ? var.node_ami : module.xrd_ami[0].id
   cluster_name         = var.cluster_name
-  iam_instance_profile = module.eks_config.node_iam_instance_profile_name
+  iam_instance_profile = data.kubernetes_config_map.eks_bootstrap.data.node_iam_instance_profile_name
   instance_type        = local.instance_type
-  key_name             = module.key_pair.key_name
+  key_name             = data.kubernetes_config_map.eks_bootstrap.data.key_name
   private_ip_address   = each.value.private_ip_address
   security_groups = [
     data.aws_eks_cluster.this.vpc_config[0].cluster_security_group_id,
-    aws_security_group.comms.id,
+    data.aws_security_group.access.id,
   ]
   subnet_id          = local.cluster_subnet_id
   network_interfaces = each.value.network_interfaces
 }
 
 locals {
-  create_helm_chart = var.create_nodes && var.create_helm_chart
-
   vrouter = var.xrd_platform == "vRouter"
 
   default_repo_names = {
@@ -288,7 +255,7 @@ locals {
 }
 
 resource "local_file" "chart_yaml" {
-  count = local.create_helm_chart ? 1 : 0
+  count = var.create_helm_chart ? 1 : 0
 
   content = templatefile(
     "${path.module}/templates/Chart.yaml.tftpl",
@@ -305,7 +272,7 @@ resource "local_file" "chart_yaml" {
 }
 
 resource "local_file" "chart_values_yaml" {
-  count = local.create_helm_chart ? 1 : 0
+  count = var.create_helm_chart ? 1 : 0
 
   content = templatefile(
     local.values_template_file,
