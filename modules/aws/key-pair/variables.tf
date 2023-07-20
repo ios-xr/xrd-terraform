@@ -6,6 +6,6 @@ variable "key_name" {
 
 variable "filename" {
   description = "Path to the file that the key pair is written to"
-  value       = var.filename ? local_sensitive_file.this.filename : null
+  type = string
   default     = null
 }
