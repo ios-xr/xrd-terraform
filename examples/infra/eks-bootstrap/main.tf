@@ -98,7 +98,7 @@ module "key_pair" {
   source = "../../../modules/aws/key-pair"
 
   key_name = "${var.cluster_name}-instance"
-  filename = "${path.root}/${var.cluster_name}-instance.pem"
+  filename = "${abspath(path.root)}/${var.cluster_name}-instance.pem"
 }
 
 module "bastion" {
