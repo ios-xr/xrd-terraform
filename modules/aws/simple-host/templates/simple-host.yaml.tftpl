@@ -26,11 +26,13 @@ spec:
       affinity:
         podAffinity:
           requiredDuringSchedulingIgnoredDuringExecution:
-          - labelSelector:
-              matchLabels:
-                app: multus
-                name: multus
-                tier: node
+            - labelSelector:
+                matchLabels:
+                  app: multus
+                  name: multus
+                  tier: node
+              namespaces:
+                - kube-system
             topologyKey: "kubernetes.io/hostname"
       %{ if node_selector != null }nodeSelector:
         %{ for label, value in node_selector }${label}: ${value}%{ endfor }%{ endif }
