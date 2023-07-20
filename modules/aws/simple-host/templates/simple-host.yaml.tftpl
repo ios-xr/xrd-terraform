@@ -28,9 +28,9 @@ spec:
           requiredDuringSchedulingIgnoredDuringExecution:
           - labelSelector:
               matchLabels:
-                app=multus
-                name=multus
-                tier=node
+                app: multus
+                name: multus
+                tier: node
             topologyKey: "kubernetes.io/hostname"
       %{ if node_selector != null ~}
       nodeSelector:
