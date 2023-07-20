@@ -10,8 +10,19 @@ xrd${i + 1}:
       memory: 8Gi
   securityContext:
     privileged: true
+  affinity: |
+    podAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+        - labelSelector:
+            matchLabels:
+              app: multus
+              name: multus
+              tier: node
+          namespaces:
+            - kube-system
+          topologyKey: "kubernetes.io/hostname"
   nodeSelector:
-      xrd.node: ${node_name}
+    xrd.node: ${node_name}
   persistence:
     enabled: true
     size: "6Gi"
