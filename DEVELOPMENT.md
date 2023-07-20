@@ -17,12 +17,15 @@ There are two recommended flows for this:
      generic fully-connected infrastructure and edit the wrapper Helm
      chart it generates for your use-case.
 
-Both workflows assume an EKS cluster has already been provisioned; you can run
-the `eks-cluster` example to do this:
+Both workflows assume a suitable EKS cluster has already been provisioned; you
+can run the `eks-cluster` and `eks-bootstrap` infrastructure modules to do
+this:
 
 ```
-terraform -chdir=examples/eks-cluster init
-terraform -chdir=examples/eks-cluster apply
+terraform -chdir=examples/infra/eks-cluster init
+terraform -chdir=examples/infra/eks-cluster apply
+terraform -chdir=examples/infra/eks-bootstrap init
+terraform -chdir=examples/infra/eks-bootstrap apply
 ```
 
 ### Copying an example
@@ -31,7 +34,7 @@ To do this, copy the entire example folder to a new folder, e.g. to start
 from the overlay example run:
 
 ```
-cp -r examples/overlay mymodule
+cp -r examples/workload/overlay mymodule
 cd mymodule
 terraform init
 terraform apply
