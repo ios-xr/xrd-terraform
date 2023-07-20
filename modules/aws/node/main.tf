@@ -191,7 +191,6 @@ resource "time_sleep" "wait" {
   create_duration = "5s"
 
   triggers = {
-    job_uid   = kubernetes_job.wait.metadata[0].uid
-    node_name = var.name
+    job_uid = kubernetes_job.wait.metadata[0].uid
   }
 }

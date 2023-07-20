@@ -27,6 +27,6 @@ output "network_interface" {
   value = aws_network_interface.this
 }
 
-output "name" {
-  value = time_sleep.wait.triggers.node_name
+output "ready" {
+  value = time_sleep.wait.id
 }
