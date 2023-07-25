@@ -147,10 +147,10 @@ both `eks-cluster` and `eks-setup` cloud infrastructure modules.
 There are two examples, each of which provides an illustrative deployment
 scenario:
 
-  - [`singleton`](examples/workload/singleton/README.md): launches a single
+  - [`singleton`](examples/workload/singleton/README.md): launch a single
     worker node in a pre-provisioned EKS cluster, and runs a single XRd
     workload on it.
-  - [`overlay`](examples/workload/overlay/README.md): launches three worker
+  - [`overlay`](examples/workload/overlay/README.md): launch three worker
     nodes in a pre-provisioned EKS cluster, and deploys a pair of back-to-back
     XRd instances running an overlay network using GRE, IS-IS and L3VPN; and a
     pair of linux containers that communicate via the overlay network.
