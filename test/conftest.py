@@ -264,15 +264,15 @@ def stack(
     tf_eks_cluster = tftest.TerraformTest(
         this_dir.parent / "examples" / "infra" / "eks-cluster"
     )
-    tf_eks_bootstrap = tftest.TerraformTest(
-        this_dir.parent / "examples" / "infra" / "eks-bootstrap"
+    tf_eks_setup = tftest.TerraformTest(
+        this_dir.parent / "examples" / "infra" / "eks-setup"
     )
     tf_overlay = tftest.TerraformTest(
         this_dir.parent / "examples" / "workload" / "overlay"
     )
 
     tf_eks_cluster.setup()
-    tf_eks_bootstrap.setup()
+    tf_eks_setup.setup()
     tf_overlay.setup(extra_files=["overlay.tfvars"])
 
     try:
@@ -280,8 +280,8 @@ def stack(
             tf_eks_cluster.apply(
                 state=str(cwd / "terraform-eks-cluster.tfstate")
             )
-            tf_eks_bootstrap.apply(
-                state=str(cwd / "terraform-eks-bootstrap.tfstate")
+            tf_eks_setup.apply(
+                state=str(cwd / "terraform-eks-setup.tfstate")
             )
             tf_overlay.apply(
                 state=str(cwd / "terraform-overlay.tfstate"),
@@ -309,8 +309,8 @@ def stack(
                 tf_vars=tf_vars,
                 tf_var_file="overlay.tfvars",
             )
-            tf_eks_bootstrap.destroy(
-                state=str(cwd / "terraform-eks-bootstrap.tfstate")
+            tf_eks_setup.destroy(
+                state=str(cwd / "terraform-eks-setup.tfstate")
             )
             tf_eks_cluster.destroy(
                 state=str(cwd / "terraform-eks-cluster.tfstate")

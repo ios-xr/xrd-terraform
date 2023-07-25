@@ -18,14 +18,14 @@ There are two recommended flows for this:
      chart it generates for your use-case.
 
 Both workflows assume a suitable EKS cluster has already been provisioned; you
-can run the `eks-cluster` and `eks-bootstrap` infrastructure modules to do
+can run the `eks-cluster` and `eks-setup` infrastructure modules to do
 this:
 
 ```
 terraform -chdir=examples/infra/eks-cluster init
 terraform -chdir=examples/infra/eks-cluster apply
-terraform -chdir=examples/infra/eks-bootstrap init
-terraform -chdir=examples/infra/eks-bootstrap apply
+terraform -chdir=examples/infra/eks-setup init
+terraform -chdir=examples/infra/eks-setup apply
 ```
 
 ### Copying an example

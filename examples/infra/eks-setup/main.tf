@@ -119,7 +119,7 @@ module "eks_config" {
 
 resource "kubernetes_config_map" "this" {
   metadata {
-    name      = "terraform-eks-bootstrap"
+    name      = "terraform-eks-setup"
     namespace = "kube-system"
   }
 

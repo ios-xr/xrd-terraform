@@ -46,9 +46,9 @@ data "aws_security_group" "access" {
   vpc_id = data.aws_vpc.this.id
 }
 
-data "kubernetes_config_map" "eks_bootstrap" {
+data "kubernetes_config_map" "eks_setup" {
   metadata {
-    name      = "terraform-eks-bootstrap"
+    name      = "terraform-eks-setup"
     namespace = "kube-system"
   }
 }
@@ -130,9 +130,9 @@ module "node" {
   name                 = "alpha"
   ami                  = local.xrd_ami
   cluster_name         = var.cluster_name
-  iam_instance_profile = data.kubernetes_config_map.eks_bootstrap.data.node_iam_instance_profile_name
+  iam_instance_profile = data.kubernetes_config_map.eks_setup.data.node_iam_instance_profile_name
   instance_type        = var.node_instance_type
-  key_name             = data.kubernetes_config_map.eks_bootstrap.data.key_name
+  key_name             = data.kubernetes_config_map.eks_setup.data.key_name
   network_interfaces = [
     {
       subnet_id          = local.data_1_subnet_id,

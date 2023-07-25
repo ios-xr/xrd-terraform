@@ -130,7 +130,7 @@ ensure_ami_exists () {
 
 terraform_apply () {
   terraform -chdir="$SCRIPT_DIR"/examples/infra/eks-cluster init
-  terraform -chdir="$SCRIPT_DIR"/examples/infra/eks-bootstrap init
+  terraform -chdir="$SCRIPT_DIR"/examples/infra/eks-setup init
   terraform -chdir="$SCRIPT_DIR"/examples/workload/overlay init
 
   tfvars="${SCRIPT_DIR}/examples/workload/overlay/quickstart.auto.tfvars"
@@ -144,7 +144,7 @@ terraform_apply () {
   trap terraform_destroy ERR EXIT
 
   terraform -chdir="$SCRIPT_DIR"/examples/infra/eks-cluster apply -auto-approve -var cluster_version="$KUBERNETES_VERSION"
-  terraform -chdir="$SCRIPT_DIR"/examples/infra/eks-bootstrap apply -auto-approve
+  terraform -chdir="$SCRIPT_DIR"/examples/infra/eks-setup apply -auto-approve
   terraform -chdir="$SCRIPT_DIR"/examples/workload/overlay apply -auto-approve
 
   trap - ERR EXIT
@@ -152,7 +152,7 @@ terraform_apply () {
 
 terraform_destroy () {
   terraform -chdir="$SCRIPT_DIR"/examples/workload/overlay destroy -auto-approve
-  terraform -chdir="$SCRIPT_DIR"/examples/infra/eks-bootstrap destroy -auto-approve
+  terraform -chdir="$SCRIPT_DIR"/examples/infra/eks-setup destroy -auto-approve
   terraform -chdir="$SCRIPT_DIR"/examples/infra/eks-cluster destroy -auto-approve
   rm -f "$SCRIPT_DIR"/examples/workload/overlay/quickstart.auto.tfvars
 }

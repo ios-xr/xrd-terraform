@@ -127,11 +127,11 @@ Example modules are provided for the cloud infrastructure and workload layers.
 
 #### Cloud Infrastructure Modules
 
-Two modules are provided to create and bootstrap an EKS cluster:
+Two modules are provided to create and setup an EKS cluster:
 
   - [`eks-cluster`](examples/infra/eks-cluster/README.md): provision a minimal
     EKS cluster.
-  - [`eks-bootstrap`](examples/infra/eks-boostrap/README.md): bootstrap a
+  - [`eks-setup`](examples/infra/eks-setup/README.md): setup a
     pre-provisioned EKS cluster so that it is suitable for running XRd
     workloads.
 
@@ -162,7 +162,7 @@ listed [above](#requirements), including having an AMI suitable for running
 the required XRd platform available.
 
 Once you have satisfied the requirements, each example can be launched like any
-any other Terraform module.  The `eks-cluster` and `eks-bootstrap` examples
+any other Terraform module.  The `eks-cluster` and `eks-setup` examples
 provision an EKS cluster suitable for running XRd workloads, and serve as a
 base for the workload modules; you should therefore launch these modules
 in-order before launching a workload module.
@@ -192,11 +192,11 @@ terraform -chdir=examples/infra/eks-cluster apply
 Terraform will show you a changeset and ask you to confirm that it should
 proceed.  It takes around 15 minutes to bring up the EKS cluster.
 
-Then run the `eks-boostrap` module to bootstrap the EKS cluster:
+Then run the `eks-setup` module to setup the EKS cluster:
 
 ```
-terraform -chdir=examples/infra/eks-bootstrap init
-terraform -chdir=examples/infra/eks-bootstrap apply
+terraform -chdir=examples/infra/eks-setup init
+terraform -chdir=examples/infra/eks-setup apply
 ```
 
 When the cloud infrastructure modules have been applied, you can then apply
@@ -244,7 +244,7 @@ When you've finished with the topology, it can be torn down with:
 
 ```
 terraform -chdir=examples/workload/overlay destroy -var-file=vars.tfvars
-terraform -chdir=examples/infra/eks-bootstrap destroy
+terraform -chdir=examples/infra/eks-setup destroy
 terraform -chdir=examples/infra/eks-cluster destroy
 ```
 
