@@ -94,14 +94,14 @@ provider "kubernetes" {
 }
 
 resource "aws_subnet" "data" {
-  for_each = toset(["access_a", "trunk_1", "trunk_2", "access_b"])
+  for_each = { for i, name in ["access_a", "trunk_1", "trunk_2", "access_b"] : i => name }
 
   availability_zone = data.aws_subnet.cluster.availability_zone
-  cidr_block = "10.0.${count.index + 1}.0/24"
+  cidr_block        = "10.0.${each.key + 1}.0/24"
   vpc_id            = data.aws_vpc.this.id
 
   tags = {
-    Name = each.key
+    Name = each.value
   }
 }
 
