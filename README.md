@@ -141,8 +141,8 @@ can be applied.
 #### Workload Modules
 
 The workload modules require a pre-provisioned EKS cluster suitable for
-running XRd workloads; and therefore should be applied after the cloud
-infrastructure modules.
+running XRd workloads.  A workload module should therefore be applied after
+both `eks-cluster` and `eks-setup` cloud infrastructure modules.
 
 There are two examples, each of which provides an illustrative deployment
 scenario:
