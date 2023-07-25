@@ -12,11 +12,6 @@ terraform {
       version = "~> 2.9"
     }
 
-    http = {
-      source  = "hashicorp/http"
-      version = "~> 3.3"
-    }
-
     kubectl = {
       source  = "gavinbunney/kubectl"
       version = "~> 1.14"
@@ -30,11 +25,6 @@ terraform {
     time = {
       source  = "hashicorp/time"
       version = "~> 0.9"
-    }
-
-    tls = {
-      source  = "hashicorp/tls"
-      version = ">= 4.0"
     }
   }
 }

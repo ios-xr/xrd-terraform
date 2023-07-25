@@ -7,39 +7,14 @@ terraform {
       version = "~> 5.2"
     }
 
-    helm = {
-      source  = "hashicorp/helm"
-      version = "~> 2.9"
-    }
-
-    http = {
-      source  = "hashicorp/http"
-      version = "~> 3.3"
-    }
-
-    kubectl = {
-      source  = "gavinbunney/kubectl"
-      version = "~> 1.14"
-    }
-
     kubernetes = {
       source  = "hashicorp/kubernetes"
       version = ">= 2.18"
     }
 
-    local = {
-      source  = "hashicorp/local"
-      version = "~> 2.4"
-    }
-
     time = {
       source  = "hashicorp/time"
       version = "~> 0.9"
-    }
-
-    tls = {
-      source  = "hashicorp/tls"
-      version = ">= 4.0"
     }
   }
 }
@@ -73,31 +48,6 @@ data "kubernetes_config_map" "eks_bootstrap" {
   }
 }
 
-provider "helm" {
-  repository_config_path = "${path.root}/.helm/repositories.yaml"
-  repository_cache       = "${path.root}/.helm"
-  kubernetes {
-    host                   = data.aws_eks_cluster.this.endpoint
-    cluster_ca_certificate = base64decode(data.aws_eks_cluster.this.certificate_authority[0].data)
-    exec {
-      api_version = "client.authentication.k8s.io/v1beta1"
-      args        = ["eks", "get-token", "--cluster-name", var.cluster_name]
-      command     = "aws"
-    }
-  }
-}
-
-provider "kubectl" {
-  host                   = data.aws_eks_cluster.this.endpoint
-  cluster_ca_certificate = base64decode(data.aws_eks_cluster.this.certificate_authority[0].data)
-  exec {
-    api_version = "client.authentication.k8s.io/v1beta1"
-    args        = ["eks", "get-token", "--cluster-name", var.cluster_name]
-    command     = "aws"
-  }
-  load_config_file = false
-}
-
 provider "kubernetes" {
   host                   = data.aws_eks_cluster.this.endpoint
   cluster_ca_certificate = base64decode(data.aws_eks_cluster.this.certificate_authority[0].data)
@@ -106,13 +56,6 @@ provider "kubernetes" {
     args        = ["eks", "get-token", "--cluster-name", var.cluster_name]
     command     = "aws"
   }
-}
-
-module "eks_config" {
-  source = "../../modules/aws/eks-config"
-
-  cluster_name = var.cluster_name
-  oidc_issuer  = data.aws_eks_cluster.this.identity[0].oidc[0].issuer
 }
 
 locals {
