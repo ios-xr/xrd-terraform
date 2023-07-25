@@ -78,12 +78,15 @@ provider "kubernetes" {
 }
 
 resource "aws_subnet" "data" {
-  count = 3
+  for_each = toset(["data_1", "data_2", "data_3"])
 
   availability_zone = data.aws_subnet.cluster.availability_zone
   cidr_block        = "10.0.${count.index + 1}.0/24"
   vpc_id            = data.aws_vpc.this.id
-  # @@@ name
+
+  tags = {
+    Name = each.key
+  }
 }
 
 locals {
