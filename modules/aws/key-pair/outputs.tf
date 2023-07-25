@@ -5,5 +5,5 @@ output "key_name" {
 
 output "filename" {
   description = "Path to the key pair file"
-  value       = var.filename != null ? local_sensitive_file.this[0].filename : null
+  value       = local_sensitive_file.this.filename
 }
