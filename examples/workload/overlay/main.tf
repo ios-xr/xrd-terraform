@@ -301,10 +301,10 @@ resource "helm_release" "xrd2" {
   depends_on = [module.node["beta"].ready]
 }
 
-module "simple_host1" {
-  source = "../../../modules/aws/simple-host"
+module "cnf" {
+  source = "../../../modules/aws/linux-pod-with-net-attach"
 
-  name       = "simple-host1"
+  name       = "cnf"
   device     = "eth1"
   ip_address = "10.0.1.10/24"
   gateway    = "10.0.1.11"
@@ -316,10 +316,10 @@ module "simple_host1" {
   depends_on = [module.node["gamma"].ready]
 }
 
-module "simple_host2" {
-  source = "../../../modules/aws/simple-host"
+module "peer" {
+  source = "../../../modules/aws/linux-pod-with-net-attach"
 
-  name       = "simple-host2"
+  name       = "peer"
   device     = "eth2"
   ip_address = "10.0.4.10/24"
   gateway    = "10.0.4.12"

@@ -11,7 +11,7 @@ terraform {
 
 data "kubectl_file_documents" "this" {
   content = templatefile(
-    "${path.module}/templates/simple-host.yaml.tftpl",
+    "${path.module}/templates/linux-pod-with-net-attach.yaml.tftpl",
     {
       name          = var.name
       device        = var.device
