@@ -132,7 +132,7 @@ else
   # image name, so check that after.
   SOURCE_IMAGE_TAG=${SOURCE_IMAGE#*:}
   if [ "$SOURCE_IMAGE_TAG" = "$SOURCE_IMAGE" ]; then
-    # No tag specificed - assume it's 'latest'.
+    # No tag specified - assume it's 'latest'.
     SOURCE_IMAGE_TAG="latest"
   fi
 fi

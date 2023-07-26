@@ -22,3 +22,11 @@ output "xrd_cpuset" {
   description = "The cpuset XRd vRouter should be configured with on the given node instance type"
   value       = local.instance_type_to_xrd_cpuset[var.instance_type]
 }
+
+output "network_interface" {
+  value = aws_network_interface.this
+}
+
+output "ready" {
+  value = time_sleep.wait.id
+}

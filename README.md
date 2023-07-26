@@ -91,9 +91,7 @@ routers, this is just intended for lab usage.
 To tear down all of the resources, run:
 
 ```
-cd examples/overlay
-terraform destroy
-rm quickstart.auto.tfvars
+./aws-quickstart --destroy
 ```
 
 ## Modules
@@ -102,7 +100,7 @@ This repository contains several Terraform modules to assist with deploying
 XRd on AWS. There are two types of template:
 
   - "Building block" modules (sometimes called 'resource' modules) - these are
-    focussed on a single AWS area or resource, used to build a full
+    focused on a single AWS area or resource, used to build a full
     deployment stack.
   - "Example" modules (sometimes called 'infrastructure' modules) - these use
     the building block modules to bring up an entire example deployment.
@@ -117,7 +115,7 @@ The following building block modules are provided in the repository:
  - Bastion Node
  - Worker Node
 
-Each of these modules is focussed on bringing up a constrained set of
+Each of these modules is focused on bringing up a constrained set of
 AWS resources. These are used by the example modules describe below, and
 generally its expected that only developers will need to use these directly.
 As such, more detail for these modules can be found on the
@@ -125,18 +123,37 @@ As such, more detail for these modules can be found on the
 
 ### Example Modules
 
-There are three example modules in the repository:
+Example modules are provided for the cloud infrastructure and workload layers.
 
-  - [`singleton`](examples/singleton/README.md), which brings up a cluster
-    with a single worker node, and runs a single XRd workload on it.
-  - [`overlay`](examples/overlay/README.md),, which brings up a cluster with
-    a pair of back-to-back XRd instances running an overlay network using
-    GRE, IS-IS and L3VPN; and a pair of linux containers that communicate via
-    the overlay network.
-  - [`ha`](examples/ha/README.md), which brings up a cluster with a pair of
-    XRd instances with associated
-    [HA applications](https://github.com/ios-xr/xrd-ha-app) that facilitate
-    failover.
+#### Cloud Infrastructure Modules
+
+Two modules are provided to create and setup an EKS cluster:
+
+  - [`eks-cluster`](examples/infra/eks-cluster/README.md): provision a minimal
+    EKS cluster.
+  - [`eks-setup`](examples/infra/eks-setup/README.md): setup a
+    pre-provisioned EKS cluster so that it is suitable for running XRd
+    workloads.
+
+Together these modules provide a base on top of which the workload modules
+can be applied.
+
+#### Workload Modules
+
+The workload modules require a pre-provisioned EKS cluster suitable for
+running XRd workloads.  A workload module should therefore be applied after
+both `eks-cluster` and `eks-setup` cloud infrastructure modules.
+
+There are two examples, each of which provides an illustrative deployment
+scenario:
+
+  - [`singleton`](examples/workload/singleton/README.md): launch a single
+    worker node in a pre-provisioned EKS cluster, and runs a single XRd
+    workload on it.
+  - [`overlay`](examples/workload/overlay/README.md): launch three worker
+    nodes in a pre-provisioned EKS cluster, and deploys a pair of back-to-back
+    XRd instances running an overlay network using GRE, IS-IS and L3VPN; and a
+    pair of linux containers that communicate via the overlay network.
 
 ## Running Examples
 
@@ -144,71 +161,91 @@ To launch an example, first make sure you have met all the requirements
 listed [above](#requirements), including having an AMI suitable for running
 the required XRd platform available.
 
-Once you have satisfied the requirements, each example can be launched like
-any other Terraform module.
+Once you have satisfied the requirements, each example can be launched like any
+any other Terraform module.  The `eks-cluster` and `eks-setup` examples
+provision an EKS cluster suitable for running XRd workloads, and serve as a
+base for the workload modules; you should therefore launch these modules
+in-order before launching a workload module.
 
-Running the module will take around 20 minutes, most of which is
-taken up waiting for the EKS control plane to launch.
-
-Step-by-step instructions for this can be found in the following sections.
+The following sections walk through instantiating the `overlay` workload.
 More details on all the Terraform command options can be found in the
 [Terraform CLI documentation](https://developer.hashicorp.com/terraform/cli).
 
 ### Bring-up
 
-Firstly, clone this repository and navigate to the example's directory.
+Firstly, clone this repository.
 
-Terraform needs to initialize all the submodules, which can be done by
-running:
+The `eks-cluster` module must be run first; this provisions a minimal EKS
+cluster.
 
-```
-terraform init
-```
-
-Once Terraform has initialized, you should check the
-[`variables.tf`](variables.tf) file to find all the configuration options for
-the example.
-
-Create a file called `vars.tfvars` and set the configuration you want to
-use following the
-[variable definitions file format](https://developer.hashicorp.com/terraform/language/values/variables#variable-definitions-tfvars-files),
-e.g.:
+Use [`terraform
+init`](https://developer.hashicorp.com/terraform/cli/commands/init) and
+[`terraform
+apply`](https://developer.hashicorp.com/terraform/cli/commands/apply) to run
+the `eks-cluster` module:
 
 ```
-cluster_version = 1.26
-xr_root_user = "testuser"
-xr_root_password = "testpass"
-```
-
-Terraform can then be run using the following command:
-
-```
-terraform apply -var-file=vars.tfvars
-```
-
-Configuration options can also be configured on the CLI, e.g.:
-
-```
-terraform apply -var cluster_version=1.26
+terraform -chdir=examples/infra/eks-cluster init
+terraform -chdir=examples/infra/eks-cluster apply
 ```
 
 Terraform will show you a changeset and ask you to confirm that it should
-proceed. Once you have done so, it will take around 20 minutes to completely
-bring up the example.
+proceed.  It takes around 15 minutes to bring up the EKS cluster.
+
+Then run the `eks-setup` module to setup the EKS cluster:
+
+```
+terraform -chdir=examples/infra/eks-setup init
+terraform -chdir=examples/infra/eks-setup apply
+```
+
+When the cloud infrastructure modules have been applied, you can then apply
+workload modules.  The procedure is largely the same; although you should first
+check the [`variables.tf`](examples/overlay/variables.tf) file to find all the
+configuration options, and then create a file `vars.tfvars` to set the
+configuration options you want use following the [variable definitions file
+format](https://developer.hashicorp.com/terraform/language/values/variables#variable-definitions-tfvars-files):
+
+```
+cat << EOF
+cluster_version = 1.27
+xr_root_user = "root"
+xr_root_password = "mypassword"
+EOF > vars.tfvars
+```
+
+The `overlay` workload can then be applied using the following command:
+
+```
+terraform -chdir=examples/workload/overlay init
+terraform -chdir=examples/workload/overlay apply -var-file=vars.tfvars
+```
+
+Configuration options can also be [configured on the
+CLI](https://developer.hashicorp.com/terraform/language/values/variables#variables-on-the-command-line):
+
+```
+terraform -chdir=examples/workload/overlay apply -var cluster_version=1.27
+```
+
+It should take around 5 minutes to bring up the `overlay` example.
 
 ### Modification
 
 Once the topology has been launched, any changes you make to the configuration
 can be applied by modifying the configuration file and re-running the
-`terraform apply -var-file=vars.tfvars` command - Terraform will compute the
-minimal diff required to satisfy your new configuration and apply it.
+`terraform -chdir=examples/workload/overlay apply -var-file=vars.tfvars`
+command - Terraform will compute the minimal diff required to satisfy your new
+configuration and apply it.
 
 ### Teardown
 
 When you've finished with the topology, it can be torn down with:
 
 ```
-terraform destroy -var-file=vars.tfvars
+terraform -chdir=examples/workload/overlay destroy -var-file=vars.tfvars
+terraform -chdir=examples/infra/eks-setup destroy
+terraform -chdir=examples/infra/eks-cluster destroy
 ```
 
 N.B. It is recommended to pass the same configuration to `terraform destroy`

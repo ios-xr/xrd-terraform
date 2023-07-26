@@ -8,8 +8,6 @@ resources:
 persistence:
   enabled: true
   storageClass: gp2
-nodeSelector:
-  name: "${node_name}"
 config:
   username: ${xr_root_user}
   password: ${xr_root_password}
@@ -49,4 +47,3 @@ interfaces:
     type: host-device
     device: eth${i + 1}
 %{~ endfor }
-

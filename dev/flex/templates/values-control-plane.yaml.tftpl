@@ -11,7 +11,7 @@ xrd${i + 1}:
   securityContext:
     privileged: true
   nodeSelector:
-      xrd.node: ${node_name}
+    xrd.node: ${node_name}
   persistence:
     enabled: true
     size: "6Gi"

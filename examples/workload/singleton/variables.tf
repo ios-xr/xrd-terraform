@@ -12,20 +12,6 @@ variable "cluster_version" {
   default     = "1.27"
 }
 
-variable "create_bastion" {
-  description = "Whether to create a bastion (gateway) node."
-  type        = bool
-  nullable    = false
-  default     = true
-}
-
-variable "create_nodes" {
-  description = "Whether to create any worker nodes."
-  type        = bool
-  nullable    = false
-  default     = true
-}
-
 variable "node_ami" {
   description = "Custom AMI to use for the worker nodes."
   type        = string
@@ -43,11 +29,16 @@ variable "node_instance_type" {
   }
 }
 
-variable "create_workload" {
-  description = "Whether to install the XRd Helm chart into the cluster."
-  type        = bool
+variable "xrd_platform" {
+  description = "Which XRd platform to launch."
+  type        = string
   nullable    = false
-  default     = true
+  default     = "vRouter"
+
+  validation {
+    condition     = contains(["ControlPlane", "vRouter"], var.xrd_platform)
+    error_message = "Allowed values are \"ControlPlane\" or \"vRouter\""
+  }
 }
 
 variable "xr_root_user" {

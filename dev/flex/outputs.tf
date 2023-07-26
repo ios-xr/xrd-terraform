@@ -1,23 +1,3 @@
-output "vpc" {
-  description = "VPC all resources run in"
-  value       = module.vpc
-}
-
-output "cluster" {
-  description = "EKS cluster"
-  value       = module.eks
-}
-
-output "bastion_public_ip" {
-  description = "Public IP of the bastion node (if created)"
-  value       = try(module.bastion[0].public_ip, null)
-}
-
-output "bastion_id" {
-  description = "ID of the bastion node (if created)"
-  value       = try(module.bastion[0].id, null)
-}
-
 output "node_ids" {
   description = "IDs of the worker nodes (if created)"
   value       = [for _, node in module.node : node.id]

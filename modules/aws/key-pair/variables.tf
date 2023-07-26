@@ -4,9 +4,8 @@ variable "key_name" {
   nullable    = false
 }
 
-variable "download" {
-  description = "Whether to download the key to the local machine after creation"
-  type        = bool
+variable "filename" {
+  description = "Path to the file that the key pair is written to"
+  type        = string
   nullable    = false
-  default     = false
 }

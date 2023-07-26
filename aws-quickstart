@@ -15,7 +15,7 @@ EOF
 
 long_usage() {
     >&2 cat << EOF
-Create an AWS EKS cluster and run an XRd topology.
+Create or destroy an AWS EKS cluster with XRd workload.
 
 EOF
     usage
@@ -33,6 +33,9 @@ OPTIONS:
             (or create) an AMI from the XRd Packer scripts at
             https://github.com/ios-xr/xrd-packer)
 
+    -d, --destroy
+            Destroy the workload and infrastructure.
+
     --kubernetes-version
             Kubernetes version to use.  This must be one of: 1.23, 1.24, 1.25, 1.26, 1.27
             (default: 1.27).
@@ -41,6 +44,7 @@ EOF
 
 # Default arguments.
 AMI_ID=""
+DESTROY=""
 KUBERNETES_VERSION="1.27"
 
 # Parse the arguments
@@ -58,6 +62,9 @@ while [ $# -gt 0 ]; do
       AMI_ID="$2"
       shift
       ;;
+    -d|--destroy )
+      DESTROY=1
+      ;;
     --kubernetes-version )
       KUBERNETES_VERSION="$2"
       shift
@@ -71,11 +78,11 @@ while [ $# -gt 0 ]; do
 done
 
 ERROR=""
-if [ -z "${XR_USERNAME:-}" ]; then
+if [ -z "${XR_USERNAME:-}" -a -z "$DESTROY" ]; then
   >&2 echo "error: XR username (-u|--username) must be specified"
   ERROR=1
 fi
-if [ -z "${XR_PASSWORD:-}" ]; then
+if [ -z "${XR_PASSWORD:-}" -a -z "$DESTROY" ]; then
   >&2 echo "error: XR password (-p|--password) must be specified"
   ERROR=1
 fi
@@ -96,6 +103,8 @@ if [ -n "${ERROR}" ]; then
     exit 1
 fi
 
+SCRIPT_DIR="$(dirname "$(realpath "$0")")"
+
 run_packer () {
   rm -rf xrd-packer
   git clone https://github.com/ios-xr/xrd-packer xrd-packer
@@ -106,9 +115,7 @@ run_packer () {
   rm -rf xrd-packer
 }
 
-# If an AMI ID was not provided, check if an AMI created by the XRd Packer
-# template for the correct Kubernetes version.
-if [ -z "$AMI_ID" ]; then
+ensure_ami_exists () {
   first_image=$(aws ec2 describe-images \
     --filters \
       "Name=tag:Generated_By,Values=xrd-packer" \
@@ -119,24 +126,40 @@ if [ -z "$AMI_ID" ]; then
   if [ -z "$first_image" ]; then
     run_packer
   fi
-fi
+}
 
-# Run the XRd overlay terraform template.
-SCRIPT_DIR="$(dirname "$(realpath "$0")")"
-cd "$SCRIPT_DIR/examples/overlay"
-terraform init
+terraform_apply () {
+  terraform -chdir="$SCRIPT_DIR"/examples/infra/eks-cluster init
+  terraform -chdir="$SCRIPT_DIR"/examples/infra/eks-setup init
+  terraform -chdir="$SCRIPT_DIR"/examples/workload/overlay init
 
-if [ -z "$AMI_ID" ]; then
-  NODE_AMI="null"
+  tfvars="${SCRIPT_DIR}/examples/workload/overlay/quickstart.auto.tfvars"
+  echo "xr_root_user=\"$XR_USERNAME\"" > "$tfvars"
+  echo "xr_root_password=\"$XR_PASSWORD\"" >> "$tfvars"
+
+  if [ -n "$AMI_ID" ]; then
+    echo "node_ami=\"$AMI_ID\"" >> "$tfvars"
+  fi
+
+  trap terraform_destroy ERR EXIT
+
+  terraform -chdir="$SCRIPT_DIR"/examples/infra/eks-cluster apply -auto-approve -var cluster_version="$KUBERNETES_VERSION"
+  terraform -chdir="$SCRIPT_DIR"/examples/infra/eks-setup apply -auto-approve
+  terraform -chdir="$SCRIPT_DIR"/examples/workload/overlay apply -auto-approve
+
+  trap - ERR EXIT
+}
+
+terraform_destroy () {
+  terraform -chdir="$SCRIPT_DIR"/examples/workload/overlay destroy -auto-approve
+  terraform -chdir="$SCRIPT_DIR"/examples/infra/eks-setup destroy -auto-approve
+  terraform -chdir="$SCRIPT_DIR"/examples/infra/eks-cluster destroy -auto-approve
+  rm -f "$SCRIPT_DIR"/examples/workload/overlay/quickstart.auto.tfvars
+}
+
+if [ -z "$DESTROY" ]; then
+  ensure_ami_exists
+  terraform_apply
 else
-  NODE_AMI="\"$AMI_ID\""
+  terraform_destroy
 fi
-
-cat <<EOF > quickstart.auto.tfvars
-xr_root_user="$XR_USERNAME"
-xr_root_password="$XR_PASSWORD"
-cluster_version="$KUBERNETES_VERSION"
-node_ami=$NODE_AMI
-EOF
-
-terraform apply -auto-approve

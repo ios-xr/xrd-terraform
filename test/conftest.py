@@ -248,26 +248,45 @@ def stack(
 
     """
     # Use the current directory for the data dir (for plugin downloads, etc.)
-    # and the state file.
-    state_file = os.path.join(os.getcwd(), "terraform.tfstate")
-    data_dir = os.path.join(os.getcwd(), ".terraform")
-    os.environ["TF_DATA_DIR"] = data_dir
+    # and the state files.
+    cwd = Path.cwd()
+    data_dir = cwd / ".terraform"
+    os.environ["TF_DATA_DIR"] = str(data_dir)
 
     # Run the terraform stack to provision AWS resources.
-    overlay_module = os.path.realpath(
-        os.path.join(__file__, "../../examples/overlay")
-    )
     tf_vars = {}
     tf_vars["cluster_version"] = str(
         request.config.option.eks_kubernetes_version
     )
-    tf = tftest.TerraformTest(overlay_module)
-    tf.setup(extra_files=["overlay.tfvars"])
+
+    this_dir = Path(__file__).resolve().parent
+
+    tf_eks_cluster = tftest.TerraformTest(
+        this_dir.parent / "examples" / "infra" / "eks-cluster"
+    )
+    tf_eks_setup = tftest.TerraformTest(
+        this_dir.parent / "examples" / "infra" / "eks-setup"
+    )
+    tf_overlay = tftest.TerraformTest(
+        this_dir.parent / "examples" / "workload" / "overlay"
+    )
+
+    tf_eks_cluster.setup()
+    tf_eks_setup.setup()
+    tf_overlay.setup(extra_files=["overlay.tfvars"])
 
     try:
         if not request.config.option.aws_skip_bringup:
-            tf.apply(
-                tf_vars=tf_vars, tf_var_file="overlay.tfvars", state=state_file
+            tf_eks_cluster.apply(
+                state=str(cwd / "terraform-eks-cluster.tfstate")
+            )
+            tf_eks_setup.apply(
+                state=str(cwd / "terraform-eks-setup.tfstate")
+            )
+            tf_overlay.apply(
+                state=str(cwd / "terraform-overlay.tfstate"),
+                tf_vars=tf_vars,
+                tf_var_file="overlay.tfvars",
             )
 
         # Ensure the Kubernetes config is updated.
@@ -285,8 +304,16 @@ def stack(
 
     finally:
         if not request.config.option.aws_skip_teardown:
-            tf.destroy(
-                tf_vars=tf_vars, tf_var_file="overlay.tfvars", state=state_file
+            tf_overlay.destroy(
+                state=str(cwd / "terraform-overlay.tfstate"),
+                tf_vars=tf_vars,
+                tf_var_file="overlay.tfvars",
+            )
+            tf_eks_setup.destroy(
+                state=str(cwd / "terraform-eks-setup.tfstate")
+            )
+            tf_eks_cluster.destroy(
+                state=str(cwd / "terraform-eks-cluster.tfstate")
             )
 
 

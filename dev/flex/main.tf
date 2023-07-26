@@ -7,14 +7,9 @@ terraform {
       version = "~> 5.2"
     }
 
-    http = {
-      source  = "hashicorp/http"
-      version = "~> 3.3"
-    }
-
-    kubectl = {
-      source  = "gavinbunney/kubectl"
-      version = "~> 1.14"
+    kubernetes = {
+      source  = "hashicorp/kubernetes"
+      version = ">= 2.18"
     }
 
     local = {
@@ -33,9 +28,42 @@ data "aws_caller_identity" "current" {}
 
 data "aws_region" "current" {}
 
-locals {
-  create_bastion = var.create_bastion
+data "aws_eks_cluster" "this" {
+  name = var.cluster_name
+}
 
+data "aws_vpc" "this" {
+  id = data.aws_eks_cluster.this.vpc_config[0].vpc_id
+}
+
+data "aws_subnet" "cluster" {
+  vpc_id     = data.aws_vpc.this.id
+  cidr_block = "10.0.0.0/24"
+}
+
+data "aws_security_group" "access" {
+  name   = "access"
+  vpc_id = data.aws_vpc.this.id
+}
+
+data "kubernetes_config_map" "eks_setup" {
+  metadata {
+    name      = "terraform-eks-setup"
+    namespace = "kube-system"
+  }
+}
+
+provider "kubernetes" {
+  host                   = data.aws_eks_cluster.this.endpoint
+  cluster_ca_certificate = base64decode(data.aws_eks_cluster.this.certificate_authority[0].data)
+  exec {
+    api_version = "client.authentication.k8s.io/v1beta1"
+    args        = ["eks", "get-token", "--cluster-name", var.cluster_name]
+    command     = "aws"
+  }
+}
+
+locals {
   intra_subnets = [
     "10.0.1.0/24",
     "10.0.2.0/24",
@@ -59,8 +87,12 @@ locals {
   ]
 }
 
-data "aws_availability_zones" "available" {
-  state = "available"
+resource "aws_subnet" "data" {
+  count = var.interface_count
+
+  availability_zone = data.aws_subnet.cluster.availability_zone
+  cidr_block        = local.intra_subnets[count.index]
+  vpc_id            = data.aws_vpc.this.id
 }
 
 data "aws_ec2_instance_type" "current" {
@@ -81,62 +113,14 @@ locals {
   instance_type = data.aws_ec2_instance_type.current.instance_type
 }
 
-module "vpc" {
-  source = "../../modules/aws/vpc"
-
-  name = "xrd-cluster-vpc"
-  azs  = [data.aws_availability_zones.available.names[0]]
-  cidr = "10.0.0.0/16"
-
-  enable_dns_hostnames = true
-  enable_nat_gateway   = true
-
-  private_subnets         = ["10.0.101.0/24"]
-  public_subnets          = ["10.0.201.0/24"]
-  map_public_ip_on_launch = true
-
-  intra_subnets = slice(local.intra_subnets, 0, var.interface_count)
-}
-
 locals {
-  public_subnet_id    = module.vpc.public_subnet_ids[0]
-  cluster_subnet_id   = module.vpc.private_subnet_ids[0]
-  cluster_subnet_cidr = module.vpc.private_subnet_cidr_blocks[0]
-}
-
-resource "aws_subnet" "private" {
-  availability_zone = data.aws_availability_zones.available.names[1]
-  cidr_block        = "10.0.102.0/24"
-  vpc_id            = module.vpc.vpc_id
-}
-
-resource "aws_ec2_subnet_cidr_reservation" "worker_nodes" {
-  cidr_block       = "10.0.101.0/28" # 10.0.101.0 - 10.0.101.15
-  reservation_type = "explicit"
-  subnet_id        = local.cluster_subnet_id
-  description      = "Reservation for worker node primary IPs"
-}
-
-resource "aws_security_group" "comms" {
-  name   = "comms"
-  vpc_id = module.vpc.vpc_id
-  ingress {
-    from_port = 0
-    to_port   = 0
-    protocol  = -1
-    self      = true
-  }
-  egress {
-    from_port   = 0
-    to_port     = 0
-    protocol    = -1
-    cidr_blocks = ["0.0.0.0/0"]
-  }
+  cluster_subnet_id   = data.aws_subnet.cluster.id
+  cluster_subnet_cidr = data.aws_subnet.cluster.cidr_block
 }
 
 resource "aws_security_group" "data" {
   name   = "data"
-  vpc_id = module.vpc.vpc_id
+  vpc_id = data.aws_vpc.this.id
   ingress {
     from_port = 0
     to_port   = 0
@@ -149,33 +133,6 @@ resource "aws_security_group" "data" {
     protocol  = -1
     self      = true
   }
-}
-
-module "key_pair" {
-  source = "../../modules/aws/key-pair"
-
-  key_name = "${var.cluster_name}-instance"
-  download = true
-}
-
-module "bastion" {
-  source = "../../modules/aws/bastion"
-
-  count = local.create_bastion ? 1 : 0
-
-  instance_type      = "t3.nano"
-  key_name           = module.key_pair.key_name
-  security_group_ids = [aws_security_group.comms.id]
-  subnet_id          = local.public_subnet_id
-}
-
-module "eks" {
-  source = "../../modules/aws/eks"
-
-  name               = var.cluster_name
-  cluster_version    = var.cluster_version
-  security_group_ids = [aws_security_group.comms.id]
-  subnet_ids         = concat(module.vpc.private_subnet_ids, [aws_subnet.private.id])
 }
 
 module "xrd_ami" {
@@ -193,8 +150,8 @@ locals {
       network_interfaces = [
         for j in range(var.interface_count) :
         {
-          subnet_id          = module.vpc.intra_subnet_ids[j]
-          private_ip_address = cidrhost(module.vpc.intra_subnet_cidr_blocks[j], i + 11)
+          subnet_id          = aws_subnet.data[j].id
+          private_ip_address = cidrhost(aws_subnet.data[j].cidr_block, i + 11)
           security_groups    = [aws_security_group.data.id]
         }
       ]
@@ -209,98 +166,19 @@ module "node" {
   name                 = each.key
   ami                  = var.node_ami != null ? var.node_ami : module.xrd_ami[0].id
   cluster_name         = var.cluster_name
-  iam_instance_profile = module.eks.node_iam_instance_profile_name
+  iam_instance_profile = data.kubernetes_config_map.eks_setup.data.node_iam_instance_profile_name
   instance_type        = local.instance_type
-  key_name             = module.key_pair.key_name
-
-  private_ip_address = each.value.private_ip_address
-  security_groups    = [aws_security_group.comms.id]
-  subnet_id          = local.cluster_subnet_id
-
-  network_interfaces = each.value.network_interfaces
-
-  depends_on = [module.eks]
-}
-
-# Set up the AWS EBS CSI.
-# N.B. This requires both a cluster to be set up and nodes to be running,
-# as otherwise the AWS EKS addon fails due to not having enough pods running
-# in the cluster.
-data "aws_iam_policy" "ebs_csi_driver_policy" {
-  name = "AmazonEBSCSIDriverPolicy"
-}
-
-module "irsa" {
-  source = "../../modules/aws/irsa"
-
-  oidc_issuer     = module.eks.oidc_issuer
-  oidc_provider   = module.eks.oidc_provider
-  namespace       = "kube-system"
-  service_account = "ebs-csi-controller-sa"
-  role_name       = "${var.cluster_name}-${data.aws_region.current.name}-ebs-csi"
-  role_policies   = [data.aws_iam_policy.ebs_csi_driver_policy.arn]
-}
-
-# If the nodes aren't up when the EBS CSI addon is created, it will
-# come up in Degraded state. The AWS addon state is not checked frequently
-# and this will either cause a 15 minute(!) delay, or a failure, even
-# though all the required pods run as soon as the nodes connect (usually
-# around one minute).
-#
-# This 60 second delay allows the nodes to come up so the required
-# EBS CSI controller pods can get scheduled immediately.
-resource "time_sleep" "wait_60_seconds" {
-  depends_on = [module.node]
-
-  create_duration = "60s"
-}
-
-resource "aws_eks_addon" "ebs_csi" {
-  cluster_name             = var.cluster_name
-  addon_name               = "aws-ebs-csi-driver"
-  addon_version            = "v1.18.0-eksbuild.1"
-  service_account_role_arn = module.irsa.role_arn
-
-  depends_on = [
-    time_sleep.wait_60_seconds
+  key_name             = data.kubernetes_config_map.eks_setup.data.key_name
+  private_ip_address   = each.value.private_ip_address
+  security_groups = [
+    data.aws_eks_cluster.this.vpc_config[0].cluster_security_group_id,
+    data.aws_security_group.access.id,
   ]
-
-  timeouts {
-    # Cut down the timeout here.
-    create = "5m"
-  }
-}
-
-# Install multus into the cluster.
-data "http" "multus_yaml" {
-  url = "https://raw.githubusercontent.com/aws/amazon-vpc-cni-k8s/master/config/multus/v3.7.2-eksbuild.1/aws-k8s-multus.yaml"
-}
-
-provider "kubectl" {
-  host                   = module.eks.endpoint
-  cluster_ca_certificate = base64decode(module.eks.ca_cert)
-  exec {
-    api_version = "client.authentication.k8s.io/v1beta1"
-    args        = ["eks", "get-token", "--cluster-name", module.eks.name]
-    command     = "aws"
-  }
-}
-
-data "kubectl_file_documents" "multus" {
-  content = data.http.multus_yaml.response_body
-}
-
-resource "kubectl_manifest" "multus" {
-  for_each = data.kubectl_file_documents.multus.manifests
-
-  yaml_body = each.value
-
-  depends_on = [module.node]
+  subnet_id          = local.cluster_subnet_id
+  network_interfaces = each.value.network_interfaces
 }
 
 locals {
-  create_helm_chart = var.create_nodes && var.create_helm_chart
-
   vrouter = var.xrd_platform == "vRouter"
 
   default_repo_names = {
@@ -325,7 +203,7 @@ locals {
 }
 
 resource "local_file" "chart_yaml" {
-  count = local.create_helm_chart ? 1 : 0
+  count = var.create_helm_chart ? 1 : 0
 
   content = templatefile(
     "${path.module}/templates/Chart.yaml.tftpl",
@@ -342,7 +220,7 @@ resource "local_file" "chart_yaml" {
 }
 
 resource "local_file" "chart_values_yaml" {
-  count = local.create_helm_chart ? 1 : 0
+  count = var.create_helm_chart ? 1 : 0
 
   content = templatefile(
     local.values_template_file,

@@ -30,8 +30,7 @@ resource "aws_key_pair" "this" {
 }
 
 resource "local_sensitive_file" "this" {
-  count           = var.download ? 1 : 0
   content         = trimspace(tls_private_key.this.private_key_pem)
-  filename        = "${path.root}/${var.key_name}.pem"
+  filename        = var.filename
   file_permission = "0400"
 }
