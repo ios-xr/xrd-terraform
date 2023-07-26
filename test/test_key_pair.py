@@ -1,10 +1,10 @@
-import boto3
-from botocore.exceptions import ClientError
 import subprocess
 import uuid
-
 from pathlib import Path
+
+import boto3
 import pytest
+from botocore.exceptions import ClientError
 
 
 @pytest.fixture(scope="module")
@@ -27,16 +27,28 @@ def filename(key_name: str) -> Path:
 def apply(chdir: Path, key_name: str, filename: str):
     try:
         subprocess.run(["terraform", f"-chdir={chdir}", "init", "-upgrade"])
-        subprocess.run(["terraform", f"-chdir={chdir}", "apply",
-                        "-auto-approve",
-                        f"-var=key_name={key_name}",
-                        f"-var=filename={filename}"])
+        subprocess.run(
+            [
+                "terraform",
+                f"-chdir={chdir}",
+                "apply",
+                "-auto-approve",
+                f"-var=key_name={key_name}",
+                f"-var=filename={filename}",
+            ]
+        )
         yield
     finally:
-        subprocess.run(["terraform", f"-chdir={chdir}", "destroy",
-                        "-auto-approve",
-                        f"-var=key_name={key_name}",
-                        f"-var=filename={filename}"])
+        subprocess.run(
+            [
+                "terraform",
+                f"-chdir={chdir}",
+                "destroy",
+                "-auto-approve",
+                f"-var=key_name={key_name}",
+                f"-var=filename={filename}",
+            ]
+        )
 
 
 def test_key_pair_exists(key_name: str):
