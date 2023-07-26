@@ -151,7 +151,7 @@ locals {
         for j in range(var.interface_count) :
         {
           subnet_id          = aws_subnet.data[j].id
-          private_ip_address = cidrhost(aws_subnet.data[j].cidr_block, i + 11)
+          private_ip_addresses = [cidrhost(module.vpc.intra_subnet_cidr_blocks[j], i + 11)]
           security_groups    = [aws_security_group.data.id]
         }
       ]
