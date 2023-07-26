@@ -1,7 +1,6 @@
 import logging
 import shlex
 import subprocess
-import time
 from typing import Callable
 
 logger = logging.getLogger(__name__)
@@ -96,3 +95,15 @@ def run_cmd(
         logger.debug("Command stderr:\n%s", (p.stderr or "").strip("\n"))
 
     return p
+
+
+def wait_until(
+    max_secs: int, interval_secs: int, fn: Callable[..., bool], *args, **kwargs
+) -> bool:
+    elapsed = 0
+    while elapsed < max_secs:
+        if fn(*args, **kwargs):
+            return True
+        time.sleep(interval_secs)
+        elapsed += interval_secs
+    return False
