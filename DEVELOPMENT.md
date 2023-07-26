@@ -90,7 +90,7 @@ This can then be instantiated by the normal `terraform init` and
 
 ## Cost Control
 
-By far the largest cost of any setup is the EC2 instances.
+By far the largest monetary cost of any setup is the EC2 instances.
 
 The cost of the EKS cluster itself is minimal in comparison; and note that the
 time taken to provision the EKS cluster (around 15 minutes) is much greater
