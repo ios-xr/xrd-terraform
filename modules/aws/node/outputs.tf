@@ -8,6 +8,14 @@ output "private_ip" {
   value       = aws_instance.this.private_ip
 }
 
+output "interface_ip_addresses" {
+  description = "List of lists of private IPv4 addresses for the interfaces attached to the node."
+  value = [
+    for ni in aws_network_interface.this :
+    ni.private_ip_list
+  ]
+}
+
 output "isolated_cores" {
   description = "The cpuset marked as isolated (null if not using an xrd-packer AMI)"
   value       = local.isolated_cores

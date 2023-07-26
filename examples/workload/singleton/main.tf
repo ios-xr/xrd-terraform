@@ -135,19 +135,19 @@ module "node" {
   key_name             = data.kubernetes_config_map.eks_setup.data.key_name
   network_interfaces = [
     {
-      subnet_id          = local.data_1_subnet_id,
-      private_ip_address = "10.0.1.10",
-      security_groups    = [aws_security_group.data.id]
+      subnet_id            = local.data_1_subnet_id,
+      private_ip_addresses = ["10.0.1.10"],
+      security_groups      = [aws_security_group.data.id]
     },
     {
-      subnet_id          = local.data_2_subnet_id,
-      private_ip_address = "10.0.2.10",
-      security_groups    = [aws_security_group.data.id]
+      subnet_id            = local.data_2_subnet_id,
+      private_ip_addresses = ["10.0.2.10"],
+      security_groups      = [aws_security_group.data.id]
     },
     {
-      subnet_id          = local.data_3_subnet_id,
-      private_ip_address = "10.0.3.10",
-      security_groups    = [aws_security_group.data.id]
+      subnet_id            = local.data_3_subnet_id,
+      private_ip_addresses = ["10.0.3.10"],
+      security_groups      = [aws_security_group.data.id]
     },
   ]
   private_ip_address = "10.0.0.10"
