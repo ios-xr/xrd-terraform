@@ -11,7 +11,7 @@ terraform {
 
 locals {
   len_public_subnets  = length(var.public_subnets)
-  len_private_subnets = length(var.public_subnets)
+  len_private_subnets = length(var.private_subnets)
   len_intra_subnets   = length(var.intra_subnets)
 
   max_subnet_length = max(
