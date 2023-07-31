@@ -1,9 +1,9 @@
 variable "key_name" {
-  type        = string
+  type = string
 }
 
 variable "filename" {
-  type        = string
+  type = string
 }
 
 provider "aws" {
@@ -13,7 +13,7 @@ provider "aws" {
 }
 
 module "key_pair" {
-  source = "../../modules/aws/key-pair"
+  source   = "../../modules/aws/key-pair"
   key_name = var.key_name
   filename = var.filename
 }

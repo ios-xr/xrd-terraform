@@ -1,19 +1,22 @@
-from dataclasses import dataclass
-from ..utils import run_cmd
 import subprocess
 import uuid
+from dataclasses import dataclass
 from pathlib import Path
 
 import boto3
 import pytest
 from botocore.exceptions import ClientError
 
+from ..utils import run_cmd
+
 
 @dataclass
 class Terraform:
     working_dir: Path
 
-    def init(self, *, upgrade: bool=False) -> subprocess.CompletedProcess[str]:
+    def init(
+        self, *, upgrade: bool = False
+    ) -> subprocess.CompletedProcess[str]:
         cmd = ["terraform", f"-chdir={self.working_dir}", "init"]
         if upgrade:
             cmd.append("-upgrade")

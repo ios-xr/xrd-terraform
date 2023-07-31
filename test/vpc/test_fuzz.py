@@ -143,7 +143,6 @@ def subnets_to_var_file(
     }
 
 
-
 words = text(alphabet=characters(whitelist_categories=["Ll", "Lu", "Nd"]))
 nonempty_words = text(
     alphabet=characters(whitelist_categories=["Ll", "Lu"]), min_size=1
@@ -217,9 +216,11 @@ def tf(this_dir: Path):
     tf.init(upgrade=True)
     return tf
 
+
 @pytest.fixture(scope="module")
 def ec2():
     return boto3.client("ec2", endpoint_url="http://localhost:5000")
+
 
 @given(inputs())
 @settings(
