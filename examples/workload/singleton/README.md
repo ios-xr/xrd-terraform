@@ -1,6 +1,6 @@
 # Singleton Example
 
-The singleton example brings up an EKS cluster with one nodes.
+The singleton example launches a single node in an existing EKS cluster.
 
 The node is used to run a single XRd instance.
 
