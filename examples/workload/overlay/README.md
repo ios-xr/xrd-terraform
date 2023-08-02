@@ -1,6 +1,6 @@
 # Overlay Example
 
-The overlay example brings up an EKS cluster with three nodes.
+The overlay example launches three nodes in an existing EKS cluster.
 
 Two of the nodes are used for XRd vRouter instances, which are connected
 back-to-back and have a GRE overlay running on the link.
