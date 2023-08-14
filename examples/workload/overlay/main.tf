@@ -112,12 +112,17 @@ locals {
   trunk_2_subnet_id  = aws_subnet.data[2].id
   access_b_subnet_id = aws_subnet.data[3].id
 
-  default_image_repository = format(
-    "%s.dkr.ecr.%s.amazonaws.com/xrd/xrd-vrouter",
+  default_image_registry = format(
+    "%s.dkr.ecr.%s.amazonaws.com",
     data.aws_caller_identity.current.account_id,
     data.aws_region.current.name,
   )
-  image_repository = coalesce(var.image_repository, local.default_image_repository)
+
+  image_repository = format(
+    "%s/%s",
+    coalesce(var.image_registry, local.default_image_registry),
+    var.image_repository,
+  )
 }
 
 resource "aws_security_group" "data" {
