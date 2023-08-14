@@ -1,15 +1,20 @@
+import os
+import json
+import requests
 import json
 import logging
+import string
 from dataclasses import dataclass
 from ipaddress import IPv4Network
 from pathlib import Path
+from typing import Literal, TypeVar
 
 import boto3
 import pytest
 from hypothesis import Phase, given, settings
 from hypothesis.strategies import (
-    characters,
     composite,
+    booleans,
     dictionaries,
     integers,
     lists,
@@ -25,128 +30,172 @@ logging.getLogger("boto3").setLevel("INFO")
 logging.getLogger("botocore").setLevel("INFO")
 
 
-def get_subnet(
-    ec2,
-    vpc_id: str,
-    cidr_block: IPv4Network,
-    name: str,
-    tags: dict[str, str] | None = None,
-) -> str | None:
-    filters = [
-        {"Name": "vpc-id", "Values": [vpc_id]},
-        {"Name": "cidr-block", "Values": [str(cidr_block)]},
-    ]
+T = TypeVar("T")
 
-    tags = (tags or dict()) | {"Name": name}
-    filters.extend(
-        [{"Name": f"tag:{k}", "Values": [v]} for k, v in tags.items()]
-    )
 
-    subnets = ec2.describe_subnets(Filters=filters)["Subnets"]
-    if len(subnets) == 1:
-        return subnets[0]["SubnetId"]
+def element(xs: list[T], i: int) -> T:
+    return xs[i % len(xs)]
 
 
 @dataclass
-class PublicSubnets:
+class Gateway:
+    id: str
+    type: Literal["Internet", "NAT"]
+
+
+@dataclass
+class Subnet:
+    id: str
+    az: str
+    cidr_block: IPv4Network
+    name: str
+    tags: dict[str, str]
+    gateway: Gateway | None = None
+
+    def assert_exists(self, ec2, vpc) -> None:
+        logger.info("Checking subnet %r exists", self)
+        try:
+            subnet = list(vpc.subnets.filter(SubnetIds=[self.id]))[0]
+        except KeyError:
+            raise AssertionError(
+                f"Could not find subnet {self.id} in VPC {vpc.vpc_id}"
+            )
+
+        assert subnet.availability_zone == self.az
+        assert IPv4Network(subnet.cidr_block) == self.cidr_block
+
+        tags = {x["Key"]: x["Value"] for x in subnet.tags}
+        assert tags == self.tags | {"Name": self.name}
+
+        if self.gateway:
+            rtbs = ec2.describe_route_tables(Filters=[
+                {
+                    "Name": "association.subnet-id",
+                    "Values": [self.id],
+                },
+                ])["RouteTables"]
+
+            # A subnet is associated with exactly one route table, either
+            # explicitly or implictly.
+            assert len(rtbs) == 1
+
+            default_route_found = False
+            for route in rtbs[0]["Routes"]:
+                if route["DestinationCidrBlock"] == "0.0.0.0/0":
+                    assert not default_route_found
+                    default_route_found = True
+                    assert route.get("GatewayId", route.get("NatGatewayId")) == self.gateway
+
+            assert default_route_found
+
+
+@dataclass
+class Subnets:
     cidr_blocks: list[IPv4Network]
     names: list[str]
     suffix: str
     tags: dict[str, str]
 
-    def check(self, ec2, azs: list[str], vpc_id: str) -> bool:
-        for i, cidr_block in enumerate(self.cidr_blocks):
-            if i < len(self.names):
-                name = self.names[i]
-            else:
-                az = azs[i % len(azs)]
-                name = f"-{az}"
-            subnet_id = get_subnet(ec2, vpc_id, name, self.tags)
-            assert subnet_id
-
-
-@dataclass
-class PrivateSubnets:
-    cidr_blocks: list[IPv4Network]
-    names: list[str]
-    suffix: str
-    tags: dict[str, str]
-
-    def check(self, ec2, azs: list[str], vpc_id: str) -> bool:
-        for i, cidr_block in enumerate(self.cidr_blocks):
-            if i < len(self.names):
-                name = self.names[i]
-            else:
-                az = azs[i % len(azs)]
-                name = f"-{az}"
-            subnet_id = get_subnet(ec2, vpc_id, name, self.tags)
-            assert subnet_id
-
-
-@dataclass
-class IntraSubnets:
-    cidr_blocks: list[IPv4Network]
-    names: list[str]
-    suffix: str
-    tags: dict[str, str]
-
-    def check(self, ec2, azs: list[str], vpc_id: str) -> bool:
-        for i, cidr_block in enumerate(self.cidr_blocks):
-            if i < len(self.names):
-                name = self.names[i]
-            else:
-                az = azs[i % len(azs)]
-                name = f"-{az}"
-            subnet_id = get_subnet(ec2, vpc_id, name, self.tags)
-            assert subnet_id
+    def to_var_file(self, prefix: str) -> dict:
+        return {
+            f"{prefix}_subnets": [
+                str(cidr_block) for cidr_block in self.cidr_blocks
+            ],
+            f"{prefix}_subnet_names": self.names,
+            f"{prefix}_subnet_suffix": self.suffix,
+            f"{prefix}_subnet_tags": self.tags,
+        }
 
 
 @dataclass
 class Inputs:
     azs: list[str]
-    public_subnets: PublicSubnets
-    private_subnets: PrivateSubnets
-    intra_subnets: IntraSubnets
+    create_igw: bool
+    enable_nat_gateway: bool
+    public_subnets: Subnets
+    private_subnets: Subnets
+    intra_subnets: Subnets
 
     def to_var_file(self):
         return {
             "azs": self.azs,
-            **subnets_to_var_file(self.public_subnets),
-            **subnets_to_var_file(self.private_subnets),
-            **subnets_to_var_file(self.intra_subnets),
+            "create_igw": True,
+            "enable_nat_gateway": True,
+            **self.public_subnets.to_var_file("public"),
+            **self.private_subnets.to_var_file("private"),
+            **self.intra_subnets.to_var_file("intra"),
         }
 
-    def check(self, ec2, vpc_id: str) -> bool:
-        self.public_subnets.check(ec2, self.azs, vpc_id)
-        self.private_subnets.check(ec2, self.azs, vpc_id)
-        self.intra_subnets.check(ec2, self.azs, vpc_id)
+
+def create_subnets(
+    ids: list[str],
+    azs: list[str],
+    cidr_blocks: list[IPv4Network],
+    names: list[str],
+    suffix: str,
+    tags: dict[str, str],
+    gateways: list[str] | None = None,
+) -> list[Subnet]:
+    ret = []
+    for i, id in enumerate(ids):
+        az = azs[i % len(azs)]
+        cidr_block = cidr_blocks[i]
+        if i < len(names):
+            name = names[i]
+        else:
+            name = f"-{suffix}-{az}"
+        gw = element(gateways, i) if gateways else None
+        ret.append(Subnet(id, az, cidr_block, name, tags, gw))
+    return ret
 
 
-def subnets_to_var_file(
-    subnets: PublicSubnets | PrivateSubnets | IntraSubnets,
-):
-    if isinstance(subnets, PublicSubnets):
-        prefix = "public"
-    elif isinstance(subnets, PrivateSubnets):
-        prefix = "private"
-    elif isinstance(subnets, IntraSubnets):
-        prefix = "intra"
-    else:
-        assert False
-    return {
-        f"{prefix}_subnets": [
-            str(cidr_block) for cidr_block in subnets.cidr_blocks
-        ],
-        f"{prefix}_subnet_names": subnets.names,
-        f"{prefix}_subnet_suffix": subnets.suffix,
-        f"{prefix}_subnet_tags": subnets.tags,
-    }
+@dataclass
+class Outputs:
+    vpc_id: str
+    subnets: list[Subnet]
+
+    @classmethod
+    def from_terraform_output(cls, inputs: Inputs, output: str):
+        d = json.loads(output)
+        igw_id = d["igw_id"]["value"] if "igw_id" in d else None
+        subnets = []
+        subnets.extend(
+            create_subnets(
+                d["public_subnet_ids"]["value"],
+                inputs.azs,
+                [IPv4Network(x) for x in d["public_subnet_cidr_blocks"]["value"]],
+                inputs.public_subnets.names,
+                inputs.public_subnets.suffix,
+                inputs.public_subnets.tags,
+                [igw_id] if igw_id else None,
+            )
+        )
+        subnets.extend(
+            create_subnets(
+                d["private_subnet_ids"]["value"],
+                inputs.azs,
+                [IPv4Network(x) for x in d["private_subnet_cidr_blocks"]["value"]],
+                inputs.private_subnets.names,
+                inputs.private_subnets.suffix,
+                inputs.private_subnets.tags,
+                d["natgw_ids"]["value"] or None,
+            )
+        )
+        subnets.extend(
+            create_subnets(
+                d["intra_subnet_ids"]["value"],
+                inputs.azs,
+                [IPv4Network(x) for x in d["intra_subnet_cidr_blocks"]["value"]],
+                inputs.intra_subnets.names,
+                inputs.intra_subnets.suffix,
+                inputs.intra_subnets.tags,
+            )
+        )
+        return cls(d["vpc_id"]["value"], subnets)
 
 
-words = text(alphabet=characters(whitelist_categories=["Ll", "Lu", "Nd"]))
-nonempty_words = text(
-    alphabet=characters(whitelist_categories=["Ll", "Lu"]), min_size=1
-)
+words = text(alphabet=string.ascii_letters)
+nonempty_words = text(alphabet=string.ascii_letters, min_size=1)
 
 
 @composite
@@ -168,6 +217,8 @@ def cidr_blocks(
 @composite
 def inputs(draw):
     azs = ["eu-west-1a", "eu-west-1b"]
+    create_igw = draw(booleans())
+    enable_nat_gateways = draw(booleans())
 
     public_subnet_count = draw(integers(min_value=0, max_value=4))
     private_subnet_count = draw(integers(min_value=0, max_value=4))
@@ -180,28 +231,28 @@ def inputs(draw):
         draw(cidr_blocks(IPv4Network("10.0.0.0/16"), 24, subnet_count))
     )
 
-    public_subnets = PublicSubnets(
+    public_subnets = Subnets(
         cidr_blocks={cidrs.pop() for _ in range(public_subnet_count)},
         names=draw(lists(words, max_size=4)),
         suffix=draw(words),
         tags=draw(dictionaries(nonempty_words, nonempty_words, max_size=4)),
     )
 
-    private_subnets = PrivateSubnets(
+    private_subnets = Subnets(
         cidr_blocks={cidrs.pop() for _ in range(private_subnet_count)},
         names=draw(lists(words, max_size=4)),
         suffix=draw(words),
         tags=draw(dictionaries(nonempty_words, nonempty_words, max_size=4)),
     )
 
-    intra_subnets = IntraSubnets(
+    intra_subnets = Subnets(
         cidr_blocks={cidrs.pop() for _ in range(intra_subnet_count)},
         names=draw(lists(words, max_size=4)),
         suffix=draw(words),
         tags=draw(dictionaries(nonempty_words, nonempty_words, max_size=4)),
     )
 
-    return Inputs(azs, public_subnets, private_subnets, intra_subnets)
+    return Inputs(azs, create_igw, enable_nat_gateways, public_subnets, private_subnets, intra_subnets)
 
 
 @pytest.fixture(scope="module")
@@ -224,16 +275,20 @@ def ec2():
 
 @given(inputs())
 @settings(
-    deadline=None, max_examples=10, phases=(Phase.generate, Phase.target)
+    deadline=None, max_examples=50, phases=(Phase.generate, Phase.target)
 )
 def test_foo(ec2, this_dir: Path, tf: Terraform, inputs: Inputs):
-    logger.debug("%r", inputs.to_var_file())
     with (this_dir / "terraform.tfvars.json").open("w") as f:
         json.dump(inputs.to_var_file(), f)
     try:
+        logger.info("Applying with inputs %r", inputs)
         tf.apply()
-        out = tf.output().stdout
-        vpc_id = json.loads(out)["vpc_id"]["value"]
-        inputs.check(ec2, vpc_id)
+        outputs = Outputs.from_terraform_output(inputs, tf.output().stdout)
+        vpc = boto3.resource("ec2", endpoint_url="http://localhost:5000").Vpc(outputs.vpc_id)
+        logger.debug("%r", list(vpc.subnets.all()))
+        for subnet in outputs.subnets:
+            subnet.assert_exists(ec2, vpc)
+
     finally:
-        tf.destroy()
+        requests.post("http://localhost:5000/moto-api/reset")
+        (this_dir / "terraform.tfstate").unlink(missing_ok=True)

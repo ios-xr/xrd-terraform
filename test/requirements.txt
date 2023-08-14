@@ -1,2 +1,4 @@
 pytest
 boto3
+hypothesis
+moto[server]
