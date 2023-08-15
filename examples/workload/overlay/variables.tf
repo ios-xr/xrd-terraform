@@ -41,10 +41,16 @@ variable "xr_root_password" {
   nullable    = false
 }
 
+variable "image_registry" {
+  description = "Image registry where the XRd container image is hosted."
+  type        = string
+  default     = null
+}
+
 variable "image_repository" {
   description = "Image repository where the XRd container image is hosted."
   type        = string
-  default     = null
+  default     = "xrd/xrd-vrouter"
 }
 
 variable "image_tag" {
