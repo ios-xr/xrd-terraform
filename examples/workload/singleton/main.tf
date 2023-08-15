@@ -168,7 +168,7 @@ locals {
     data.aws_region.current.name,
   )
 
-  default_image_repository = {
+  default_image_name = {
     "vRouter" : "xrd/xrd-vrouter"
     "ControlPlane" : "xrd/xrd-control-plane"
   }
@@ -176,7 +176,7 @@ locals {
   image_repository = format(
     "%s/%s",
     coalesce(var.image_registry, local.default_image_registry),
-    coalesce(var.image_repository, local.default_image_repository[var.xrd_platform]),
+    coalesce(var.image_repository, local.default_image_name[var.xrd_platform]),
   )
 }
 
