@@ -1,9 +1,15 @@
+import json
 import logging
 import shlex
 import subprocess
 from dataclasses import dataclass
+from functools import partial
 from pathlib import Path
-from typing import Callable
+from typing import Any, Callable, Mapping
+
+import cattrs
+from attrs import fields
+from cattrs.errors import ForbiddenExtraKeysError
 
 logger = logging.getLogger(__name__)
 
@@ -11,6 +17,7 @@ logger = logging.getLogger(__name__)
 @dataclass
 class Terraform:
     working_dir: Path
+    endpoint: str
 
     def init(
         self, *, upgrade: bool = False
@@ -23,7 +30,13 @@ class Terraform:
     def apply(
         self, vars: dict[str, str] | None = None, auto_approve: bool = True
     ) -> subprocess.CompletedProcess:
-        cmd = ["terraform", f"-chdir={self.working_dir}", "apply", "-no-color"]
+        cmd = [
+            "terraform",
+            f"-chdir={self.working_dir}",
+            "apply",
+            "-no-color",
+            f"-var=endpoint={self.endpoint}",
+        ]
         if vars:
             for k, v in vars.items():
                 cmd.append(f"-var={k}={v}")
@@ -39,6 +52,7 @@ class Terraform:
             f"-chdir={self.working_dir}",
             "destroy",
             "-no-color",
+            f"-var=endpoint={self.endpoint}",
         ]
         if vars:
             for k, v in vars.items():
@@ -51,6 +65,29 @@ class Terraform:
         return run_cmd(
             ["terraform", f"-chdir={self.working_dir}", "output", "-json"]
         )
+
+
+class TerraformOutputs:
+    def structure(
+        c, d: Mapping[str, Any], t: "TerraformOutputs"
+    ) -> "TerraformOutputs":
+        conv_obj = {}
+        for a in fields(t):
+            value = d.pop(a.name)["value"]
+            conv_obj[a.name] = c.structure(value, a.type)
+        if d:
+            raise ForbiddenExtraKeysError("", t, set(d.keys()))
+        return t(**conv_obj)
+
+    @classmethod
+    def from_terraform(cls, tf: Terraform):
+        out = tf.output().stdout
+        d = json.loads(out)
+        converter = cattrs.Converter()
+        converter.register_structure_hook(
+            cls, partial(cls.structure, converter)
+        )
+        return converter.structure(d, cls)
 
 
 def run_cmd(
