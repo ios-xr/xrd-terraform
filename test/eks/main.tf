@@ -11,11 +11,11 @@ variable "endpoint" {
 }
 
 variable "name" {
-  type    = string
+  type = string
 }
 
 variable "cluster_version" {
-  type    = string
+  type = string
 }
 
 variable "security_group_ids" {
@@ -23,36 +23,32 @@ variable "security_group_ids" {
   default = []
 }
 
+variable "endpoint_public_access" {
+  type    = bool
+  default = null
+}
+
+variable "endpoint_private_access" {
+  type    = bool
+  default = null
+}
+
 variable "public_access_cidrs" {
   type    = list(string)
   default = null
 }
 
-data "aws_availability_zones" "available" {
-  state = "available"
-}
-
-resource "aws_vpc" "this" {
-  cidr_block = "10.0.0.0/16"
-}
-
-resource "aws_subnet" "one" {
-  vpc_id     = aws_vpc.this.id
-  availability_zone = data.aws_availability_zones.available.names[0]
-  cidr_block = "10.0.10.0/24"
-}
-
-resource "aws_subnet" "two" {
-  vpc_id     = aws_vpc.this.id
-  availability_zone = data.aws_availability_zones.available.names[1]
-  cidr_block = "10.0.11.0/24"
+variable "subnet_ids" {
+  type = list(string)
 }
 
 module "eks" {
   source = "../../modules/aws/eks"
 
-  name = var.name
-  cluster_version = var.cluster_version
-  security_group_ids = var.security_group_ids
-  subnet_ids = [aws_subnet.one.id, aws_subnet.two.id]
+  name                    = var.name
+  endpoint_public_access  = var.endpoint_public_access
+  endpoint_private_access = var.endpoint_private_access
+  cluster_version         = var.cluster_version
+  security_group_ids      = var.security_group_ids
+  subnet_ids              = var.subnet_ids
 }
