@@ -5,6 +5,7 @@ import subprocess
 from dataclasses import dataclass
 from functools import partial
 from pathlib import Path
+from tempfile import NamedTemporaryFile
 from typing import Any, Callable, Mapping
 
 import cattrs
@@ -37,12 +38,22 @@ class Terraform:
             "-no-color",
             f"-var=endpoint={self.endpoint}",
         ]
+
         if vars:
-            for k, v in vars.items():
-                cmd.append(f"-var={k}={v}")
+            var_file = NamedTemporaryFile(mode="w", suffix=".json")
+            json.dump(vars, var_file)
+            var_file.flush()
+            cmd.append(f"-var-file={var_file.name}")
+
         if auto_approve:
             cmd.append("-auto-approve")
-        return run_cmd(cmd)
+
+        p = run_cmd(cmd)
+
+        if vars:
+            var_file.close()
+
+        return p
 
     def destroy(
         self, vars: dict[str, str] | None = None, auto_approve: bool = True
@@ -54,12 +65,22 @@ class Terraform:
             "-no-color",
             f"-var=endpoint={self.endpoint}",
         ]
+
         if vars:
-            for k, v in vars.items():
-                cmd.append(f"-var={k}={v}")
+            var_file = NamedTemporaryFile(mode="w", suffix=".json")
+            json.dump(vars, var_file)
+            var_file.flush()
+            cmd.append(f"-var-file={var_file.name}")
+
         if auto_approve:
             cmd.append("-auto-approve")
-        return run_cmd(cmd)
+
+        p = run_cmd(cmd)
+
+        if vars:
+            var_file.close()
+
+        return p
 
     def output(self) -> subprocess.CompletedProcess:
         return run_cmd(
