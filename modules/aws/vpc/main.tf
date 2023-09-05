@@ -117,7 +117,7 @@ locals {
   # Create NAT gateways if necessary: one for each private subnet that has
   # an associated public subnet.
   natgw_count = (
-    local.create_private_subnets && local.create_public_subnets && var.enable_nat_gateway ? 
+    local.create_private_subnets && local.create_public_subnets && var.enable_nat_gateway ?
     min(local.len_private_subnets, local.len_public_subnets) : 0
   )
 }
@@ -159,7 +159,7 @@ resource "aws_route_table" "private" {
 resource "aws_route_table_association" "private" {
   count = local.create_private_subnets ? local.len_private_subnets : 0
 
-  subnet_id = element(aws_subnet.private[*].id, count.index)
+  subnet_id      = element(aws_subnet.private[*].id, count.index)
   route_table_id = element(aws_route_table.private[*].id, count.index)
 }
 
@@ -250,7 +250,7 @@ resource "aws_nat_gateway" "this" {
   count = local.natgw_count
 
   allocation_id = element(local.nat_gateway_ips, count.index)
-  subnet_id = element(aws_subnet.public[*].id, count.index)
+  subnet_id     = element(aws_subnet.public[*].id, count.index)
 
   tags = merge(
     {
