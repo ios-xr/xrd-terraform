@@ -1,3 +1,7 @@
+variable "endpoint" {
+  type = string
+}
+
 variable "key_name" {
   type = string
 }
@@ -8,7 +12,7 @@ variable "filename" {
 
 provider "aws" {
   endpoints {
-    ec2 = "http://localhost:5000"
+    ec2 = var.endpoint
   }
 }
 
