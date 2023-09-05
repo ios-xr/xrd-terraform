@@ -1,12 +1,16 @@
 provider "aws" {
   endpoints {
-    ec2 = "http://localhost:5000"
+    ec2 = var.endpoint
   }
+}
+
+variable "endpoint" {
+  type = string
 }
 
 variable "instance_type" {
   type     = string
-  default  = "t3.nano"
+  default  = "m5.xlarge"
   nullable = false
 }
 
@@ -32,17 +36,6 @@ resource "aws_vpc" "this" {
 resource "aws_subnet" "this" {
   vpc_id     = aws_vpc.this.id
   cidr_block = "10.0.0.0/24"
-}
-
-resource "aws_security_group" "ssh" {}
-
-resource "aws_vpc_security_group_ingress_rule" "ssh" {
-  security_group_id = aws_security_group.ssh.id
-
-  cidr_ipv4   = "0.0.0.0/0"
-  ip_protocol = "tcp"
-  from_port   = 22
-  to_port     = 22
 }
 
 resource "random_uuid" "this" {}

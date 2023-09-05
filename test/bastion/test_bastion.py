@@ -1,24 +1,17 @@
-import json
-import subprocess
-from dataclasses import dataclass
-from ipaddress import IPv4Address
 from pathlib import Path
 
 import boto3
 import pytest
+from attrs import define
 
-from ..utils import Terraform, run_cmd, wait_until
+from ..utils import Terraform, TerraformOutputs
 
 
-@dataclass
-class Outputs:
+@define
+class Outputs(TerraformOutputs):
     id: str
-    public_ip: IPv4Address
-
-    @classmethod
-    def from_jsons(cls, s: str):
-        d = json.loads(s)
-        return cls(d["id"]["value"], IPv4Address(d["public_ip"]["value"]))
+    public_ip: str
+    key_pair_filename: str
 
 
 @pytest.fixture(scope="module")
@@ -27,46 +20,14 @@ def this_dir() -> Path:
 
 
 @pytest.fixture(scope="module")
-def tf(this_dir: Path) -> Terraform:
-    tf = Terraform(this_dir)
+def tf(this_dir: Path, moto_server) -> Terraform:
+    tf = Terraform(this_dir, f"http://localhost:{moto_server._port}")
     tf.init(upgrade=True)
     return tf
 
 
 def test_instance_exists(tf: Terraform):
-    tf.apply()
-    outputs = Outputs.from_jsons(tf.output(out).stdout)
-    ec2 = boto3.resource("ec2", endpoint_url="http://localhost:5000")
+    tf.apply(vars={"ami": "ami-dummy"})
+    outputs = Outputs.from_terraform(tf)
+    ec2 = boto3.resource("ec2")
     ec2.Instance(outputs.id).load()
-
-
-def check_run_cmd(*args, **kwargs) -> bool:
-    try:
-        run_cmd(*args, **kwargs)
-    except (subprocess.CalledProcessError, subprocess.TimeoutExpired):
-        return False
-    else:
-        return True
-
-
-def test_ssh(
-    tf: Terraform,
-    default_subnet_id: str,
-    key_name: str,
-    key_pair_filename: Path,
-):
-    tf.apply()
-    outputs = Outputs.from_jsons(tf.output(out).stdout)
-    ec2 = boto3.resource("ec2", endpoint_url="http://localhost:5000")
-    assert wait_until(
-        120,
-        10,
-        check_run_cmd,
-        [
-            "ssh",
-            "-i",
-            str(key_pair_filename),
-            f"ec2-user@{outputs.public_ip}",
-            "true",
-        ],
-    )
