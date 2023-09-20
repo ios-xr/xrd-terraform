@@ -14,7 +14,7 @@ variable "security_group_ids" {
 }
 
 variable "subnet_ids" {
-  description = "List of subnet IDs (in at least two different AZs) in which to proviision EKS cluster control plane ENIs"
+  description = "List of subnet IDs (in at least two different AZs) in which to provision EKS cluster control plane ENIs"
   type        = list(string)
 }
 
