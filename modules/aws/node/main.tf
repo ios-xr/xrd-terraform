@@ -145,10 +145,11 @@ resource "aws_network_interface" "this" {
     i => ni
   }
 
-  subnet_id         = each.value.subnet_id
-  private_ips       = each.value.private_ip_addresses
-  security_groups   = each.value.security_groups
-  source_dest_check = false
+  subnet_id               = each.value.subnet_id
+  private_ip_list_enabled = true
+  private_ip_list         = each.value.private_ip_addresses
+  security_groups         = each.value.security_groups
+  source_dest_check       = false
 
   attachment {
     device_index = each.key + 1
