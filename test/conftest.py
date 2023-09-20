@@ -9,9 +9,9 @@ from moto.server import ThreadedMotoServer
 def moto_server():
     for i, port in enumerate(random.sample(range(50000, 50500), 100)):
         try:
-            server = ThreadedMotoServer(port=port)
+            server = MotoServer(ThreadedMotoServer(port=port), port)
             server.start()
-            os.environ["AWS_ENDPOINT_URL"] = f"http://localhost:{server._port}"
+            os.environ["AWS_ENDPOINT_URL"] = server.endpoint
             yield server
             break
         except Exception:

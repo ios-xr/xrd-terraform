@@ -1,6 +1,3 @@
-import os
-import json
-import requests
 import json
 import logging
 import string
@@ -11,10 +8,11 @@ from typing import Literal, TypeVar
 
 import boto3
 import pytest
+import requests
 from hypothesis import Phase, given, settings
 from hypothesis.strategies import (
-    composite,
     booleans,
+    composite,
     dictionaries,
     integers,
     lists,
@@ -68,12 +66,14 @@ class Subnet:
         assert tags == self.tags | {"Name": self.name}
 
         if self.gateway:
-            rtbs = ec2.describe_route_tables(Filters=[
-                {
-                    "Name": "association.subnet-id",
-                    "Values": [self.id],
-                },
-                ])["RouteTables"]
+            rtbs = ec2.describe_route_tables(
+                Filters=[
+                    {
+                        "Name": "association.subnet-id",
+                        "Values": [self.id],
+                    },
+                ]
+            )["RouteTables"]
 
             # A subnet is associated with exactly one route table, either
             # explicitly or implictly.
@@ -84,7 +84,10 @@ class Subnet:
                 if route["DestinationCidrBlock"] == "0.0.0.0/0":
                     assert not default_route_found
                     default_route_found = True
-                    assert route.get("GatewayId", route.get("NatGatewayId")) == self.gateway
+                    assert (
+                        route.get("GatewayId", route.get("NatGatewayId"))
+                        == self.gateway
+                    )
 
             assert default_route_found
 
@@ -163,7 +166,10 @@ class Outputs:
             create_subnets(
                 d["public_subnet_ids"]["value"],
                 inputs.azs,
-                [IPv4Network(x) for x in d["public_subnet_cidr_blocks"]["value"]],
+                [
+                    IPv4Network(x)
+                    for x in d["public_subnet_cidr_blocks"]["value"]
+                ],
                 inputs.public_subnets.names,
                 inputs.public_subnets.suffix,
                 inputs.public_subnets.tags,
@@ -174,7 +180,10 @@ class Outputs:
             create_subnets(
                 d["private_subnet_ids"]["value"],
                 inputs.azs,
-                [IPv4Network(x) for x in d["private_subnet_cidr_blocks"]["value"]],
+                [
+                    IPv4Network(x)
+                    for x in d["private_subnet_cidr_blocks"]["value"]
+                ],
                 inputs.private_subnets.names,
                 inputs.private_subnets.suffix,
                 inputs.private_subnets.tags,
@@ -185,7 +194,10 @@ class Outputs:
             create_subnets(
                 d["intra_subnet_ids"]["value"],
                 inputs.azs,
-                [IPv4Network(x) for x in d["intra_subnet_cidr_blocks"]["value"]],
+                [
+                    IPv4Network(x)
+                    for x in d["intra_subnet_cidr_blocks"]["value"]
+                ],
                 inputs.intra_subnets.names,
                 inputs.intra_subnets.suffix,
                 inputs.intra_subnets.tags,
@@ -252,7 +264,14 @@ def inputs(draw):
         tags=draw(dictionaries(nonempty_words, nonempty_words, max_size=4)),
     )
 
-    return Inputs(azs, create_igw, enable_nat_gateways, public_subnets, private_subnets, intra_subnets)
+    return Inputs(
+        azs,
+        create_igw,
+        enable_nat_gateways,
+        public_subnets,
+        private_subnets,
+        intra_subnets,
+    )
 
 
 @pytest.fixture(scope="module")
@@ -284,7 +303,9 @@ def test_foo(ec2, this_dir: Path, tf: Terraform, inputs: Inputs):
         logger.info("Applying with inputs %r", inputs)
         tf.apply()
         outputs = Outputs.from_terraform_output(inputs, tf.output().stdout)
-        vpc = boto3.resource("ec2", endpoint_url="http://localhost:5000").Vpc(outputs.vpc_id)
+        vpc = boto3.resource("ec2", endpoint_url="http://localhost:5000").Vpc(
+            outputs.vpc_id
+        )
         logger.debug("%r", list(vpc.subnets.all()))
         for subnet in outputs.subnets:
             subnet.assert_exists(ec2, vpc)

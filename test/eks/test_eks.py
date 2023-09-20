@@ -5,7 +5,7 @@ import pytest
 import requests
 from attrs import define
 
-from ..utils import Terraform, TerraformOutputs
+from ..utils import Terraform, TerraformOutputs, MotoServer
 
 
 @define
@@ -26,44 +26,14 @@ def tf(this_dir: Path, moto_server) -> Terraform:
     return tf
 
 
-def check_cluster(
-    *,
-    name: str,
-    cluster_version: str,
-    endpoint_public_access: bool = True,
-    endpoint_private_access: bool = True,
-    security_group_ids: list[str] | None = None,
-):
-    eks = boto3.client("eks")
-    resp = eks.describe_cluster(name=name)
-    assert resp["ResponseMetadata"]["HTTPStatusCode"] == 200
-    cluster = resp["cluster"]
-    assert cluster["name"] == name
-    assert cluster["version"] == cluster_version
-    assert (
-        cluster["resourcesVpcConfig"]["endpointPublicAccess"]
-        == endpoint_public_access
-    )
-    assert (
-        cluster["resourcesVpcConfig"]["endpointPrivateAccess"]
-        == endpoint_private_access
-    )
-    if security_group_ids:
-        assert set(cluster["resourcesVpcConfig"]["securityGroupIds"]) == set(
-            security_group_ids
-        )
-    else:
-        assert len(cluster["resourcesVpcConfig"]["securityGroupIds"]) == 0
-
-
 @pytest.fixture(scope="module")
 def ec2() -> None:
     return boto3.resource("ec2")
 
 
 @pytest.fixture(autouse=True)
-def reset(moto_server, this_dir, tf) -> None:
-    requests.post(f"http://localhost:{moto_server._port}/moto-api/reset")
+def reset(moto_server: MotoServer, this_dir, tf) -> None:
+    moto_server.reset()
     (this_dir / "terraform.tfstate").unlink(missing_ok=True)
 
 
@@ -95,6 +65,36 @@ def sg(ec2, vpc) -> None:
         CidrIp="0.0.0.0/0",
     )
     return sg
+
+
+def check_cluster(
+    *,
+    name: str,
+    cluster_version: str,
+    endpoint_public_access: bool = True,
+    endpoint_private_access: bool = True,
+    security_group_ids: list[str] | None = None,
+):
+    eks = boto3.client("eks")
+    resp = eks.describe_cluster(name=name)
+    assert resp["ResponseMetadata"]["HTTPStatusCode"] == 200
+    cluster = resp["cluster"]
+    assert cluster["name"] == name
+    assert cluster["version"] == cluster_version
+    assert (
+        cluster["resourcesVpcConfig"]["endpointPublicAccess"]
+        == endpoint_public_access
+    )
+    assert (
+        cluster["resourcesVpcConfig"]["endpointPrivateAccess"]
+        == endpoint_private_access
+    )
+    if security_group_ids:
+        assert set(cluster["resourcesVpcConfig"]["securityGroupIds"]) == set(
+            security_group_ids
+        )
+    else:
+        assert len(cluster["resourcesVpcConfig"]["securityGroupIds"]) == 0
 
 
 def test_default(tf: Terraform, subnets):
