@@ -15,7 +15,7 @@ def this_dir() -> Path:
 
 @pytest.fixture(scope="module")
 def tf(this_dir: Path, moto_server) -> Terraform:
-    tf = Terraform(this_dir, f"http://localhost:{moto_server._port}")
+    tf = Terraform(this_dir, f"http://localhost:{moto_server.port}")
     tf.init(upgrade=True)
     return tf
 
@@ -31,7 +31,7 @@ def filename(this_dir: Path, key_name: str) -> Path:
 
 
 def test_key_pair_exists(tf: Terraform, key_name: str):
-    tf.apply(vars={"key_name": key_name, "filename": filename})
+    tf.apply(vars={"key_name": key_name, "filename": str(filename)})
     ec2 = boto3.resource("ec2")
     try:
         ec2.KeyPair(key_name).load()
@@ -40,5 +40,5 @@ def test_key_pair_exists(tf: Terraform, key_name: str):
 
 
 def test_key_pair_written(tf: Terraform, key_name: str, filename: Path):
-    tf.apply(vars={"key_name": key_name, "filename": filename})
+    tf.apply(vars={"key_name": key_name, "filename": str(filename)})
     assert filename.is_file()
