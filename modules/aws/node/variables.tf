@@ -85,3 +85,9 @@ variable "user_data" {
   type        = string
   default     = ""
 }
+
+variable "wait" {
+  description = "Wait for node readiness"
+  type        = bool
+  default     = true
+}
