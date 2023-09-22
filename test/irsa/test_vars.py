@@ -1,8 +1,6 @@
-import base64
 import json
 import logging
 from pathlib import Path
-from typing import Any
 
 import pytest
 from attrs import define
@@ -32,19 +30,18 @@ def role_policy(iam):
             {
                 "Effect": "Allow",
                 "Action": "s3:ListBucket",
-                "Resource": "arn:aws:s3:::your-bucket-name"
+                "Resource": "arn:aws:s3:::your-bucket-name",
             },
             {
                 "Effect": "Allow",
                 "Action": "s3:GetObject",
-                "Resource": "arn:aws:s3:::your-bucket-name/*"
-            }
-        ]
+                "Resource": "arn:aws:s3:::your-bucket-name/*",
+            },
+        ],
     }
 
     return iam.create_policy(
-        PolicyName="YourPolicyName",
-        PolicyDocument=json.dumps(doc)
+        PolicyName="YourPolicyName", PolicyDocument=json.dumps(doc)
     )
 
 
@@ -62,12 +59,30 @@ def test_basic(iam, tf: Terraform, role_policy):
         "oidc_provider": oidc_provider,
         "namespace": namespace,
         "service_account": service_account,
-
     }
     tf.apply(vars=vars)
     outputs = Outputs.from_terraform(tf)
     role = iam.Role("foo")
 
     assert role.arn == outputs.role_arn
-    assert role.assume_role_policy_document ==  {
-        "Statement": [{"Action": "sts:AssumeRoleWithWebIdentity", "Condition": {"StringEquals": {"some.url/:aud": "sts.amazonaws.com"}, "StringLike": {"some.url/:sub": "system:serviceaccount:k8s-namespace:random-sa"}}, "Effect": "Allow", "Principal": {"Federated": "huh"}}], "Version": "2012-10-17"}
+
+    assert role.assume_role_policy_document == {
+        "Statement": [
+            {
+                "Action": "sts:AssumeRoleWithWebIdentity",
+                "Condition": {
+                    "StringEquals": {
+                        f"{oidc_issuer.lstrip('https://')}:aud": "sts.amazonaws.com"
+                    },
+                    "StringLike": {
+                        f"{oidc_issuer.lstrip('https://')}:sub": f"system:serviceaccount:{namespace}:{service_account}"
+                    },
+                },
+                "Effect": "Allow",
+                "Principal": {"Federated": oidc_provider},
+            }
+        ],
+        "Version": "2012-10-17",
+    }
+
+    assert role_policy in role.attached_policies.all()

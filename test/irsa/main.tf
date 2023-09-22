@@ -10,40 +10,40 @@ variable "endpoint" {
 }
 
 variable "role_name" {
-  type        = string
-  default     = null
+  type    = string
+  default = null
 }
 
 variable "role_policies" {
-  type        = list(string)
-  default     = []
+  type    = list(string)
+  default = []
 }
 
 variable "oidc_issuer" {
-  type        = string
+  type = string
 }
 
 variable "oidc_provider" {
-  type        = string
+  type = string
 }
 
 variable "namespace" {
-  type        = string
+  type = string
 }
 
 variable "service_account" {
-  type        = string
+  type = string
 }
 
 
 module "irsa" {
   source = "../../modules/aws/irsa"
 
-  namespace = var.namespace
-  oidc_issuer = var.oidc_issuer
-  oidc_provider = var.oidc_provider
-  role_name = var.role_name
-  role_policies = var.role_policies
+  namespace       = var.namespace
+  oidc_issuer     = var.oidc_issuer
+  oidc_provider   = var.oidc_provider
+  role_name       = var.role_name
+  role_policies   = var.role_policies
   service_account = var.service_account
 }
 
