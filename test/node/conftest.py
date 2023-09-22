@@ -3,11 +3,9 @@ from typing import Any
 
 import boto3
 import pytest
-from attrs import define
 
-from ..utils import MotoServer, Terraform, TerraformOutputs
+from ..utils import MotoServer, Terraform
 
-from typing import Any
 
 @pytest.fixture(scope="package")
 def ec2() -> None:
@@ -40,5 +38,3 @@ def base_vars() -> dict[str, Any]:
         "network_interfaces": [],
         "private_ip_address": "10.0.0.10",
     }
-
-

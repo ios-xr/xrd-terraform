@@ -1,14 +1,12 @@
 import base64
+import logging
 from pathlib import Path
 from typing import Any
 
-import logging
-import boto3
 import pytest
 from attrs import define
 
 from ..utils import MotoServer, Terraform, TerraformOutputs
-
 
 logger = logging.getLogger(__name__)
 
@@ -32,7 +30,7 @@ def test_ami(ec2, tf: Terraform, base_vars: dict[str, Any]):
     tf.apply(vars=vars)
     outputs = Outputs.from_terraform(tf)
     instance = ec2.Instance(outputs.id)
-    assert instance.image_id ==  "ami-12c6146b"
+    assert instance.image_id == "ami-12c6146b"
 
 
 def test_cluster_name(ec2, tf: Terraform, base_vars: dict[str, Any]):
@@ -51,7 +49,9 @@ def test_cluster_name(ec2, tf: Terraform, base_vars: dict[str, Any]):
     else:
         assert False, f"tag '{expected_tag_key}' does not exist"
 
-    user_data = instance.describe_attribute(Attribute="userData")["UserData"]["Value"]
+    user_data = instance.describe_attribute(Attribute="userData")["UserData"][
+        "Value"
+    ]
     user_data = base64.b64decode(user_data).decode()
     assert f"/etc/eks/bootstrap.sh {cluster_name}" in user_data
 
@@ -62,9 +62,14 @@ def test_kubelet_extra_args(ec2, tf: Terraform, base_vars: dict[str, Any]):
     outputs = Outputs.from_terraform(tf)
     instance = ec2.Instance(outputs.id)
 
-    user_data = instance.describe_attribute(Attribute="userData")["UserData"]["Value"]
+    user_data = instance.describe_attribute(Attribute="userData")["UserData"][
+        "Value"
+    ]
     user_data = base64.b64decode(user_data).decode()
-    assert f"""--kubelet-extra-args '--node-labels=name={base_vars["name"]} cha cha cha'""" in user_data
+    assert (
+        f"""--kubelet-extra-args '--node-labels=name={base_vars["name"]} cha cha cha'"""
+        in user_data
+    )
 
 
 def test_instance_type(ec2, tf: Terraform, base_vars: dict[str, Any]):
@@ -104,6 +109,8 @@ def test_user_data(ec2, tf: Terraform, base_vars: dict[str, Any]):
     outputs = Outputs.from_terraform(tf)
     instance = ec2.Instance(outputs.id)
 
-    user_data = instance.describe_attribute(Attribute="userData")["UserData"]["Value"]
+    user_data = instance.describe_attribute(Attribute="userData")["UserData"][
+        "Value"
+    ]
     user_data = base64.b64decode(user_data).decode()
     assert "this is my user data" in user_data
