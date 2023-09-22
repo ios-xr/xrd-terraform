@@ -21,7 +21,7 @@ def this_dir() -> Path:
 
 @pytest.fixture(scope="module")
 def tf(this_dir: Path, moto_server) -> Terraform:
-    tf = Terraform(this_dir, f"http://localhost:{moto_server._port}")
+    tf = Terraform(this_dir, f"http://localhost:{moto_server.port}")
     tf.init(upgrade=True)
     return tf
 
