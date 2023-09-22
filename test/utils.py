@@ -1,8 +1,6 @@
-import requests
-import pytest
-from moto.server import ThreadedMotoServer
 import json
 import logging
+import os
 import shlex
 import subprocess
 from dataclasses import dataclass
@@ -12,8 +10,10 @@ from tempfile import NamedTemporaryFile
 from typing import Any, Callable, Mapping
 
 import cattrs
-from attrs import fields
+import requests
+from attrs import define, fields
 from cattrs.errors import ForbiddenExtraKeysError
+from moto.server import ThreadedMotoServer
 
 logger = logging.getLogger(__name__)
 
@@ -22,21 +22,29 @@ logger = logging.getLogger(__name__)
 class Terraform:
     working_dir: Path
     endpoint: str
+    data_dir: Path | None = None
+
+    def _run_terraform_cmd(
+        self, cmd: list[str], **kwargs
+    ) -> subprocess.CompletedProcess[str]:
+        cmd = ["terraform", f"-chdir={self.working_dir}", *cmd]
+        env = os.environ.copy()
+        if self.data_dir:
+            env["TF_DATA_DIR"] = self.data_dir
+        return run_cmd(cmd, env=env, **kwargs)
 
     def init(
         self, *, upgrade: bool = False
     ) -> subprocess.CompletedProcess[str]:
-        cmd = ["terraform", f"-chdir={self.working_dir}", "init"]
+        cmd = ["init"]
         if upgrade:
             cmd.append("-upgrade")
-        return run_cmd(cmd)
+        return self._run_terraform_cmd(cmd)
 
     def apply(
         self, vars: dict[str, str] | None = None, auto_approve: bool = True
     ) -> subprocess.CompletedProcess:
         cmd = [
-            "terraform",
-            f"-chdir={self.working_dir}",
             "apply",
             "-no-color",
             f"-var=endpoint={self.endpoint}",
@@ -51,7 +59,7 @@ class Terraform:
         if auto_approve:
             cmd.append("-auto-approve")
 
-        p = run_cmd(cmd)
+        p = self._run_terraform_cmd(cmd)
 
         if vars:
             var_file.close()
@@ -62,8 +70,6 @@ class Terraform:
         self, vars: dict[str, str] | None = None, auto_approve: bool = True
     ) -> subprocess.CompletedProcess:
         cmd = [
-            "terraform",
-            f"-chdir={self.working_dir}",
             "destroy",
             "-no-color",
             f"-var=endpoint={self.endpoint}",
@@ -78,7 +84,7 @@ class Terraform:
         if auto_approve:
             cmd.append("-auto-approve")
 
-        p = run_cmd(cmd)
+        p = self._run_terraform_cmd(cmd)
 
         if vars:
             var_file.close()
@@ -86,9 +92,7 @@ class Terraform:
         return p
 
     def output(self) -> subprocess.CompletedProcess:
-        return run_cmd(
-            ["terraform", f"-chdir={self.working_dir}", "output", "-json"]
-        )
+        return self._run_terraform_cmd(["output", "-json"])
 
 
 class TerraformOutputs:
