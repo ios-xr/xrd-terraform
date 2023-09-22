@@ -12,24 +12,24 @@ variable "endpoint" {
 }
 
 variable "name" {
-  type        = string
+  type = string
 }
 
 variable "ami" {
-  type        = string
+  type = string
 }
 
 variable "instance_type" {
-  type        = string
+  type    = string
   default = "m5.2xlarge"
 }
 
 variable "private_ip_address" {
-  type        = string
+  type = string
 }
 
 variable "security_groups" {
-  type        = list(string)
+  type    = list(string)
   default = []
 }
 
@@ -42,11 +42,11 @@ variable "network_interfaces" {
 }
 
 variable "cluster_name" {
-  type        = string
+  type = string
 }
 
 variable "kubelet_extra_args" {
-  type        = string
+  type    = string
   default = ""
 }
 
@@ -59,7 +59,7 @@ variable "xrd_ami_data" {
 }
 
 variable "user_data" {
-  type        = string
+  type    = string
   default = ""
 }
 
@@ -127,28 +127,28 @@ module "node" {
   wait = false
 
   # Dependent resources that we need to create.
-  iam_instance_profile         = aws_iam_instance_profile.node.name
-  key_name      = module.key_pair.key_name
-  subnet_id              = module.vpc.private_subnet_ids[0]
+  iam_instance_profile = aws_iam_instance_profile.node.name
+  key_name             = module.key_pair.key_name
+  subnet_id            = module.vpc.private_subnet_ids[0]
 
   # Parameters.
-  ami  = var.ami
-  cluster_name = var.cluster_name
+  ami                = var.ami
+  cluster_name       = var.cluster_name
   kubelet_extra_args = var.kubelet_extra_args
-  instance_type = var.instance_type
-  name                    = var.name
+  instance_type      = var.instance_type
+  name               = var.name
   network_interfaces = var.network_interfaces
-  private_ip_address              = var.private_ip_address
-  security_groups = var.security_groups
-  user_data = var.user_data
-  xrd_ami_data = var.xrd_ami_data
+  private_ip_address = var.private_ip_address
+  security_groups    = var.security_groups
+  user_data          = var.user_data
+  xrd_ami_data       = var.xrd_ami_data
 }
 
 
 output "id" {
-  value       = module.node.id
+  value = module.node.id
 }
 
 output "private_ip" {
-  value       = module.node.private_ip
+  value = module.node.private_ip
 }
