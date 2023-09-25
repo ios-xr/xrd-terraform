@@ -10,18 +10,18 @@ variable "endpoint" {
 }
 
 variable "subnet_id" {
-  type        = string
-  nullable    = false
+  type     = string
+  nullable = false
 }
 
 variable "instance_type" {
-  type     = string
-  default  = null
+  type    = string
+  default = null
 }
 
 variable "key_name" {
-  type        = string
-  nullable    = false
+  type     = string
+  nullable = false
 }
 
 variable "ami" {

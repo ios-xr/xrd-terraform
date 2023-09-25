@@ -1,9 +1,9 @@
-import boto3
 import logging
 import os
 import random
 from pathlib import Path
 
+import boto3
 import pytest
 from moto.server import ThreadedMotoServer
 
@@ -67,5 +67,3 @@ def ec2() -> None:
 @pytest.fixture(scope="session")
 def iam() -> None:
     return boto3.resource("iam")
-
-

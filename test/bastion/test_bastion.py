@@ -1,8 +1,7 @@
 from pathlib import Path
 from typing import Any
-import botocore.exceptions
 
-import boto3
+import botocore.exceptions
 import pytest
 from attrs import define
 

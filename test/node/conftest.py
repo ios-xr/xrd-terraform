@@ -1,7 +1,6 @@
 from pathlib import Path
 from typing import Any
 
-import boto3
 import pytest
 
 from ..utils import MotoServer, Terraform

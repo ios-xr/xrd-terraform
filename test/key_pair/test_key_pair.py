@@ -1,13 +1,11 @@
 import os
-from typing import Any
-import botocore.exceptions
-import uuid
 from pathlib import Path
+from typing import Any
 
+import botocore.exceptions
 import pytest
-from botocore.exceptions import ClientError
 
-from ..utils import Terraform, MotoServer
+from ..utils import MotoServer, Terraform
 
 
 @pytest.fixture(scope="module", autouse=True)

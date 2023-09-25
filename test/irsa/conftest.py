@@ -1,6 +1,5 @@
 from pathlib import Path
 
-import boto3
 import pytest
 
 from ..utils import MotoServer, Terraform

@@ -1,10 +1,8 @@
-
-from typing import Any
 import uuid
 from pathlib import Path
+from typing import Any
 
 import pytest
-from botocore.exceptions import ClientError
 
 from ..utils import Terraform
 

@@ -1,13 +1,9 @@
-
-from typing import Any
 from pathlib import Path
+from typing import Any
 
-import boto3
 import pytest
-from attrs import define
 
-from ..utils import MotoServer, Terraform, TerraformOutputs
-
+from ..utils import Terraform
 
 
 @pytest.fixture(scope="package")
