@@ -6,6 +6,7 @@ provider "aws" {
   }
 }
 
+
 variable "endpoint" {
   type = string
 }
@@ -41,6 +42,7 @@ variable "public_access_cidrs" {
 variable "subnet_ids" {
   type = list(string)
 }
+
 
 module "eks" {
   source = "../../modules/aws/eks"

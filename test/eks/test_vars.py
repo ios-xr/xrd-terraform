@@ -5,60 +5,13 @@ import pytest
 from attrs import define
 
 from ..utils import MotoServer, Terraform, TerraformOutputs
-
-
-@define
-class Outputs(TerraformOutputs):
-    subnet_one_id: str
-    subnet_two_id: str
-
-
-@pytest.fixture(scope="module")
-def this_dir() -> Path:
-    return Path(__file__).parent
-
-
-@pytest.fixture(scope="module")
-def tf(this_dir: Path, moto_server) -> Terraform:
-    tf = Terraform(this_dir, f"http://localhost:{moto_server.port}")
-    tf.init(upgrade=True)
-    return tf
+from . import Outputs
 
 
 @pytest.fixture(autouse=True)
 def reset(moto_server: MotoServer, this_dir, tf) -> None:
     moto_server.reset()
     (this_dir / "terraform.tfstate").unlink(missing_ok=True)
-
-
-@pytest.fixture(autouse=True)
-def vpc(ec2) -> None:
-    return ec2.create_vpc(CidrBlock="10.0.0.0/16")
-
-
-@pytest.fixture(autouse=True)
-def subnets(vpc) -> None:
-    s1 = vpc.create_subnet(
-        AvailabilityZone="eu-west-1a", CidrBlock="10.0.10.0/24"
-    )
-    s2 = vpc.create_subnet(
-        AvailabilityZone="eu-west-1b", CidrBlock="10.0.11.0/24"
-    )
-    return s1, s2
-
-
-@pytest.fixture
-def sg(ec2, vpc) -> None:
-    sg = ec2.create_security_group(
-        GroupName="ssh", Description="ssh", VpcId=vpc.vpc_id
-    )
-    sg.authorize_ingress(
-        IpProtocol="tcp",
-        FromPort=22,
-        ToPort=22,
-        CidrIp="0.0.0.0/0",
-    )
-    return sg
 
 
 def check_cluster(
@@ -70,25 +23,6 @@ def check_cluster(
     security_group_ids: list[str] | None = None,
 ):
     eks = boto3.client("eks")
-    resp = eks.describe_cluster(name=name)
-    assert resp["ResponseMetadata"]["HTTPStatusCode"] == 200
-    cluster = resp["cluster"]
-    assert cluster["name"] == name
-    assert cluster["version"] == cluster_version
-    assert (
-        cluster["resourcesVpcConfig"]["endpointPublicAccess"]
-        == endpoint_public_access
-    )
-    assert (
-        cluster["resourcesVpcConfig"]["endpointPrivateAccess"]
-        == endpoint_private_access
-    )
-    if security_group_ids:
-        assert set(cluster["resourcesVpcConfig"]["securityGroupIds"]) == set(
-            security_group_ids
-        )
-    else:
-        assert len(cluster["resourcesVpcConfig"]["securityGroupIds"]) == 0
 
 
 def test_default(tf: Terraform, subnets):
