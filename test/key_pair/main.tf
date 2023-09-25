@@ -10,11 +10,13 @@ variable "filename" {
   type = string
 }
 
+
 provider "aws" {
   endpoints {
     ec2 = var.endpoint
   }
 }
+
 
 module "key_pair" {
   source   = "../../modules/aws/key-pair"

@@ -1,44 +1,33 @@
+import os
+from typing import Any
+import botocore.exceptions
 import uuid
 from pathlib import Path
 
-import boto3
 import pytest
 from botocore.exceptions import ClientError
 
-from ..utils import Terraform
+from ..utils import Terraform, MotoServer
 
 
-@pytest.fixture(scope="module")
-def this_dir() -> Path:
-    return Path(__file__).parent
+@pytest.fixture(scope="module", autouse=True)
+def apply(tf: Terraform, base_vars: dict[str, Any]) -> None:
+    tf.apply(vars=base_vars)
 
 
-@pytest.fixture(scope="module")
-def tf(this_dir: Path, moto_server) -> Terraform:
-    tf = Terraform(this_dir, f"http://localhost:{moto_server.port}")
-    tf.init(upgrade=True)
-    return tf
+@pytest.fixture(scope="module", autouse=True)
+def reset(moto_server: MotoServer, this_dir: Path) -> None:
+    yield
+    moto_server.reset()
+    (this_dir / "terraform.tfstate").unlink(missing_ok=True)
 
 
-@pytest.fixture(scope="module")
-def key_name() -> str:
-    return str(uuid.uuid4())
-
-
-@pytest.fixture(scope="module")
-def filename(this_dir: Path, key_name: str) -> Path:
-    return this_dir / f"{key_name}.pem"
-
-
-def test_key_pair_exists(tf: Terraform, key_name: str):
-    tf.apply(vars={"key_name": key_name, "filename": str(filename)})
-    ec2 = boto3.resource("ec2")
+def test_key_pair_exists(ec2, base_vars: dict[str, Any]):
     try:
-        ec2.KeyPair(key_name).load()
-    except ClientError as exc:
+        ec2.KeyPair(base_vars["key_name"]).load()
+    except botocore.exceptions.ClientError as exc:
         raise AssertionError from exc
 
 
-def test_key_pair_written(tf: Terraform, key_name: str, filename: Path):
-    tf.apply(vars={"key_name": key_name, "filename": str(filename)})
-    assert filename.is_file()
+def test_key_pair_written(base_vars: dict[str, Any]):
+    assert os.path.exists(base_vars["filename"])
