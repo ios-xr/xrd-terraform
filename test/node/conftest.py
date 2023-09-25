@@ -8,16 +8,6 @@ from ..utils import MotoServer, Terraform
 
 
 @pytest.fixture(scope="package")
-def ec2() -> None:
-    return boto3.resource("ec2")
-
-
-@pytest.fixture(scope="package")
-def ec2_client() -> None:
-    return boto3.client("ec2")
-
-
-@pytest.fixture(scope="package")
 def this_dir() -> Path:
     return Path(__file__).parent
 

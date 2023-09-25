@@ -96,7 +96,7 @@ def test_name(ec2, tf: Terraform, base_vars: dict[str, Any]):
 
 
 def test_private_ip_address(ec2, tf: Terraform, base_vars: dict[str, Any]):
-    vars = base_vars | {"private_ip_address": "10.0.100.10"}
+    vars = base_vars | {"private_ip_address": "10.0.0.200"}
     tf.apply(vars=vars)
     outputs = Outputs.from_terraform(tf)
     instance = ec2.Instance(outputs.id)

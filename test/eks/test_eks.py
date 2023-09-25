@@ -25,11 +25,6 @@ def tf(this_dir: Path, moto_server) -> Terraform:
     return tf
 
 
-@pytest.fixture(scope="module")
-def ec2() -> None:
-    return boto3.resource("ec2")
-
-
 @pytest.fixture(autouse=True)
 def reset(moto_server: MotoServer, this_dir, tf) -> None:
     moto_server.reset()

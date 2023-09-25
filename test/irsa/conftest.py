@@ -7,11 +7,6 @@ from ..utils import MotoServer, Terraform
 
 
 @pytest.fixture(scope="package")
-def iam() -> None:
-    return boto3.resource("iam")
-
-
-@pytest.fixture(scope="package")
 def this_dir() -> Path:
     return Path(__file__).parent
 

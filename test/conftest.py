@@ -1,3 +1,4 @@
+import boto3
 import logging
 import os
 import random
@@ -56,3 +57,15 @@ def moto_server():
                 raise
             raise
     server.stop()
+
+
+@pytest.fixture(scope="session")
+def ec2() -> None:
+    return boto3.resource("ec2")
+
+
+@pytest.fixture(scope="session")
+def iam() -> None:
+    return boto3.resource("iam")
+
+
