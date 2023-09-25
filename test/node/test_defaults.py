@@ -2,15 +2,9 @@ from pathlib import Path
 from typing import Any
 
 import pytest
-from attrs import define
 
-from ..utils import MotoServer, Terraform, TerraformOutputs
-
-
-@define
-class Outputs(TerraformOutputs):
-    id: str
-    private_ip: str
+from ..utils import MotoServer, Terraform
+from . import Outputs
 
 
 @pytest.fixture(scope="module", autouse=True)

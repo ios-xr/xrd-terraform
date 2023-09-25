@@ -39,6 +39,6 @@ def key_pair(ec2) -> ...:
 def base_vars(subnet, key_pair) -> dict[str, Any]:
     return {
         "ami": "ami-dummy",
-        "subnet_id": subnet.id,
         "key_name": key_pair.key_name,
+        "subnet_id": subnet.id,
     }

@@ -44,7 +44,7 @@ def pytest_configure(config: pytest.Config) -> None:
 
 
 @pytest.fixture(scope="session", autouse=True)
-def moto_server():
+def moto_server() -> MotoServer:
     for i, port in enumerate(random.sample(range(50000, 50500), 100)):
         try:
             server = MotoServer(ThreadedMotoServer(port=port))
@@ -60,10 +60,10 @@ def moto_server():
 
 
 @pytest.fixture(scope="session")
-def ec2() -> None:
+def ec2(moto_server: MotoServer) -> ...:
     return boto3.resource("ec2")
 
 
 @pytest.fixture(scope="session")
-def iam() -> None:
+def iam(moto_server: MotoServer) -> ...:
     return boto3.resource("iam")
