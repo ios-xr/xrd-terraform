@@ -1,6 +1,8 @@
 import json
 import logging
+import uuid
 from pathlib import Path
+from typing import Any
 
 import pytest
 from attrs import define
@@ -15,11 +17,16 @@ class Outputs(TerraformOutputs):
     role_arn: str
 
 
-@pytest.fixture(autouse=True)
-def reset(moto_server: MotoServer, this_dir: Path) -> None:
-    yield
-    moto_server.reset()
-    (this_dir / "terraform.tfstate").unlink(missing_ok=True)
+from pathlib import Path
+
+import pytest
+
+from ..utils import MotoServer, Terraform
+
+
+@pytest.fixture(scope="module")
+def this_dir() -> Path:
+    return Path(__file__).parent
 
 
 @pytest.fixture(scope="module")
@@ -45,44 +52,56 @@ def role_policy(iam):
     )
 
 
-def test_basic(iam, tf: Terraform, role_policy):
-    role_name = "foo"
-    oidc_issuer = "https://must.be.an.url"
-    oidc_provider = "whatever"
-    service_account = "sa"
-    namespace = "namespace"
-
-    vars = {
-        "role_name": role_name,
+@pytest.fixture(scope="module")
+def base_vars(role_policy: ...) -> dict[str, Any]:
+    return {
+        "role_name": str(uuid.uuid4()),
         "role_policies": [role_policy.arn],
-        "oidc_issuer": oidc_issuer,
-        "oidc_provider": oidc_provider,
-        "namespace": namespace,
-        "service_account": service_account,
+        "oidc_issuer": f"https://{uuid.uuid4()}.org",
+        "oidc_provider": str(uuid.uuid4()),
+        "namespace": str(uuid.uuid4()),
+        "service_account": str(uuid.uuid4()),
     }
-    tf.apply(vars=vars)
+
+
+@pytest.fixture(scope="module")
+def tf(this_dir: Path, moto_server: MotoServer) -> Terraform:
+    tf = Terraform(this_dir, f"http://localhost:{moto_server.port}")
+    tf.init(upgrade=True)
+    return tf
+
+
+@pytest.fixture(autouse=True)
+def reset(moto_server: MotoServer, this_dir: Path) -> None:
+    yield
+    moto_server.reset()
+    (this_dir / "terraform.tfstate").unlink(missing_ok=True)
+
+
+def test_defaults(iam, base_vars: dict[str, Any], tf: Terraform):
+    tf.apply(vars=base_vars)
     outputs = Outputs.from_terraform(tf)
-    role = iam.Role("foo")
 
+    role = iam.Role(base_vars["role_name"])
     assert role.arn == outputs.role_arn
-
     assert role.assume_role_policy_document == {
         "Statement": [
             {
                 "Action": "sts:AssumeRoleWithWebIdentity",
                 "Condition": {
                     "StringEquals": {
-                        f"{oidc_issuer.lstrip('https://')}:aud": "sts.amazonaws.com"
+                        f"{base_vars['oidc_issuer'].lstrip('https://')}:aud": "sts.amazonaws.com"
                     },
                     "StringLike": {
-                        f"{oidc_issuer.lstrip('https://')}:sub": f"system:serviceaccount:{namespace}:{service_account}"
+                        f"{base_vars['oidc_issuer'].lstrip('https://')}:sub": f"system:serviceaccount:{base_vars['namespace']}:{base_vars['service_account']}"
                     },
                 },
                 "Effect": "Allow",
-                "Principal": {"Federated": oidc_provider},
+                "Principal": {"Federated": base_vars["oidc_provider"]},
             }
         ],
         "Version": "2012-10-17",
     }
-
-    assert role_policy in role.attached_policies.all()
+    assert set(base_vars["role_policies"]).issubset(
+        {x.arn for x in role.attached_policies.all()}
+    )
