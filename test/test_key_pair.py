@@ -21,17 +21,21 @@ def base_vars(this_dir: Path) -> dict[str, Any]:
 @pytest.fixture(scope="module")
 def tf(this_dir: Path, moto_server) -> Terraform:
     tf = Terraform(
-        this_dir / "key_pair", f"http://localhost:{moto_server.port}"
+        this_dir / "terraform" / "key_pair",
+        f"http://localhost:{moto_server.port}",
     )
     tf.init(upgrade=True)
     return tf
 
 
 @pytest.fixture(autouse=True)
-def reset(moto_server: MotoServer, this_dir: Path) -> None:
+def reset(
+    moto_server: MotoServer, this_dir: Path, base_vars: dict[str, Any]
+) -> None:
     yield
     moto_server.reset()
     (this_dir / "terraform.tfstate").unlink(missing_ok=True)
+    Path(base_vars["filename"]).unlink(missing_ok=True)
 
 
 def test_defaults(ec2: ..., base_vars: dict[str, Any], tf: Terraform):

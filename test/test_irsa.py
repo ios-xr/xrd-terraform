@@ -54,7 +54,9 @@ def base_vars(role_policy: ...) -> dict[str, Any]:
 
 @pytest.fixture(scope="module")
 def tf(this_dir: Path, moto_server: MotoServer) -> Terraform:
-    tf = Terraform(this_dir / "irsa", f"http://localhost:{moto_server.port}")
+    tf = Terraform(
+        this_dir / "terraform" / "irsa", f"http://localhost:{moto_server.port}"
+    )
     tf.init(upgrade=True)
     return tf
 

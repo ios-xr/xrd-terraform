@@ -95,7 +95,9 @@ def base_vars(
 
 @pytest.fixture(scope="module")
 def tf(this_dir: Path, moto_server: MotoServer) -> Terraform:
-    tf = Terraform(this_dir / "node", f"http://localhost:{moto_server.port}")
+    tf = Terraform(
+        this_dir / "terraform" / "node", f"http://localhost:{moto_server.port}"
+    )
     tf.init(upgrade=True)
     return tf
 
@@ -123,7 +125,9 @@ def test_defaults(ec2, tf: Terraform, base_vars: dict[str, Any]):
 
     assert instance.key_name == base_vars["key_name"]
     assert instance.private_ip_address == base_vars["private_ip_address"]
-    _assert_tag(instance, f"kubernetes.io/cluster/{base_vars['cluster_name']}", "owned")
+    _assert_tag(
+        instance, f"kubernetes.io/cluster/{base_vars['cluster_name']}", "owned"
+    )
     _assert_tag(instance, "Name", base_vars["name"])
     assert not instance.public_ip_address
     assert not instance.source_dest_check

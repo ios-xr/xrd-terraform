@@ -48,7 +48,8 @@ def base_vars(subnet, key_pair) -> dict[str, Any]:
 @pytest.fixture(scope="module")
 def tf(this_dir: Path, moto_server) -> Terraform:
     tf = Terraform(
-        this_dir / "bastion", f"http://localhost:{moto_server.port}"
+        this_dir / "terraform" / "bastion",
+        f"http://localhost:{moto_server.port}",
     )
     tf.init(upgrade=True)
     return tf
