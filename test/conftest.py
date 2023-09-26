@@ -49,7 +49,6 @@ def moto_server() -> MotoServer:
         try:
             server = MotoServer(ThreadedMotoServer(port=port))
             server.start()
-            os.environ["AWS_ENDPOINT_URL"] = server.endpoint
             yield server
             break
         except Exception:
@@ -61,9 +60,9 @@ def moto_server() -> MotoServer:
 
 @pytest.fixture(scope="session")
 def ec2(moto_server: MotoServer) -> ...:
-    return boto3.resource("ec2")
+    return boto3.resource("ec2", endpoint_url=moto_server.endpoint)
 
 
 @pytest.fixture(scope="session")
 def iam(moto_server: MotoServer) -> ...:
-    return boto3.resource("iam")
+    return boto3.resource("iam", endpoint_url=moto_server.endpoint)

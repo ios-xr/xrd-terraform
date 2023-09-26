@@ -9,7 +9,7 @@ from ..utils import MotoServer, Terraform
 
 @pytest.fixture(scope="package")
 def eks_client(moto_server: MotoServer) -> ...:
-    return boto3.client("eks")
+    return boto3.client("eks", endpoint_url=moto_server.endpoint)
 
 
 @pytest.fixture(scope="package")
