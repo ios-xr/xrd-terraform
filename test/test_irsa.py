@@ -7,7 +7,7 @@ from typing import Any
 import pytest
 from attrs import define
 
-from ..utils import MotoServer, Terraform, TerraformOutputs
+from .utils import MotoServer, Terraform, TerraformOutputs
 
 logger = logging.getLogger(__name__)
 
@@ -15,18 +15,6 @@ logger = logging.getLogger(__name__)
 @define
 class Outputs(TerraformOutputs):
     role_arn: str
-
-
-from pathlib import Path
-
-import pytest
-
-from ..utils import MotoServer, Terraform
-
-
-@pytest.fixture(scope="module")
-def this_dir() -> Path:
-    return Path(__file__).parent
 
 
 @pytest.fixture(scope="module")
@@ -66,7 +54,7 @@ def base_vars(role_policy: ...) -> dict[str, Any]:
 
 @pytest.fixture(scope="module")
 def tf(this_dir: Path, moto_server: MotoServer) -> Terraform:
-    tf = Terraform(this_dir, f"http://localhost:{moto_server.port}")
+    tf = Terraform(this_dir / "irsa", f"http://localhost:{moto_server.port}")
     tf.init(upgrade=True)
     return tf
 

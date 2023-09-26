@@ -12,7 +12,6 @@ logger = logging.getLogger(__name__)
 
 
 def pytest_addoption(parser: pytest.Parser) -> None:
-    """Pytest hook for adding CLI options."""
     logging_group = parser.getgroup("logging")
     log_dir_description = (
         "The directory to store all logs in, defaults to workspace root"
@@ -65,3 +64,13 @@ def ec2(moto_server: MotoServer) -> ...:
 @pytest.fixture(scope="session")
 def iam(moto_server: MotoServer) -> ...:
     return boto3.resource("iam", endpoint_url=moto_server.endpoint)
+
+
+@pytest.fixture(scope="session")
+def this_dir() -> Path:
+    return Path(__file__).parent
+
+
+@pytest.fixture(scope="module")
+def eks_client(moto_server: MotoServer) -> ...:
+    return boto3.client("eks", endpoint_url=moto_server.endpoint)

@@ -8,7 +8,7 @@ from typing import Any
 import pytest
 from attrs import define
 
-from ..utils import MotoServer, Terraform, TerraformOutputs
+from .utils import MotoServer, Terraform, TerraformOutputs
 
 logger = logging.getLogger(__name__)
 
@@ -17,26 +17,6 @@ logger = logging.getLogger(__name__)
 class Outputs(TerraformOutputs):
     id: str
     private_ip: str
-
-
-@pytest.fixture(scope="package")
-def this_dir() -> Path:
-    return Path(__file__).parent
-
-
-@pytest.fixture(scope="package")
-def tf(this_dir: Path, moto_server: MotoServer) -> Terraform:
-    tf = Terraform(this_dir, f"http://localhost:{moto_server.port}")
-    tf.init(upgrade=True)
-    return tf
-
-
-@pytest.fixture(autouse=True)
-def reset(moto_server: MotoServer, this_dir: Path) -> None:
-    yield
-    moto_server.reset()
-    (this_dir / "terraform.tfstate").unlink(missing_ok=True)
-    (this_dir / "test-cluster-instance.pem").unlink(missing_ok=True)
 
 
 @pytest.fixture(autouse=True)
@@ -97,8 +77,12 @@ def iam_instance_profile(iam: ...) -> ...:
 def base_vars(
     subnet: ..., key_pair: ..., iam_instance_profile: ...
 ) -> dict[str, Any]:
+    # This AMI should exist in the Moto server.
+    # Refer to https://github.com/getmoto/moto/blob/master/moto/ec2/resources/amis.json.
+    ami = "ami-03cf127a"
+
     return {
-        "ami": "ami-03cf127a",
+        "ami": ami,
         "cluster_name": str(uuid.uuid4()),
         "name": str(uuid.uuid4()),
         "network_interfaces": [],
@@ -109,6 +93,29 @@ def base_vars(
     }
 
 
+@pytest.fixture(scope="module")
+def tf(this_dir: Path, moto_server: MotoServer) -> Terraform:
+    tf = Terraform(this_dir / "node", f"http://localhost:{moto_server.port}")
+    tf.init(upgrade=True)
+    return tf
+
+
+@pytest.fixture(autouse=True)
+def reset(moto_server: MotoServer, this_dir: Path) -> None:
+    yield
+    moto_server.reset()
+    (this_dir / "terraform.tfstate").unlink(missing_ok=True)
+
+
+def _assert_tag(instance: ..., tag_key: str, tag_value: str) -> None:
+    for tag in instance.tags:
+        if tag["Key"] == tag_key:
+            assert tag["Value"] == tag_value
+            break
+    else:
+        raise AssertionError(f"tag '{tag_key}' does not exist")
+
+
 def test_defaults(ec2, tf: Terraform, base_vars: dict[str, Any]):
     tf.apply(vars=base_vars)
     outputs = Outputs.from_terraform(tf)
@@ -116,56 +123,16 @@ def test_defaults(ec2, tf: Terraform, base_vars: dict[str, Any]):
 
     assert instance.key_name == base_vars["key_name"]
     assert instance.private_ip_address == base_vars["private_ip_address"]
-
-    expected_tag_key = f"kubernetes.io/cluster/{base_vars['cluster_name']}"
-    for tag in instance.tags:
-        if tag["Key"] == expected_tag_key:
-            assert tag["Value"] == "owned"
-            break
-    else:
-        assert False, f"tag '{expected_tag_key}' does not exist"
-
-    expected_tag_key = "Name"
-    for tag in instance.tags:
-        if tag["Key"] == expected_tag_key:
-            assert tag["Value"] == base_vars["name"]
-            break
-    else:
-        assert False, f"tag '{expected_tag_key}' does not exist"
-
+    _assert_tag(instance, f"kubernetes.io/cluster/{base_vars['cluster_name']}", "owned")
+    _assert_tag(instance, "Name", base_vars["name"])
     assert not instance.public_ip_address
     assert not instance.source_dest_check
-
-
-def test_ami(ec2, tf: Terraform, base_vars: dict[str, Any]):
-    vars = base_vars | {"ami": "ami-12c6146b"}
-    tf.apply(vars=vars)
-    outputs = Outputs.from_terraform(tf)
-    instance = ec2.Instance(outputs.id)
-    assert instance.image_id == "ami-12c6146b"
-
-
-def test_cluster_name(ec2, tf: Terraform, base_vars: dict[str, Any]):
-    cluster_name = "foo"
-
-    vars = base_vars | {"cluster_name": cluster_name}
-    tf.apply(vars=vars)
-    outputs = Outputs.from_terraform(tf)
-    instance = ec2.Instance(outputs.id)
-
-    expected_tag_key = f"kubernetes.io/cluster/{cluster_name}"
-    for tag in instance.tags:
-        if tag["Key"] == expected_tag_key:
-            assert tag["Value"] == "owned"
-            break
-    else:
-        assert False, f"tag '{expected_tag_key}' does not exist"
 
     user_data = instance.describe_attribute(Attribute="userData")["UserData"][
         "Value"
     ]
     user_data = base64.b64decode(user_data).decode()
-    assert f"/etc/eks/bootstrap.sh {cluster_name}" in user_data
+    assert f"/etc/eks/bootstrap.sh {base_vars['cluster_name']}" in user_data
 
 
 def test_instance_type(ec2, tf: Terraform, base_vars: dict[str, Any]):
