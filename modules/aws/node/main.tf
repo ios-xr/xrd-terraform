@@ -86,10 +86,11 @@ locals {
 }
 
 resource "aws_instance" "this" {
-  ami                  = var.ami
-  iam_instance_profile = var.iam_instance_profile
-  instance_type        = var.instance_type
-  key_name             = var.key_name
+  ami                         = var.ami
+  associate_public_ip_address = false
+  iam_instance_profile        = var.iam_instance_profile
+  instance_type               = var.instance_type
+  key_name                    = var.key_name
 
   # Primary network interface.
   subnet_id              = var.subnet_id
