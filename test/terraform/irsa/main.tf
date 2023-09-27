@@ -4,11 +4,8 @@ provider "aws" {
   }
 }
 
-
-
-
 module "irsa" {
-  source = "../../modules/aws/irsa"
+  source = "../../../modules/aws/irsa"
 
   namespace       = var.namespace
   oidc_issuer     = var.oidc_issuer

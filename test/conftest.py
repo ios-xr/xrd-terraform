@@ -6,7 +6,7 @@ import boto3
 import pytest
 from moto.server import ThreadedMotoServer
 
-from .utils import MotoServer
+from ._types import MotoServer
 
 logger = logging.getLogger(__name__)
 

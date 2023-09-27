@@ -6,11 +6,8 @@ provider "aws" {
   }
 }
 
-
-
-
 module "eks" {
-  source = "../../modules/aws/eks"
+  source = "../../../modules/aws/eks"
 
   name                    = var.name
   endpoint_public_access  = var.endpoint_public_access

@@ -6,7 +6,7 @@ from typing import Any
 import botocore.exceptions
 import pytest
 
-from .utils import MotoServer, Terraform
+from ._types import MotoServer, Terraform
 
 
 @pytest.fixture(scope="module")

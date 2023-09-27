@@ -8,7 +8,7 @@ from typing import Any
 import pytest
 from attrs import define
 
-from .utils import MotoServer, Terraform, TerraformOutputs
+from ._types import MotoServer, Terraform, TerraformOutputs
 
 logger = logging.getLogger(__name__)
 

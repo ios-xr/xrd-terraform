@@ -6,7 +6,7 @@ import botocore.errorfactory
 import pytest
 from attrs import define
 
-from .utils import MotoServer, Terraform
+from ._types import MotoServer, Terraform
 
 
 @define

@@ -6,7 +6,7 @@ import botocore.exceptions
 import pytest
 from attrs import define
 
-from .utils import MotoServer, Terraform, TerraformOutputs
+from ._types import MotoServer, Terraform, TerraformOutputs
 
 
 @define
@@ -62,7 +62,7 @@ def reset(moto_server: MotoServer, this_dir: Path) -> None:
     (this_dir / "terraform.tfstate").unlink(missing_ok=True)
 
 
-def test_defaults(base_vars: dict[str, Any], tf: Terraform):
+def test_defaults(ec2: ..., base_vars: dict[str, Any], tf: Terraform):
     tf.apply(vars=base_vars)
     outputs = Outputs.from_terraform(tf)
     instance = ec2.Instance(outputs.id)
