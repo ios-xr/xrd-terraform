@@ -17,6 +17,9 @@ repos:
     rev: v2.2.1
     hooks:
       - id: codespell
+        args:
+          - "-L"
+          - "keypair"
 
   - repo: https://github.com/antonbabenko/pre-commit-terraform
     rev: v1.81.0
@@ -43,20 +46,7 @@ repos:
     hooks:
       - id: isort
 
-  - repo: https://github.com/hadialqattan/pycln
-    rev: v2.1.1
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.0.291
     hooks:
-      - id: pycln
-        args: [--all]
-
-  - repo: https://github.com/pre-commit/pygrep-hooks
-    rev: v1.9.0
-    hooks:
-      - id: python-check-blanket-noqa
-      - id: python-check-blanket-type-ignore
-      - id: python-no-log-warn
-      - id: python-no-eval
-      - id: python-use-type-annotations
-      - id: rst-backticks
-      - id: rst-directive-colons
-      - id: rst-inline-touching-normal
+      - id: ruff
