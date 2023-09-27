@@ -4,7 +4,6 @@ import logging
 import shlex
 import subprocess
 
-
 logger = logging.getLogger(__name__)
 
 

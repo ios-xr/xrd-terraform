@@ -26,6 +26,23 @@ logger = logging.getLogger(__name__)
 
 @define
 class Terraform:
+    """
+    Wrapper for the Terraform CLI.
+
+    ..attribute:: working_dir
+        Terraform working directory.
+
+    ..attribute:: endpoint
+        Endpoint URL to use for all services in the AWS provider
+        configuration.
+        Refer to https://registry.terraform.io/providers/hashicorp/aws/latest/docs/guides/custom-service-endpoints.
+
+    ..attribute:: data_dir
+        Terraform data directory.
+        Refer to https://developer.hashicorp.com/terraform/cli/config/environment-variables#tf_data_dir.
+
+    """
+
     working_dir: Path
     endpoint: str
     data_dir: Path | None = None
@@ -33,6 +50,16 @@ class Terraform:
     def _run_terraform_cmd(
         self, cmd: list[str], **kwargs
     ) -> subprocess.CompletedProcess[str]:
+        """
+        Run a Terraform subcommand.
+
+        :param cmd:
+            The subcommand to run (i.e. arguments to pass to ``terraform``).
+
+        :param kwargs:
+            Passed to `run_cmd`.
+
+        """
         cmd = ["terraform", f"-chdir={self.working_dir}", *cmd]
         env = os.environ.copy()
         if self.data_dir:
@@ -102,6 +129,25 @@ class Terraform:
 
 
 class TerraformOutputs:
+    """
+    Represents Terraform outputs.
+
+    Example usage::
+
+        @attrs.define
+        class Outputs(TerraformOutputs):
+            foo: str
+            bar: str
+
+        outputs = Outputs.from_terraform(tf)
+        print(outputs.foo)
+        print(outputs.bar)
+
+    This class provides the `from_terraform` helper to parse the output of
+    ``terraform output`.
+
+    """
+
     def structure(
         c, d: Mapping[str, Any], t: "TerraformOutputs"
     ) -> "TerraformOutputs":
@@ -126,6 +172,8 @@ class TerraformOutputs:
 
 @define
 class MotoServer:
+    """Wrapper around `ThreadedMotoServer`."""
+
     _server: ThreadedMotoServer
 
     @property
