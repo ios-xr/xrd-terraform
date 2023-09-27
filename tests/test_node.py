@@ -19,32 +19,40 @@ class Outputs(TerraformOutputs):
     private_ip: str
 
 
-@pytest.fixture(autouse=True)
-def vpc(ec2: ...) -> ...:
-    vpcs = list(
-        ec2.vpcs.filter(Filters=[{"Name": "cidr", "Values": ["10.0.0.0/16"]}])
+@pytest.fixture(scope="module")
+def tf(this_dir: Path, moto_server: MotoServer) -> Terraform:
+    tf = Terraform(
+        this_dir / "terraform" / "node", f"http://localhost:{moto_server.port}"
     )
-    if vpcs:
-        return vpcs[0]
+    tf.init(upgrade=True)
+    return tf
+
+
+@pytest.fixture(autouse=True)
+def reset(moto_server: MotoServer, this_dir: Path) -> None:
+    yield
+    moto_server.reset()
+    (this_dir / "terraform.tfstate").unlink(missing_ok=True)
+
+
+@pytest.fixture
+def vpc(ec2: ...) -> ...:
     return ec2.create_vpc(CidrBlock="10.0.0.0/16")
 
 
-@pytest.fixture(autouse=True)
+@pytest.fixture
 def subnet(vpc: ...) -> ...:
-    for subnet in vpc.subnets.all():
-        if subnet.cidr_block == "10.0.0.0/24":
-            return subnet
     return vpc.create_subnet(
         AvailabilityZone="eu-west-1a", CidrBlock="10.0.0.0/24"
     )
 
 
-@pytest.fixture(autouse=True)
+@pytest.fixture
 def key_pair(ec2: ...) -> ...:
     return ec2.create_key_pair(KeyName=str(uuid.uuid4()))
 
 
-@pytest.fixture(autouse=True)
+@pytest.fixture
 def iam_instance_profile(iam: ...) -> ...:
     assume_role_policy = {
         "Version": "2012-10-17",
@@ -93,23 +101,21 @@ def base_vars(
     }
 
 
-@pytest.fixture(scope="module")
-def tf(this_dir: Path, moto_server: MotoServer) -> Terraform:
-    tf = Terraform(
-        this_dir / "terraform" / "node", f"http://localhost:{moto_server.port}"
-    )
-    tf.init(upgrade=True)
-    return tf
-
-
-@pytest.fixture(autouse=True)
-def reset(moto_server: MotoServer, this_dir: Path) -> None:
-    yield
-    moto_server.reset()
-    (this_dir / "terraform.tfstate").unlink(missing_ok=True)
-
-
 def _assert_tag(instance: ..., tag_key: str, tag_value: str) -> None:
+    """
+    Assert an instance tag is as expected.
+
+    :param tag_key:
+        Expected tag key.
+
+    :param tag_value:
+        Expected tag value.
+
+    :raises AssertionError:
+        If the tag key does not exist, or the actual tag value does not match
+        the expected tag value.
+
+    """
     for tag in instance.tags:
         if tag["Key"] == tag_key:
             assert tag["Value"] == tag_value

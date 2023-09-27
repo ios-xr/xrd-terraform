@@ -136,9 +136,12 @@ def test_endpoint_public_access(
 
 
 def test_security_groups(
-    eks_client: ..., tf: Terraform, base_vars: dict[str, Any], sg: ...
+    eks_client: ...,
+    tf: Terraform,
+    base_vars: dict[str, Any],
+    security_group: ...,
 ):
-    tf.apply(vars=base_vars | {"security_group_ids": [sg.id]})
+    tf.apply(vars=base_vars | {"security_group_ids": [security_group.id]})
     cluster = Cluster.from_name(eks_client, base_vars["name"])
     assert len(cluster.security_group_ids) == 1
-    assert sg.id in cluster.security_group_ids
+    assert security_group.id in cluster.security_group_ids
