@@ -18,7 +18,23 @@ class Outputs(TerraformOutputs):
 
 
 @pytest.fixture(scope="module")
-def role_policy(iam):
+def tf(this_dir: Path, moto_server: MotoServer) -> Terraform:
+    tf = Terraform(
+        this_dir / "terraform" / "irsa", f"http://localhost:{moto_server.port}"
+    )
+    tf.init(upgrade=True)
+    return tf
+
+
+@pytest.fixture(autouse=True)
+def reset(moto_server: MotoServer, this_dir: Path) -> None:
+    yield
+    moto_server.reset()
+    (this_dir / "terraform.tfstate").unlink(missing_ok=True)
+
+
+@pytest.fixture
+def role_policy(iam: ...):
     doc = {
         "Version": "2012-10-17",
         "Statement": [
@@ -40,7 +56,7 @@ def role_policy(iam):
     )
 
 
-@pytest.fixture(scope="module")
+@pytest.fixture
 def base_vars(role_policy: ...) -> dict[str, Any]:
     return {
         "role_name": str(uuid.uuid4()),
@@ -52,23 +68,7 @@ def base_vars(role_policy: ...) -> dict[str, Any]:
     }
 
 
-@pytest.fixture(scope="module")
-def tf(this_dir: Path, moto_server: MotoServer) -> Terraform:
-    tf = Terraform(
-        this_dir / "terraform" / "irsa", f"http://localhost:{moto_server.port}"
-    )
-    tf.init(upgrade=True)
-    return tf
-
-
-@pytest.fixture(autouse=True)
-def reset(moto_server: MotoServer, this_dir: Path) -> None:
-    yield
-    moto_server.reset()
-    (this_dir / "terraform.tfstate").unlink(missing_ok=True)
-
-
-def test_defaults(iam, base_vars: dict[str, Any], tf: Terraform):
+def test_defaults(iam: ..., tf: Terraform, base_vars: dict[str, Any]):
     tf.apply(vars=base_vars)
     outputs = Outputs.from_terraform(tf)
 
