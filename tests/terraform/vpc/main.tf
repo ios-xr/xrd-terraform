@@ -1,6 +1,6 @@
 provider "aws" {
   endpoints {
-    ec2 = "http://localhost:5000"
+    ec2 = var.endpoint
   }
 }
 

@@ -1,4 +1,3 @@
-
 output "id" {
   value = module.node.id
 }
