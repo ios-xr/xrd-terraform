@@ -2,11 +2,11 @@ variable "endpoint" {
   type = string
 }
 
-variable "name" {
+variable "ami" {
   type = string
 }
 
-variable "ami" {
+variable "cluster_name" {
   type = string
 }
 
@@ -15,6 +15,14 @@ variable "iam_instance_profile" {
 }
 
 variable "key_name" {
+  type = string
+}
+
+variable "name" {
+  type = string
+}
+
+variable "private_ip_address" {
   type = string
 }
 
@@ -27,13 +35,9 @@ variable "instance_type" {
   default = "m5.2xlarge"
 }
 
-variable "private_ip_address" {
-  type = string
-}
-
-variable "security_groups" {
-  type    = list(string)
-  default = []
+variable "kubelet_extra_args" {
+  type    = string
+  default = ""
 }
 
 variable "network_interfaces" {
@@ -42,13 +46,15 @@ variable "network_interfaces" {
     private_ip_address : string
     security_groups : list(string)
   }))
+  default = []
 }
 
-variable "cluster_name" {
-  type = string
+variable "security_groups" {
+  type    = list(string)
+  default = []
 }
 
-variable "kubelet_extra_args" {
+variable "user_data" {
   type    = string
   default = ""
 }
@@ -59,9 +65,4 @@ variable "xrd_ami_data" {
     isolated_cores : string
   })
   default = null
-}
-
-variable "user_data" {
-  type    = string
-  default = ""
 }

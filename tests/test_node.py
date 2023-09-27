@@ -82,6 +82,20 @@ def iam_instance_profile(iam: ...) -> ...:
 
 
 @pytest.fixture
+def security_group(ec2: ..., vpc: ...) -> ...:
+    sg = ec2.create_security_group(
+        GroupName="ssh", Description="ssh", VpcId=vpc.vpc_id
+    )
+    sg.authorize_ingress(
+        IpProtocol="tcp",
+        FromPort=22,
+        ToPort=22,
+        CidrIp="0.0.0.0/0",
+    )
+    return sg
+
+
+@pytest.fixture
 def base_vars(
     subnet: ..., key_pair: ..., iam_instance_profile: ...
 ) -> dict[str, Any]:
@@ -93,7 +107,6 @@ def base_vars(
         "ami": ami,
         "cluster_name": str(uuid.uuid4()),
         "name": str(uuid.uuid4()),
-        "network_interfaces": [],
         "private_ip_address": "10.0.0.10",
         "subnet_id": subnet.id,
         "key_name": key_pair.key_name,
@@ -132,17 +145,39 @@ def test_defaults(ec2, tf: Terraform, base_vars: dict[str, Any]):
     assert instance.key_name == base_vars["key_name"]
     assert instance.private_ip_address == base_vars["private_ip_address"]
     _assert_tag(
-        instance, f"kubernetes.io/cluster/{base_vars['cluster_name']}", "owned"
+        instance,
+        f"kubernetes.io/cluster/{base_vars['cluster_name']}",
+        "owned",
     )
     _assert_tag(instance, "Name", base_vars["name"])
-    assert not instance.public_ip_address
-    assert not instance.source_dest_check
 
+    # The default user data should call `bootstrap.sh` with the cluster name
+    # as an argument.
     user_data = instance.describe_attribute(Attribute="userData")["UserData"][
         "Value"
     ]
     user_data = base64.b64decode(user_data).decode()
     assert f"/etc/eks/bootstrap.sh {base_vars['cluster_name']}" in user_data
+
+    # There should be no public IP address assigned.
+    assert not instance.public_ip_address
+
+    # Source/dest check should be disabled on the primary ENI.
+    assert not instance.source_dest_check
+
+    # There should be exactly one ENI attached - the primary ENI.
+    assert len(instance.network_interfaces_attribute)
+    assert instance.network_interfaces_attribute[0]["DeviceIndex"] == 0
+    assert len(instance.network_interfaces_attribute[0]["Groups"]) == 0
+    assert (
+        instance.network_interfaces_attribute[0]["PrivateIpAddress"]
+        == base_vars["private_ip_address"]
+    )
+    assert not instance.network_interfaces_attribute[0]["SourceDestCheck"]
+    assert (
+        instance.network_interfaces_attribute[0]["SubnetId"]
+        == base_vars["subnet_id"]
+    )
 
 
 def test_instance_type(ec2, tf: Terraform, base_vars: dict[str, Any]):
@@ -154,7 +189,7 @@ def test_instance_type(ec2, tf: Terraform, base_vars: dict[str, Any]):
 
 
 def test_kubelet_extra_args(ec2, tf: Terraform, base_vars: dict[str, Any]):
-    vars = base_vars | {"kubelet_extra_args": "cha cha cha"}
+    vars = base_vars | {"kubelet_extra_args": "foo bar baz"}
     tf.apply(vars=vars)
     outputs = Outputs.from_terraform(tf)
     instance = ec2.Instance(outputs.id)
@@ -164,32 +199,28 @@ def test_kubelet_extra_args(ec2, tf: Terraform, base_vars: dict[str, Any]):
     ]
     user_data = base64.b64decode(user_data).decode()
     assert (
-        f"""--kubelet-extra-args '--node-labels=name={base_vars["name"]} cha cha cha'"""
+        f"""--kubelet-extra-args '--node-labels=name={base_vars["name"]} foo bar baz'"""
         in user_data
     )
 
 
-def test_name(ec2, tf: Terraform, base_vars: dict[str, Any]):
-    vars = base_vars | {"name": "a whole new name!"}
+def test_security_groups(
+    ec2,
+    tf: Terraform,
+    base_vars: dict[str, Any],
+    security_group: ...,
+):
+    vars = base_vars | {"security_groups": [security_group.id]}
     tf.apply(vars=vars)
     outputs = Outputs.from_terraform(tf)
     instance = ec2.Instance(outputs.id)
 
-    expected_tag_key = f"Name"
-    for tag in instance.tags:
-        if tag["Key"] == expected_tag_key:
-            assert tag["Value"] == "a whole new name!"
-            break
-    else:
-        assert False, f"tag '{expected_tag_key}' does not exist"
-
-
-def test_private_ip_address(ec2, tf: Terraform, base_vars: dict[str, Any]):
-    vars = base_vars | {"private_ip_address": "10.0.0.200"}
-    tf.apply(vars=vars)
-    outputs = Outputs.from_terraform(tf)
-    instance = ec2.Instance(outputs.id)
-    assert instance.private_ip_address == "10.0.0.200"
+    assert len(instance.network_interfaces_attribute) == 1
+    assert len(instance.network_interfaces_attribute[0]["Groups"]) == 1
+    assert (
+        instance.network_interfaces_attribute[0]["Groups"][0]["GroupId"]
+        == security_group.id
+    )
 
 
 def test_user_data(ec2, tf: Terraform, base_vars: dict[str, Any]):
