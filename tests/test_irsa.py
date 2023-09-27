@@ -1,5 +1,4 @@
 import json
-import logging
 import uuid
 from pathlib import Path
 from typing import Any
@@ -8,8 +7,6 @@ import pytest
 from attrs import define
 
 from ._types import MotoServer, Terraform, TerraformOutputs
-
-logger = logging.getLogger(__name__)
 
 
 @define

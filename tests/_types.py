@@ -5,7 +5,6 @@ __all__ = (
 )
 
 import json
-import logging
 import os
 import subprocess
 from functools import partial
@@ -20,8 +19,6 @@ from cattrs.errors import ForbiddenExtraKeysError
 from moto.server import ThreadedMotoServer
 
 from .utils import run_cmd
-
-logger = logging.getLogger(__name__)
 
 
 @define
@@ -85,33 +82,6 @@ class Terraform:
     ) -> subprocess.CompletedProcess:
         cmd = [
             "apply",
-            "-no-color",
-            f"-var=endpoint={self.endpoint}",
-        ]
-
-        if vars:
-            var_file = NamedTemporaryFile(mode="w", suffix=".json")
-            json.dump(vars, var_file)
-            var_file.flush()
-            cmd.append(f"-var-file={var_file.name}")
-
-        if auto_approve:
-            cmd.append("-auto-approve")
-
-        p = self._run_terraform_cmd(cmd)
-
-        if vars:
-            var_file.close()
-
-        return p
-
-    def destroy(
-        self,
-        vars: dict[str, str] | None = None,
-        auto_approve: bool = True,
-    ) -> subprocess.CompletedProcess:
-        cmd = [
-            "destroy",
             "-no-color",
             f"-var=endpoint={self.endpoint}",
         ]
