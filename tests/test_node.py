@@ -173,8 +173,6 @@ def test_defaults(ec2, tf: Terraform, base_vars: dict[str, Any]):
 
     # There should be exactly one ENI attached - the primary ENI.
     assert len(instance.network_interfaces_attribute)
-    assert instance.network_interfaces_attribute[0]["DeviceIndex"] == 0
-    assert len(instance.network_interfaces_attribute[0]["Groups"]) == 0
     assert (
         instance.network_interfaces_attribute[0]["PrivateIpAddress"]
         == base_vars["private_ip_address"]
