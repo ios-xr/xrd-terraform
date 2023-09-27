@@ -15,24 +15,48 @@ class Outputs(TerraformOutputs):
     public_ip: str
 
 
-@pytest.fixture(scope="module", autouse=True)
+@pytest.fixture(scope="module")
+def tf(this_dir: Path, moto_server) -> Terraform:
+    tf = Terraform(
+        this_dir / "terraform" / "bastion",
+        f"http://localhost:{moto_server.port}",
+    )
+    tf.init(upgrade=True)
+    return tf
+
+
+@pytest.fixture(autouse=True)
+def reset(moto_server: MotoServer, this_dir: Path) -> None:
+    yield
+    moto_server.reset()
+    (this_dir / "terraform.tfstate").unlink(missing_ok=True)
+
+
+@pytest.fixture(autouse=True)
 def vpc(ec2) -> None:
     return ec2.create_vpc(CidrBlock="10.0.0.0/16")
 
 
-@pytest.fixture(scope="module", autouse=True)
+@pytest.fixture(autouse=True)
 def subnet(vpc) -> None:
     return vpc.create_subnet(
         AvailabilityZone="eu-west-1a", CidrBlock="10.0.10.0/24"
     )
 
 
-@pytest.fixture(scope="module", autouse=True)
+@pytest.fixture(autouse=True)
 def key_pair(ec2) -> ...:
     return ec2.create_key_pair(KeyName=str(uuid.uuid4()))
 
 
-@pytest.fixture(scope="module")
+@pytest.fixture
+def security_group(ec2: ..., vpc: ...) -> ...:
+    return ec2.create_security_group(
+        GroupName="dummy", Description="dummy", VpcId=vpc.vpc_id
+    )
+
+
+@pytest.fixture
 def base_vars(subnet, key_pair) -> dict[str, Any]:
     # This AMI should exist in the Moto server.
     # Refer to https://github.com/getmoto/moto/blob/master/moto/ec2/resources/amis.json.
@@ -45,28 +69,40 @@ def base_vars(subnet, key_pair) -> dict[str, Any]:
     }
 
 
-@pytest.fixture(scope="module")
-def tf(this_dir: Path, moto_server) -> Terraform:
-    tf = Terraform(
-        this_dir / "terraform" / "bastion",
-        f"http://localhost:{moto_server.port}",
-    )
-    tf.init(upgrade=True)
-    return tf
+def _assert_sgrs(sg: ..., remote_access_cidr: list[str]) -> None:
+    """Assert the 'bastion' security group has the expected ingress rules."""
+    assert len(sg.ip_permissions) == 2
+
+    icmp_sgr_found = False
+    ssh_sgr_found = False
+    for sgr in sg.ip_permissions:
+        assert {x["CidrIp"] for x in sgr["IpRanges"]} == set(
+            remote_access_cidr
+        )
+
+        if sgr["IpProtocol"] == "icmp":
+            assert not icmp_sgr_found
+            icmp_sgr_found = True
+            assert sgr["FromPort"] == -1
+            assert sgr["ToPort"] == -1
+
+        elif sgr["IpProtocol"] == "tcp":
+            assert not ssh_sgr_found
+            ssh_sgr_found = True
+            assert sgr["FromPort"] == 22
+            assert sgr["ToPort"] == 22
+
+        else:
+            raise AssertionError(f"unexpected protocol '{sgr['IpProtocol']}'")
 
 
-@pytest.fixture(scope="module", autouse=True)
-def reset(moto_server: MotoServer, this_dir: Path) -> None:
-    yield
-    moto_server.reset()
-    (this_dir / "terraform.tfstate").unlink(missing_ok=True)
-
-
-def test_defaults(ec2: ..., base_vars: dict[str, Any], tf: Terraform):
+def test_defaults(ec2: ..., tf: Terraform, base_vars: dict[str, Any]):
     tf.apply(vars=base_vars)
     outputs = Outputs.from_terraform(tf)
+
     instance = ec2.Instance(outputs.id)
 
+    # Assert the instance exists.
     try:
         instance.load()
     except botocore.exceptions.ClientError as exc:
@@ -76,5 +112,42 @@ def test_defaults(ec2: ..., base_vars: dict[str, Any], tf: Terraform):
     assert instance.instance_type == "t3.nano"
     assert instance.key_name == base_vars["key_name"]
     assert instance.public_ip_address == outputs.public_ip
-    assert len(instance.security_groups) == 1
     assert instance.subnet_id == base_vars["subnet_id"]
+
+    assert len(instance.security_groups) == 1
+    sg = ec2.SecurityGroup(instance.security_groups[0]["GroupId"])
+    _assert_sgrs(sg, ["0.0.0.0/0"])
+
+
+def test_instance_type(ec2: ..., tf: Terraform, base_vars: dict[str, Any]):
+    tf.apply(vars=base_vars | {"instance_type": "m5n.24xlarge"})
+    outputs = Outputs.from_terraform(tf)
+
+    instance = ec2.Instance(outputs.id)
+    assert instance.instance_type == "m5n.24xlarge"
+
+
+def test_security_groups(
+    ec2: ..., tf: Terraform, base_vars: dict[str, Any], security_group: ...
+):
+    tf.apply(vars=base_vars | {"security_group_ids": [security_group.id]})
+    outputs = Outputs.from_terraform(tf)
+
+    instance = ec2.Instance(outputs.id)
+    assert len(instance.security_groups) == 2
+    assert security_group.id in {
+        x["GroupId"] for x in instance.security_groups
+    }
+
+
+def test_remote_access_cidr(
+    ec2: ..., tf: Terraform, base_vars: dict[str, Any]
+):
+    remote_access_cidr = ["192.168.0.0/24", "172.16.0.0/24"]
+    tf.apply(vars=base_vars | {"remote_access_cidr": remote_access_cidr})
+    outputs = Outputs.from_terraform(tf)
+
+    instance = ec2.Instance(outputs.id)
+    assert len(instance.security_groups) == 1
+    sg = ec2.SecurityGroup(instance.security_groups[0]["GroupId"])
+    _assert_sgrs(sg, remote_access_cidr)
