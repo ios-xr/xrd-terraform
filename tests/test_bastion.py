@@ -32,19 +32,19 @@ def reset(moto_server: MotoServer, this_dir: Path) -> None:
     (this_dir / "terraform.tfstate").unlink(missing_ok=True)
 
 
-@pytest.fixture(autouse=True)
+@pytest.fixture
 def vpc(ec2) -> None:
     return ec2.create_vpc(CidrBlock="10.0.0.0/16")
 
 
-@pytest.fixture(autouse=True)
+@pytest.fixture
 def subnet(vpc) -> None:
     return vpc.create_subnet(
         AvailabilityZone="eu-west-1a", CidrBlock="10.0.10.0/24"
     )
 
 
-@pytest.fixture(autouse=True)
+@pytest.fixture
 def key_pair(ec2) -> ...:
     return ec2.create_key_pair(KeyName=str(uuid.uuid4()))
 
@@ -57,7 +57,7 @@ def security_group(ec2: ..., vpc: ...) -> ...:
 
 
 @pytest.fixture
-def base_vars(subnet, key_pair) -> dict[str, Any]:
+def base_vars(subnet: ..., key_pair: ...) -> dict[str, Any]:
     # This AMI should exist in the Moto server.
     # Refer to https://github.com/getmoto/moto/blob/master/moto/ec2/resources/amis.json.
     ami = "ami-12c6146b"
