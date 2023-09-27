@@ -2,17 +2,16 @@ variable "endpoint" {
   type = string
 }
 
-variable "name" {
-  type = string
-}
-
 variable "cluster_version" {
   type = string
 }
 
-variable "security_group_ids" {
-  type    = list(string)
-  default = []
+variable "name" {
+  type = string
+}
+
+variable "subnet_ids" {
+  type = list(string)
 }
 
 variable "endpoint_public_access" {
@@ -30,6 +29,7 @@ variable "public_access_cidrs" {
   default = null
 }
 
-variable "subnet_ids" {
-  type = list(string)
+variable "security_group_ids" {
+  type    = list(string)
+  default = []
 }
