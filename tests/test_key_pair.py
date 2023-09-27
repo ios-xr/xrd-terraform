@@ -21,7 +21,9 @@ def tf(this_dir: Path, moto_server) -> Terraform:
 
 @pytest.fixture(autouse=True)
 def reset(
-    moto_server: MotoServer, this_dir: Path, base_vars: dict[str, Any]
+    moto_server: MotoServer,
+    this_dir: Path,
+    base_vars: dict[str, Any],
 ) -> None:
     yield
     moto_server.reset()

@@ -8,7 +8,10 @@ logger = logging.getLogger(__name__)
 
 
 def run_cmd(
-    cmd: list[str], *, log_output: bool = True, **kwargs
+    cmd: list[str],
+    *,
+    log_output: bool = True,
+    **kwargs,
 ) -> subprocess.CompletedProcess[str]:
     """
     Run a command, capturing stdout and stderr by default, and raising on
@@ -41,7 +44,7 @@ def run_cmd(
         **kwargs,
     }
     if not {"stdout", "stderr", "capture_output"}.intersection(
-        kwargs
+        kwargs,
     ) or kwargs.pop("capture_output", False):
         kwargs["stdout"] = subprocess.PIPE
         kwargs["stderr"] = subprocess.PIPE

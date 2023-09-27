@@ -20,7 +20,8 @@ class Outputs(TerraformOutputs):
 @pytest.fixture(scope="module")
 def tf(this_dir: Path, moto_server: MotoServer) -> Terraform:
     tf = Terraform(
-        this_dir / "terraform" / "irsa", f"http://localhost:{moto_server.port}"
+        this_dir / "terraform" / "irsa",
+        f"http://localhost:{moto_server.port}",
     )
     tf.init(upgrade=True)
     return tf
@@ -52,7 +53,8 @@ def role_policy(iam: ...):
     }
 
     return iam.create_policy(
-        PolicyName="YourPolicyName", PolicyDocument=json.dumps(doc)
+        PolicyName="YourPolicyName",
+        PolicyDocument=json.dumps(doc),
     )
 
 
@@ -80,18 +82,18 @@ def test_defaults(iam: ..., tf: Terraform, base_vars: dict[str, Any]):
                 "Action": "sts:AssumeRoleWithWebIdentity",
                 "Condition": {
                     "StringEquals": {
-                        f"{base_vars['oidc_issuer'].lstrip('https://')}:aud": "sts.amazonaws.com"
+                        f"{base_vars['oidc_issuer'].removeprefix('https://')}:aud": "sts.amazonaws.com",
                     },
                     "StringLike": {
-                        f"{base_vars['oidc_issuer'].lstrip('https://')}:sub": f"system:serviceaccount:{base_vars['namespace']}:{base_vars['service_account']}"
+                        f"{base_vars['oidc_issuer'].removeprefix('https://')}:sub": f"system:serviceaccount:{base_vars['namespace']}:{base_vars['service_account']}",
                     },
                 },
                 "Effect": "Allow",
                 "Principal": {"Federated": base_vars["oidc_provider"]},
-            }
+            },
         ],
         "Version": "2012-10-17",
     }
     assert set(base_vars["role_policies"]).issubset(
-        {x.arn for x in role.attached_policies.all()}
+        {x.arn for x in role.attached_policies.all()},
     )

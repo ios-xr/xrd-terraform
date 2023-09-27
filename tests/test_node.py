@@ -22,7 +22,8 @@ class Outputs(TerraformOutputs):
 @pytest.fixture(scope="module")
 def tf(this_dir: Path, moto_server: MotoServer) -> Terraform:
     tf = Terraform(
-        this_dir / "terraform" / "node", f"http://localhost:{moto_server.port}"
+        this_dir / "terraform" / "node",
+        f"http://localhost:{moto_server.port}",
     )
     tf.init(upgrade=True)
     return tf
@@ -43,7 +44,8 @@ def vpc(ec2: ...) -> ...:
 @pytest.fixture
 def subnet(vpc: ...) -> ...:
     return vpc.create_subnet(
-        AvailabilityZone="eu-west-1a", CidrBlock="10.0.0.0/24"
+        AvailabilityZone="eu-west-1a",
+        CidrBlock="10.0.0.0/24",
     )
 
 
@@ -61,7 +63,7 @@ def iam_instance_profile(iam: ...) -> ...:
                 "Action": "sts:AssumeRole",
                 "Effect": "Allow",
                 "Principal": {"Service": "ec2.amazonaws.com"},
-            }
+            },
         ],
     }
     role_name = str(uuid.uuid4())
@@ -84,7 +86,9 @@ def iam_instance_profile(iam: ...) -> ...:
 @pytest.fixture
 def security_group(ec2: ..., vpc: ...) -> ...:
     sg = ec2.create_security_group(
-        GroupName="ssh", Description="ssh", VpcId=vpc.vpc_id
+        GroupName="ssh",
+        Description="ssh",
+        VpcId=vpc.vpc_id,
     )
     sg.authorize_ingress(
         IpProtocol="tcp",
@@ -97,7 +101,9 @@ def security_group(ec2: ..., vpc: ...) -> ...:
 
 @pytest.fixture
 def base_vars(
-    subnet: ..., key_pair: ..., iam_instance_profile: ...
+    subnet: ...,
+    key_pair: ...,
+    iam_instance_profile: ...,
 ) -> dict[str, Any]:
     # This AMI should exist in the Moto server.
     # Refer to https://github.com/getmoto/moto/blob/master/moto/ec2/resources/amis.json.

@@ -40,7 +40,8 @@ def vpc(ec2) -> None:
 @pytest.fixture
 def subnet(vpc) -> None:
     return vpc.create_subnet(
-        AvailabilityZone="eu-west-1a", CidrBlock="10.0.10.0/24"
+        AvailabilityZone="eu-west-1a",
+        CidrBlock="10.0.10.0/24",
     )
 
 
@@ -52,7 +53,9 @@ def key_pair(ec2) -> ...:
 @pytest.fixture
 def security_group(ec2: ..., vpc: ...) -> ...:
     return ec2.create_security_group(
-        GroupName="dummy", Description="dummy", VpcId=vpc.vpc_id
+        GroupName="dummy",
+        Description="dummy",
+        VpcId=vpc.vpc_id,
     )
 
 
@@ -77,7 +80,7 @@ def _assert_sgrs(sg: ..., remote_access_cidr: list[str]) -> None:
     ssh_sgr_found = False
     for sgr in sg.ip_permissions:
         assert {x["CidrIp"] for x in sgr["IpRanges"]} == set(
-            remote_access_cidr
+            remote_access_cidr,
         )
 
         if sgr["IpProtocol"] == "icmp":
@@ -128,7 +131,10 @@ def test_instance_type(ec2: ..., tf: Terraform, base_vars: dict[str, Any]):
 
 
 def test_security_groups(
-    ec2: ..., tf: Terraform, base_vars: dict[str, Any], security_group: ...
+    ec2: ...,
+    tf: Terraform,
+    base_vars: dict[str, Any],
+    security_group: ...,
 ):
     tf.apply(vars=base_vars | {"security_group_ids": [security_group.id]})
     outputs = Outputs.from_terraform(tf)
@@ -141,7 +147,9 @@ def test_security_groups(
 
 
 def test_remote_access_cidr(
-    ec2: ..., tf: Terraform, base_vars: dict[str, Any]
+    ec2: ...,
+    tf: Terraform,
+    base_vars: dict[str, Any],
 ):
     remote_access_cidr = ["192.168.0.0/24", "172.16.0.0/24"]
     tf.apply(vars=base_vars | {"remote_access_cidr": remote_access_cidr})

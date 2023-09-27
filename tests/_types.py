@@ -48,7 +48,9 @@ class Terraform:
     data_dir: Path | None = None
 
     def _run_terraform_cmd(
-        self, cmd: list[str], **kwargs
+        self,
+        cmd: list[str],
+        **kwargs,
     ) -> subprocess.CompletedProcess[str]:
         """
         Run a Terraform subcommand.
@@ -67,7 +69,9 @@ class Terraform:
         return run_cmd(cmd, env=env, **kwargs)
 
     def init(
-        self, *, upgrade: bool = False
+        self,
+        *,
+        upgrade: bool = False,
     ) -> subprocess.CompletedProcess[str]:
         cmd = ["init"]
         if upgrade:
@@ -75,7 +79,9 @@ class Terraform:
         return self._run_terraform_cmd(cmd)
 
     def apply(
-        self, vars: dict[str, str] | None = None, auto_approve: bool = True
+        self,
+        vars: dict[str, str] | None = None,
+        auto_approve: bool = True,
     ) -> subprocess.CompletedProcess:
         cmd = [
             "apply",
@@ -100,7 +106,9 @@ class Terraform:
         return p
 
     def destroy(
-        self, vars: dict[str, str] | None = None, auto_approve: bool = True
+        self,
+        vars: dict[str, str] | None = None,
+        auto_approve: bool = True,
     ) -> subprocess.CompletedProcess:
         cmd = [
             "destroy",
@@ -148,8 +156,11 @@ class TerraformOutputs:
 
     """
 
+    @staticmethod
     def structure(
-        c, d: Mapping[str, Any], t: "TerraformOutputs"
+        c,
+        d: Mapping[str, Any],
+        t: "TerraformOutputs",
     ) -> "TerraformOutputs":
         conv_obj = {}
         for a in fields(t):
@@ -165,7 +176,8 @@ class TerraformOutputs:
         d = json.loads(out)
         converter = cattrs.Converter()
         converter.register_structure_hook(
-            cls, partial(cls.structure, converter)
+            cls,
+            partial(cls.structure, converter),
         )
         return converter.structure(d, cls)
 

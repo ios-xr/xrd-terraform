@@ -43,7 +43,8 @@ class Cluster:
 @pytest.fixture(scope="module")
 def tf(this_dir: Path, moto_server) -> Terraform:
     tf = Terraform(
-        this_dir / "terraform" / "eks", f"http://localhost:{moto_server.port}"
+        this_dir / "terraform" / "eks",
+        f"http://localhost:{moto_server.port}",
     )
     tf.init(upgrade=True)
     return tf
@@ -63,21 +64,25 @@ def vpc(ec2) -> ...:
 @pytest.fixture
 def subnet1(vpc: ...) -> ...:
     return vpc.create_subnet(
-        AvailabilityZone="eu-west-1a", CidrBlock="10.0.10.0/24"
+        AvailabilityZone="eu-west-1a",
+        CidrBlock="10.0.10.0/24",
     )
 
 
 @pytest.fixture
 def subnet2(vpc: ...) -> ...:
     return vpc.create_subnet(
-        AvailabilityZone="eu-west-1a", CidrBlock="10.0.11.0/24"
+        AvailabilityZone="eu-west-1a",
+        CidrBlock="10.0.11.0/24",
     )
 
 
 @pytest.fixture
 def security_group(ec2: ..., vpc: ...) -> ...:
     sg = ec2.create_security_group(
-        GroupName="ssh", Description="ssh", VpcId=vpc.vpc_id
+        GroupName="ssh",
+        Description="ssh",
+        VpcId=vpc.vpc_id,
     )
     sg.authorize_ingress(
         IpProtocol="tcp",
@@ -120,7 +125,9 @@ def test_cluster_version(
 
 
 def test_endpoint_private_access(
-    eks_client: ..., tf: Terraform, base_vars: dict[str, Any]
+    eks_client: ...,
+    tf: Terraform,
+    base_vars: dict[str, Any],
 ):
     tf.apply(vars=base_vars | {"endpoint_private_access": False})
     cluster = Cluster.from_name(eks_client, base_vars["name"])
@@ -128,7 +135,9 @@ def test_endpoint_private_access(
 
 
 def test_endpoint_public_access(
-    eks_client: ..., tf: Terraform, base_vars: dict[str, Any]
+    eks_client: ...,
+    tf: Terraform,
+    base_vars: dict[str, Any],
 ):
     tf.apply(vars=base_vars | {"endpoint_public_access": False})
     cluster = Cluster.from_name(eks_client, base_vars["name"])
