@@ -104,3 +104,18 @@ in the `eks-cluster` module.
 You can then run `terraform apply` in your module to bring up the workload
 again quickly, without having to wait 15 minutes for the EKS cluster to be
 provisioned.
+
+## Tests
+
+"Unit" tests are provided for resource modules.  These can be found in the
+[`tests/`](/tests/) subdirectory.
+
+To run the tests:
+
+```
+cd tests/
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+python3 -m pytest
+```
