@@ -5,6 +5,8 @@ from typing import Any
 
 import pytest
 from attrs import define
+from mypy_boto3_iam import IAMServiceResource
+from mypy_boto3_iam.service_resource import RolePolicy
 
 from ._types import MotoServer, Terraform, TerraformOutputs
 
@@ -32,7 +34,7 @@ def reset(moto_server: MotoServer, this_dir: Path) -> None:
 
 
 @pytest.fixture
-def role_policy(iam: ...):
+def role_policy(iam: IAMServiceResource) -> RolePolicy:
     doc = {
         "Version": "2012-10-17",
         "Statement": [
@@ -56,7 +58,7 @@ def role_policy(iam: ...):
 
 
 @pytest.fixture
-def base_vars(role_policy: ...) -> dict[str, Any]:
+def base_vars(role_policy: RolePolicy) -> dict[str, Any]:
     return {
         "role_name": str(uuid.uuid4()),
         "role_policies": [role_policy.arn],
@@ -67,7 +69,11 @@ def base_vars(role_policy: ...) -> dict[str, Any]:
     }
 
 
-def test_defaults(iam: ..., tf: Terraform, base_vars: dict[str, Any]):
+def test_defaults(
+    iam: IAMServiceResource,
+    tf: Terraform,
+    base_vars: dict[str, Any],
+):
     tf.apply(vars=base_vars)
     outputs = Outputs.from_terraform(tf)
 

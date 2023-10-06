@@ -6,6 +6,16 @@ from typing import Any
 
 import pytest
 from attrs import define
+from mypy_boto3_ec2 import EC2ServiceResource
+from mypy_boto3_ec2.service_resource import (
+    Instance,
+    KeyPair,
+    SecurityGroup,
+    Subnet,
+    Vpc,
+)
+from mypy_boto3_iam import IAMServiceResource
+from mypy_boto3_iam.service_resource import InstanceProfile
 
 from ._types import MotoServer, Terraform, TerraformOutputs
 
@@ -34,12 +44,12 @@ def reset(moto_server: MotoServer, this_dir: Path) -> None:
 
 
 @pytest.fixture
-def vpc(ec2: ...) -> ...:
+def vpc(ec2: EC2ServiceResource) -> Vpc:
     return ec2.create_vpc(CidrBlock="10.0.0.0/16")
 
 
 @pytest.fixture
-def subnet(vpc: ...) -> ...:
+def subnet(vpc: Vpc) -> Subnet:
     return vpc.create_subnet(
         AvailabilityZone="eu-west-1a",
         CidrBlock="10.0.0.0/24",
@@ -47,12 +57,12 @@ def subnet(vpc: ...) -> ...:
 
 
 @pytest.fixture
-def key_pair(ec2: ...) -> ...:
+def key_pair(ec2: EC2ServiceResource) -> KeyPair:
     return ec2.create_key_pair(KeyName=str(uuid.uuid4()))
 
 
 @pytest.fixture
-def iam_instance_profile(iam: ...) -> ...:
+def iam_instance_profile(iam: IAMServiceResource) -> InstanceProfile:
     assume_role_policy = {
         "Version": "2012-10-17",
         "Statement": [
@@ -81,7 +91,7 @@ def iam_instance_profile(iam: ...) -> ...:
 
 
 @pytest.fixture
-def security_group(ec2: ..., vpc: ...) -> ...:
+def security_group(ec2: EC2ServiceResource, vpc: Vpc) -> SecurityGroup:
     sg = ec2.create_security_group(
         GroupName="ssh",
         Description="ssh",
@@ -98,9 +108,9 @@ def security_group(ec2: ..., vpc: ...) -> ...:
 
 @pytest.fixture
 def base_vars(
-    subnet: ...,
-    key_pair: ...,
-    iam_instance_profile: ...,
+    subnet: Subnet,
+    key_pair: KeyPair,
+    iam_instance_profile: InstanceProfile,
 ) -> dict[str, Any]:
     # This AMI should exist in the Moto server.
     # Refer to https://github.com/getmoto/moto/blob/master/moto/ec2/resources/amis.json.
@@ -117,7 +127,7 @@ def base_vars(
     }
 
 
-def _assert_tag(instance: ..., tag_key: str, tag_value: str) -> None:
+def _assert_tag(instance: Instance, tag_key: str, tag_value: str) -> None:
     """
     Assert an instance tag is as expected.
 
@@ -209,7 +219,7 @@ def test_security_groups(
     ec2,
     tf: Terraform,
     base_vars: dict[str, Any],
-    security_group: ...,
+    security_group: SecurityGroup,
 ):
     vars = base_vars | {"security_groups": [security_group.id]}
     tf.apply(vars=vars)

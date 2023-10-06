@@ -3,6 +3,7 @@ from pathlib import Path
 
 import pytest
 from attrs import define
+from mypy_boto3_ec2 import EC2ServiceResource
 
 from ._types import MotoServer, Terraform, TerraformOutputs
 
@@ -41,7 +42,7 @@ def reset(moto_server: MotoServer, this_dir: Path) -> None:
     (this_dir / "terraform.tfstate").unlink(missing_ok=True)
 
 
-def test_public_and_private_subnets(ec2: ..., tf: Terraform):
+def test_public_and_private_subnets(ec2: EC2ServiceResource, tf: Terraform):
     """
     Check that creating a VPC with one public and one private subnet is
     successful.  This is similar to the recommended VPC for EKS described

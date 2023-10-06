@@ -5,6 +5,9 @@ from typing import Any
 import botocore.errorfactory
 import pytest
 from attrs import define
+from mypy_boto3_ec2 import EC2ServiceResource
+from mypy_boto3_ec2.service_resource import SecurityGroup, Subnet, Vpc
+from mypy_boto3_eks import EKSClient
 
 from ._types import MotoServer, Terraform
 
@@ -20,7 +23,7 @@ class Cluster:
     security_group_ids: set[str]
 
     @classmethod
-    def from_name(cls, eks_client: ..., name: str):
+    def from_name(cls, eks_client: EKSClient, name: str):
         try:
             resp = eks_client.describe_cluster(name=name)
         except botocore.errorfactory.ResourceNotFoundException:
@@ -57,12 +60,12 @@ def reset(moto_server: MotoServer, this_dir, tf) -> None:
 
 
 @pytest.fixture
-def vpc(ec2) -> ...:
+def vpc(ec2) -> Vpc:
     return ec2.create_vpc(CidrBlock="10.0.0.0/16")
 
 
 @pytest.fixture
-def subnet1(vpc: ...) -> ...:
+def subnet1(vpc: Vpc) -> Subnet:
     return vpc.create_subnet(
         AvailabilityZone="eu-west-1a",
         CidrBlock="10.0.10.0/24",
@@ -70,7 +73,7 @@ def subnet1(vpc: ...) -> ...:
 
 
 @pytest.fixture
-def subnet2(vpc: ...) -> ...:
+def subnet2(vpc: Vpc) -> Subnet:
     return vpc.create_subnet(
         AvailabilityZone="eu-west-1a",
         CidrBlock="10.0.11.0/24",
@@ -78,7 +81,7 @@ def subnet2(vpc: ...) -> ...:
 
 
 @pytest.fixture
-def security_group(ec2: ..., vpc: ...) -> ...:
+def security_group(ec2: EC2ServiceResource, vpc: Vpc) -> SecurityGroup:
     sg = ec2.create_security_group(
         GroupName="ssh",
         Description="ssh",
@@ -94,7 +97,7 @@ def security_group(ec2: ..., vpc: ...) -> ...:
 
 
 @pytest.fixture
-def base_vars(subnet1: ..., subnet2: ...) -> dict[str, Any]:
+def base_vars(subnet1: Subnet, subnet2: Subnet) -> dict[str, Any]:
     return {
         "cluster_version": "1.27",
         "name": str(uuid.uuid4()),
@@ -102,7 +105,11 @@ def base_vars(subnet1: ..., subnet2: ...) -> dict[str, Any]:
     }
 
 
-def test_defaults(eks_client: ..., tf: Terraform, base_vars: dict[str, Any]):
+def test_defaults(
+    eks_client: EKSClient,
+    tf: Terraform,
+    base_vars: dict[str, Any],
+):
     tf.apply(vars=base_vars)
     cluster = Cluster.from_name(eks_client, base_vars["name"])
     assert cluster
@@ -114,7 +121,7 @@ def test_defaults(eks_client: ..., tf: Terraform, base_vars: dict[str, Any]):
 
 @pytest.mark.parametrize("cluster_version", ("1.23", "1.24", "1.25", "1.26"))
 def test_cluster_version(
-    eks_client: ...,
+    eks_client: EKSClient,
     tf: Terraform,
     base_vars: dict[str, Any],
     cluster_version: str,
@@ -125,7 +132,7 @@ def test_cluster_version(
 
 
 def test_endpoint_private_access(
-    eks_client: ...,
+    eks_client: EKSClient,
     tf: Terraform,
     base_vars: dict[str, Any],
 ):
@@ -135,7 +142,7 @@ def test_endpoint_private_access(
 
 
 def test_endpoint_public_access(
-    eks_client: ...,
+    eks_client: EKSClient,
     tf: Terraform,
     base_vars: dict[str, Any],
 ):
@@ -145,10 +152,10 @@ def test_endpoint_public_access(
 
 
 def test_security_groups(
-    eks_client: ...,
+    eks_client: EKSClient,
     tf: Terraform,
     base_vars: dict[str, Any],
-    security_group: ...,
+    security_group: SecurityGroup,
 ):
     tf.apply(vars=base_vars | {"security_group_ids": [security_group.id]})
     cluster = Cluster.from_name(eks_client, base_vars["name"])

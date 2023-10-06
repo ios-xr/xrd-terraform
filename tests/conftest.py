@@ -5,6 +5,9 @@ from pathlib import Path
 import boto3
 import pytest
 from moto.server import ThreadedMotoServer
+from mypy_boto3_ec2 import EC2ServiceResource
+from mypy_boto3_eks import EKSClient
+from mypy_boto3_iam import IAMServiceResource
 
 from ._types import MotoServer
 
@@ -57,12 +60,12 @@ def moto_server() -> MotoServer:
 
 
 @pytest.fixture(scope="session")
-def ec2(moto_server: MotoServer) -> ...:
+def ec2(moto_server: MotoServer) -> EC2ServiceResource:
     return boto3.resource("ec2", endpoint_url=moto_server.endpoint)
 
 
 @pytest.fixture(scope="session")
-def iam(moto_server: MotoServer) -> ...:
+def iam(moto_server: MotoServer) -> IAMServiceResource:
     return boto3.resource("iam", endpoint_url=moto_server.endpoint)
 
 
@@ -72,5 +75,5 @@ def this_dir() -> Path:
 
 
 @pytest.fixture(scope="module")
-def eks_client(moto_server: MotoServer) -> ...:
+def eks_client(moto_server: MotoServer) -> EKSClient:
     return boto3.client("eks", endpoint_url=moto_server.endpoint)

@@ -5,6 +5,7 @@ from typing import Any
 
 import botocore.exceptions
 import pytest
+from mypy_boto3_ec2 import EC2ServiceResource
 
 from ._types import MotoServer, Terraform
 
@@ -40,7 +41,11 @@ def base_vars(this_dir: Path) -> dict[str, Any]:
     }
 
 
-def test_defaults(ec2: ..., tf: Terraform, base_vars: dict[str, Any]):
+def test_defaults(
+    ec2: EC2ServiceResource,
+    tf: Terraform,
+    base_vars: dict[str, Any],
+):
     tf.apply(vars=base_vars)
 
     # Assert the key pair exists.

@@ -5,6 +5,8 @@ from typing import Any
 import botocore.exceptions
 import pytest
 from attrs import define
+from mypy_boto3_ec2 import EC2ServiceResource
+from mypy_boto3_ec2.service_resource import KeyPair, SecurityGroup, Subnet, Vpc
 
 from ._types import MotoServer, Terraform, TerraformOutputs
 
@@ -33,12 +35,12 @@ def reset(moto_server: MotoServer, this_dir: Path) -> None:
 
 
 @pytest.fixture
-def vpc(ec2) -> None:
+def vpc(ec2) -> Vpc:
     return ec2.create_vpc(CidrBlock="10.0.0.0/16")
 
 
 @pytest.fixture
-def subnet(vpc) -> None:
+def subnet(vpc: Vpc) -> Subnet:
     return vpc.create_subnet(
         AvailabilityZone="eu-west-1a",
         CidrBlock="10.0.10.0/24",
@@ -46,12 +48,12 @@ def subnet(vpc) -> None:
 
 
 @pytest.fixture
-def key_pair(ec2) -> ...:
+def key_pair(ec2: EC2ServiceResource) -> KeyPair:
     return ec2.create_key_pair(KeyName=str(uuid.uuid4()))
 
 
 @pytest.fixture
-def security_group(ec2: ..., vpc: ...) -> ...:
+def security_group(ec2: EC2ServiceResource, vpc: Vpc) -> SecurityGroup:
     return ec2.create_security_group(
         GroupName="dummy",
         Description="dummy",
@@ -60,7 +62,7 @@ def security_group(ec2: ..., vpc: ...) -> ...:
 
 
 @pytest.fixture
-def base_vars(subnet: ..., key_pair: ...) -> dict[str, Any]:
+def base_vars(subnet: Subnet, key_pair: KeyPair) -> dict[str, Any]:
     # This AMI should exist in the Moto server.
     # Refer to https://github.com/getmoto/moto/blob/master/moto/ec2/resources/amis.json.
     ami = "ami-12c6146b"
@@ -72,7 +74,7 @@ def base_vars(subnet: ..., key_pair: ...) -> dict[str, Any]:
     }
 
 
-def _assert_sgrs(sg: ..., remote_access_cidr: list[str]) -> None:
+def _assert_sgrs(sg: SecurityGroup, remote_access_cidr: list[str]) -> None:
     """Assert the 'bastion' security group has the expected ingress rules."""
     assert len(sg.ip_permissions) == 2
 
@@ -99,7 +101,11 @@ def _assert_sgrs(sg: ..., remote_access_cidr: list[str]) -> None:
             raise AssertionError(f"unexpected protocol '{sgr['IpProtocol']}'")
 
 
-def test_defaults(ec2: ..., tf: Terraform, base_vars: dict[str, Any]):
+def test_defaults(
+    ec2: EC2ServiceResource,
+    tf: Terraform,
+    base_vars: dict[str, Any],
+):
     tf.apply(vars=base_vars)
     outputs = Outputs.from_terraform(tf)
 
@@ -122,7 +128,11 @@ def test_defaults(ec2: ..., tf: Terraform, base_vars: dict[str, Any]):
     _assert_sgrs(sg, ["0.0.0.0/0"])
 
 
-def test_instance_type(ec2: ..., tf: Terraform, base_vars: dict[str, Any]):
+def test_instance_type(
+    ec2: EC2ServiceResource,
+    tf: Terraform,
+    base_vars: dict[str, Any],
+):
     tf.apply(vars=base_vars | {"instance_type": "m5n.24xlarge"})
     outputs = Outputs.from_terraform(tf)
 
@@ -131,10 +141,10 @@ def test_instance_type(ec2: ..., tf: Terraform, base_vars: dict[str, Any]):
 
 
 def test_security_groups(
-    ec2: ...,
+    ec2: EC2ServiceResource,
     tf: Terraform,
     base_vars: dict[str, Any],
-    security_group: ...,
+    security_group: SecurityGroup,
 ):
     tf.apply(vars=base_vars | {"security_group_ids": [security_group.id]})
     outputs = Outputs.from_terraform(tf)
@@ -147,7 +157,7 @@ def test_security_groups(
 
 
 def test_remote_access_cidr(
-    ec2: ...,
+    ec2: EC2ServiceResource,
     tf: Terraform,
     base_vars: dict[str, Any],
 ):
