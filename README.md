@@ -208,7 +208,7 @@ format](https://developer.hashicorp.com/terraform/language/values/variables#vari
 
 ```
 cat << EOF
-cluster_version = 1.27
+cluster_version = 1.28
 xr_root_user = "root"
 xr_root_password = "mypassword"
 EOF > vars.tfvars
@@ -225,7 +225,7 @@ Configuration options can also be [configured on the
 CLI](https://developer.hashicorp.com/terraform/language/values/variables#variables-on-the-command-line):
 
 ```
-terraform -chdir=examples/workload/overlay apply -var cluster_version=1.27
+terraform -chdir=examples/workload/overlay apply -var cluster_version=1.28
 ```
 
 It should take around 5 minutes to bring up the `overlay` example.
