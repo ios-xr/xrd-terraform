@@ -17,19 +17,9 @@ terraform {
       version = "~> 3.3"
     }
 
-    kubectl = {
-      source  = "gavinbunney/kubectl"
-      version = "~> 1.14"
-    }
-
     kubernetes = {
       source  = "hashicorp/kubernetes"
       version = ">= 2.18"
-    }
-
-    tls = {
-      source  = "hashicorp/tls"
-      version = ">= 4.0"
     }
   }
 }
@@ -100,12 +90,8 @@ data "http" "multus_yaml" {
   url = "https://raw.githubusercontent.com/aws/amazon-vpc-cni-k8s/master/config/multus/v3.7.2-eksbuild.1/aws-k8s-multus.yaml"
 }
 
-data "kubectl_file_documents" "multus" {
-  content = data.http.multus_yaml.response_body
-}
+resource "kubernetes_manifest" "multus" {
+  for_each = toset(compact(split("---", data.http.multus_yaml.response_body)))
 
-resource "kubectl_manifest" "multus" {
-  for_each = data.kubectl_file_documents.multus.manifests
-
-  yaml_body = each.value
+  manifest = yamldecode(each.key)
 }

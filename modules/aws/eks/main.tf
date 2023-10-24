@@ -40,6 +40,10 @@ resource "aws_eks_cluster" "this" {
     subnet_ids              = var.subnet_ids
   }
   version = var.cluster_version
+
+  provisioner "local-exec" {
+    command = "aws eks update-kubeconfig --name ${var.name} --kubeconfig ${path.root}/.kubeconfig"
+  }
 }
 
 locals {

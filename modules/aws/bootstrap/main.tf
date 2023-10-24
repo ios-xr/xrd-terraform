@@ -59,23 +59,6 @@ resource "aws_subnet" "data" {
   vpc_id            = module.vpc.vpc_id
 }
 
-resource "aws_security_group" "data" {
-  name   = "data"
-  vpc_id = module.vpc.vpc_id
-  ingress {
-    from_port = 0
-    to_port   = 0
-    protocol  = -1
-    self      = true
-  }
-  egress {
-    from_port = 0
-    to_port   = 0
-    protocol  = -1
-    self      = true
-  }
-}
-
 #resource "aws_ec2_subnet_cidr_reservation" "this" {
 
 module "key_pair" {
@@ -173,10 +156,6 @@ output "cluster_security_group_id" {
   value = module.eks.cluster_security_group_id
 }
 
-output "data_security_group_id" {
-  value = aws_security_group.data.id
-}
-
 output "cluster_name" {
   value = module.eks.name
 }
@@ -188,10 +167,19 @@ output "node_iam_instance_profile_name" {
 output "key_name" {
   value = module.key_pair.key_name
 }
+
+output "oidc_issuer" {
+  value = module.eks.oidc_issuer
+}
+
 output "oidc_provider" {
   value = aws_iam_openid_connect_provider.this.arn
 }
 
 output "node_iam_role_name" {
   value = aws_iam_role.node.name
+}
+
+output "vpc_id" {
+  value = module.vpc.vpc_id
 }

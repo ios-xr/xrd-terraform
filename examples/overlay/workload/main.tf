@@ -7,11 +7,6 @@ terraform {
       version = "~> 2.9"
     }
 
-    kubectl = {
-      source  = "gavinbunney/kubectl"
-      version = "~> 1.14"
-    }
-
     kubernetes = {
       source  = "hashicorp/kubernetes"
       version = ">= 2.18"
@@ -23,46 +18,13 @@ provider "helm" {
   repository_config_path = "${path.root}/.helm/repositories.yaml"
   repository_cache       = "${path.root}/.helm"
   kubernetes {
-    host                   = data.aws_eks_cluster.this.endpoint
-    cluster_ca_certificate = base64decode(data.aws_eks_cluster.this.certificate_authority[0].data)
-    exec {
-      api_version = "client.authentication.k8s.io/v1beta1"
-      args        = ["eks", "get-token", "--cluster-name", var.cluster_name]
-      command     = "aws"
-    }
+    config_path = data.terraform_remote_state.infra.outputs.kubeconfig_path
   }
-}
-
-provider "kubectl" {
-  host                   = data.aws_eks_cluster.this.endpoint
-  cluster_ca_certificate = base64decode(data.aws_eks_cluster.this.certificate_authority[0].data)
-  exec {
-    api_version = "client.authentication.k8s.io/v1beta1"
-    args        = ["eks", "get-token", "--cluster-name", var.cluster_name]
-    command     = "aws"
-  }
-  load_config_file = false
 }
 
 provider "kubernetes" {
-  host                   = data.aws_eks_cluster.this.endpoint
-  cluster_ca_certificate = base64decode(data.aws_eks_cluster.this.certificate_authority[0].data)
-  exec {
-    api_version = "client.authentication.k8s.io/v1beta1"
-    args        = ["eks", "get-token", "--cluster-name", var.cluster_name]
-    command     = "aws"
-  }
+  config_path = data.terraform_remote_state.infra.outputs.kubeconfig_path
 }
-
-module "eks_config" {
-  source = "../../../modules/aws/eks-config"
-
-  cluster_name      = var.cluster_name
-  oidc_issuer       = data.aws_eks_cluster.this.identity[0].oidc[0].issuer
-  oidc_provider     = data.terraform_remote_state.infra.outputs.oidc_provider
-  node_iam_role_arn = data.aws_iam_role.node.arn
-}
-
 
 locals {
   image_repository = coalesce(
