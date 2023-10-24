@@ -4,7 +4,7 @@ variable "cluster_name" {
 }
 
 variable "node_iam_role_arn" {
-  type        = string
+  type = string
 }
 
 variable "oidc_issuer" {
@@ -13,5 +13,5 @@ variable "oidc_issuer" {
 }
 
 variable "oidc_provider" {
-  type        = string
+  type = string
 }

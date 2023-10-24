@@ -57,9 +57,9 @@ provider "kubernetes" {
 module "eks_config" {
   source = "../../../modules/aws/eks-config"
 
-  cluster_name = var.cluster_name
-  oidc_issuer  = data.aws_eks_cluster.this.identity[0].oidc[0].issuer
-  oidc_provider  = data.terraform_remote_state.infra.outputs.oidc_provider
+  cluster_name      = var.cluster_name
+  oidc_issuer       = data.aws_eks_cluster.this.identity[0].oidc[0].issuer
+  oidc_provider     = data.terraform_remote_state.infra.outputs.oidc_provider
   node_iam_role_arn = data.aws_iam_role.node.arn
 }
 

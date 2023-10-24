@@ -15,16 +15,16 @@ terraform {
 }
 
 variable "node_instance_type" {
-  type = string
+  type    = string
   default = "m5.2xlarge"
 }
 variable "node_ami" {
-  type = string
+  type    = string
   default = null
 }
 
 variable "cluster_version" {
-  type = string
+  type    = string
   default = "1.27"
 }
 
@@ -35,9 +35,9 @@ data "aws_availability_zones" "available" {
 module "bootstrap" {
   source = "../../../modules/aws/bootstrap"
 
-  azs = slice(data.aws_availability_zones.available.names, 0, 2)
+  azs             = slice(data.aws_availability_zones.available.names, 0, 2)
   data_subnet_azs = slice(data.aws_availability_zones.available.names, 0, 1)
-  data_subnets = ["10.0.10.0/24", "10.0.11.0/24", "10.0.12.0/24", "10.0.13.0/24"]
+  data_subnets    = ["10.0.10.0/24", "10.0.11.0/24", "10.0.12.0/24", "10.0.13.0/24"]
 }
 
 data "aws_ami" "eks_optimized" {
@@ -73,7 +73,7 @@ locals {
 
   nodes = {
     alpha = {
-      ami = local.xrd_ami
+      ami           = local.xrd_ami
       instance_type = var.node_instance_type
       security_groups = [
         module.bootstrap.bastion_security_group_id,
@@ -102,7 +102,7 @@ locals {
 
     beta = {
       ami                = local.xrd_ami
-      instance_type = var.node_instance_type
+      instance_type      = var.node_instance_type
       subnet_id          = local.cluster_subnet_id
       private_ip_address = "10.0.0.12"
       security_groups = [
@@ -129,9 +129,9 @@ locals {
     }
 
     gamma = {
-      ami                = data.aws_ami.eks_optimized.id
+      ami = data.aws_ami.eks_optimized.id
       # Used for Alpine Linux containers; m5.large is sufficiently large.
-      instance_type = "m5.large"
+      instance_type      = "m5.large"
       subnet_id          = local.cluster_subnet_id
       private_ip_address = "10.0.0.13"
       security_groups = [

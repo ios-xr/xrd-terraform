@@ -38,9 +38,9 @@ data "aws_subnet" "this" {
 }
 
 resource "aws_instance" "this" {
-  ami           = coalesce(var.ami, data.aws_ami.this.id)
-  instance_type = var.instance_type
-  key_name      = var.key_name
+  ami                    = coalesce(var.ami, data.aws_ami.this.id)
+  instance_type          = var.instance_type
+  key_name               = var.key_name
   vpc_security_group_ids = var.security_group_ids
-  subnet_id = var.subnet_id
+  subnet_id              = var.subnet_id
 }

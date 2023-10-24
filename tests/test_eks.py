@@ -119,7 +119,9 @@ def test_defaults(
     assert cluster.version == base_vars["cluster_version"]
 
 
-@pytest.mark.parametrize("cluster_version", ("1.23", "1.24", "1.25", "1.26", "1.27"))
+@pytest.mark.parametrize(
+    "cluster_version", ("1.23", "1.24", "1.25", "1.26", "1.27")
+)
 def test_cluster_version(
     eks_client: EKSClient,
     tf: Terraform,

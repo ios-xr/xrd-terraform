@@ -15,7 +15,7 @@ terraform {
 }
 
 variable "cluster_version" {
-  type = string
+  type    = string
   default = "1.27"
 }
 
@@ -30,7 +30,7 @@ variable "data_subnets" {
 }
 
 variable "cluster_name" {
-  type = string
+  type    = string
   default = "xrd-cluster"
 }
 
@@ -98,7 +98,7 @@ module "eks" {
 
 resource "aws_security_group" "bastion" {
   name   = "bastion"
-  vpc_id            = module.vpc.vpc_id
+  vpc_id = module.vpc.vpc_id
   ingress {
     from_port = 0
     to_port   = 0

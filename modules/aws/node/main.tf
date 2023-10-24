@@ -79,7 +79,7 @@ locals {
 
   hugepages_gb   = local.is_xrd_packer_ami ? local.req_hugepages_gb : null
   isolated_cores = local.is_xrd_packer_ami ? local.req_isolated_cores : null
-  xrd_cpuset   = local.is_xrd_packer_ami ? local.req_xrd_cpuset : null
+  xrd_cpuset     = local.is_xrd_packer_ami ? local.req_xrd_cpuset : null
 }
 
 resource "aws_instance" "this" {
