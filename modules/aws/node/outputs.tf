@@ -20,13 +20,9 @@ output "hugepages_gb" {
 
 output "xrd_cpuset" {
   description = "The cpuset XRd vRouter should be configured with on the given node instance type"
-  value       = local.instance_type_to_xrd_cpuset[var.instance_type]
+  value       = local.xrd_cpuset
 }
 
 output "network_interface" {
   value = aws_network_interface.this
-}
-
-output "ready" {
-  value = var.wait ? time_sleep.wait[0].id : 1
 }

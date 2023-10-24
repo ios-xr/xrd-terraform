@@ -36,45 +36,10 @@ terraform {
 
 data "aws_region" "current" {}
 
-data "aws_iam_policy_document" "node" {
-  statement {
-    actions = ["sts:AssumeRole"]
-    principals {
-      type        = "Service"
-      identifiers = ["ec2.amazonaws.com"]
-    }
-  }
-}
-
-resource "aws_iam_role" "node" {
-  assume_role_policy = data.aws_iam_policy_document.node.json
-  managed_policy_arns = [
-    "arn:aws:iam::aws:policy/AmazonEKSWorkerNodePolicy",
-    "arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly",
-    "arn:aws:iam::aws:policy/AmazonEKS_CNI_Policy",
-  ]
-  name = "${var.cluster_name}-${data.aws_region.current.name}-node"
-}
-
-resource "aws_iam_instance_profile" "node" {
-  name = "${var.cluster_name}-${data.aws_region.current.name}-node"
-  role = aws_iam_role.node.name
-}
-
-data "tls_certificate" "this" {
-  url = var.oidc_issuer
-}
-
-resource "aws_iam_openid_connect_provider" "this" {
-  client_id_list  = ["sts.amazonaws.com"]
-  thumbprint_list = data.tls_certificate.this.certificates[*].sha1_fingerprint
-  url             = data.tls_certificate.this.url
-}
-
 resource "kubernetes_config_map" "aws_auth" {
   data = {
     "mapRoles" = <<-EOT
-      - rolearn: ${aws_iam_role.node.arn}
+      - rolearn: ${var.node_iam_role_arn}
         username: system:node:{{EC2PrivateDNSName}}
         groups:
           - system:bootstrappers
@@ -112,7 +77,7 @@ module "ebs_csi_irsa" {
   source = "../irsa"
 
   oidc_issuer     = var.oidc_issuer
-  oidc_provider   = aws_iam_openid_connect_provider.this.arn
+  oidc_provider   = var.oidc_provider
   namespace       = "kube-system"
   service_account = "ebs-csi-controller-sa"
   role_name       = "${var.cluster_name}-${data.aws_region.current.name}-ebs-csi"

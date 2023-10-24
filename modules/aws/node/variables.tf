@@ -13,11 +13,6 @@ variable "instance_type" {
   type        = string
 
   default = "m5.2xlarge"
-
-  validation {
-    condition     = contains(["m5.2xlarge", "m5n.2xlarge", "m5.24xlarge", "m5n.24xlarge"], var.instance_type)
-    error_message = "Allowed values are m5.2xlarge, m5n.2xlarge, m5.24xlarge, m5n.24xlarge"
-  }
 }
 
 variable "iam_instance_profile" {
@@ -84,10 +79,4 @@ variable "user_data" {
   description = "Custom user data to append to the EC2 node's user data"
   type        = string
   default     = ""
-}
-
-variable "wait" {
-  description = "Wait for node readiness"
-  type        = bool
-  default     = true
 }
