@@ -30,6 +30,12 @@ repos:
       - id: terraform_tflint
         stages: ["manual"]
 
+  - repo: https://github.com/terraform-docs/terraform-docs
+    rev: "v0.16.0"
+    hooks:
+      - id: terraform-docs-go
+        args: ["examples/bootstrap"]
+
   - repo: https://github.com/adrienverge/yamllint
     rev: v1.32.0
     hooks:
