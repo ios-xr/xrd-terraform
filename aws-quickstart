@@ -108,12 +108,16 @@ SCRIPT_DIR="$(dirname "$(realpath "$0")")"
 
 run_packer () {
   rm -rf xrd-packer
+  trap 'rm -rf xrd-packer' ERR EXIT
+
   git clone https://github.com/ios-xr/xrd-packer xrd-packer
   cd xrd-packer
   packer init .
   packer build -var kubernetes_version="$KUBERNETES_VERSION" amazon-ebs.pkr.hcl
   cd ..
+
   rm -rf xrd-packer
+  trap - ERR EXIT
 }
 
 ensure_ami_exists () {
