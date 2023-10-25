@@ -29,6 +29,12 @@ resource "aws_iam_role" "cluster" {
   name = "${var.name}-${data.aws_region.current.name}-cluster"
 }
 
+resource "null_resource" "cluster_version" {
+  triggers = {
+    cluster_version = var.cluster_version
+  }
+}
+
 resource "aws_eks_cluster" "this" {
   name     = var.name
   role_arn = aws_iam_role.cluster.arn
@@ -48,7 +54,7 @@ resource "aws_eks_cluster" "this" {
   # It is not possible to downgrade the EKS cluster version; instead
   # unconditionally replace the resource when the cluster version changes.
   lifecycle {
-    replace_triggered_by = [var.cluster_version]
+    replace_triggered_by = [null_resource.cluster_version]
   }
 }
 
