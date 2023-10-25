@@ -65,7 +65,7 @@ resource "aws_subnet" "data" {
 
 resource "aws_security_group" "data" {
   name   = "data"
-  vpc_id            = data.terraform_remote_state.bootstrap.outputs.vpc_id
+  vpc_id = data.terraform_remote_state.bootstrap.outputs.vpc_id
   ingress {
     from_port = 0
     to_port   = 0
@@ -97,9 +97,9 @@ module "xrd_ami" {
 }
 
 locals {
-  data_1_subnet_id  = aws_subnet.data[0].id
-  data_2_subnet_id  = aws_subnet.data[1].id
-  data_3_subnet_id  = aws_subnet.data[2].id
+  data_1_subnet_id = aws_subnet.data[0].id
+  data_2_subnet_id = aws_subnet.data[1].id
+  data_3_subnet_id = aws_subnet.data[2].id
 
   xrd_ami = var.node_ami != null ? var.node_ami : module.xrd_ami[0].id
 }
@@ -109,7 +109,7 @@ module "node" {
 
   name                 = "alpha"
   ami                  = local.xrd_ami
-  cluster_name      = data.terraform_remote_state.bootstrap.outputs.cluster_name
+  cluster_name         = data.terraform_remote_state.bootstrap.outputs.cluster_name
   iam_instance_profile = data.terraform_remote_state.bootstrap.outputs.node_iam_instance_profile_name
   instance_type        = var.node_instance_type
   key_name             = data.terraform_remote_state.bootstrap.outputs.key_name
