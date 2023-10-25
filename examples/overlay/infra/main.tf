@@ -1,29 +1,3 @@
-terraform {
-  required_version = ">= 1.2.0"
-
-  required_providers {
-    aws = {
-      source  = "hashicorp/aws"
-      version = "~> 5.2"
-    }
-
-    time = {
-      source  = "hashicorp/time"
-      version = "~> 0.9"
-    }
-
-    helm = {
-      source  = "hashicorp/helm"
-      version = "~> 2.9"
-    }
-
-    kubernetes = {
-      source  = "hashicorp/kubernetes"
-      version = ">= 2.18"
-    }
-  }
-}
-
 provider "helm" {
   repository_config_path = "${path.root}/.helm/repositories.yaml"
   repository_cache       = "${path.root}/.helm"
@@ -34,17 +8,6 @@ provider "helm" {
 
 provider "kubernetes" {
   config_path = data.terraform_remote_state.bootstrap.outputs.kubeconfig_path
-}
-
-
-variable "node_instance_type" {
-  type    = string
-  default = "m5.2xlarge"
-}
-
-variable "node_ami" {
-  type    = string
-  default = null
 }
 
 data "terraform_remote_state" "bootstrap" {
