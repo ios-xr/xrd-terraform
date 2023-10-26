@@ -57,8 +57,12 @@ resource "aws_subnet" "data" {
   cidr_block        = each.value
 }
 
+locals {
+  name_prefix = data.terraform_remote_state.bootstrap.outputs.name
+}
+
 resource "aws_security_group" "data" {
-  name   = "data"
+  name   = "${local.name_prefix}-data"
   vpc_id = data.terraform_remote_state.bootstrap.outputs.vpc_id
   ingress {
     from_port = 0
@@ -81,6 +85,7 @@ module "eks_config" {
   oidc_issuer       = data.terraform_remote_state.bootstrap.outputs.oidc_issuer
   oidc_provider     = data.terraform_remote_state.bootstrap.outputs.oidc_provider
   node_iam_role_arn = data.aws_iam_role.node.arn
+  name_prefix = local.name_prefix
 }
 
 
@@ -180,7 +185,7 @@ module "node" {
 
   for_each = local.nodes
 
-  name                 = each.key
+  name                 = "${local.name_prefix}-${each.key}"
   ami                  = each.value.ami
   cluster_name         = data.terraform_remote_state.bootstrap.outputs.cluster_name
   iam_instance_profile = data.terraform_remote_state.bootstrap.outputs.node_iam_instance_profile_name
