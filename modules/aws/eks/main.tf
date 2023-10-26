@@ -1,5 +1,3 @@
-data "aws_region" "current" {}
-
 data "aws_iam_policy_document" "cluster" {
   statement {
     actions = ["sts:AssumeRole"]
@@ -15,7 +13,7 @@ resource "aws_iam_role" "cluster" {
   managed_policy_arns = [
     "arn:aws:iam::aws:policy/AmazonEKSClusterPolicy",
   ]
-  name = "${var.name}-${data.aws_region.current.name}-cluster"
+  name = "${var.name}-cluster"
 }
 
 resource "null_resource" "cluster_version" {

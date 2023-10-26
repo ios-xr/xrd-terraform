@@ -18,8 +18,6 @@ variable "name" {
   nullable = false
 }
 
-data "aws_region" "current" {}
-
 module "vpc" {
   source = "../../../modules/aws/vpc"
 
@@ -89,11 +87,11 @@ resource "aws_iam_role" "node" {
     "arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly",
     "arn:aws:iam::aws:policy/AmazonEKS_CNI_Policy",
   ]
-  name = "${var.name}-${data.aws_region.current.name}-node"
+  name = "${var.name}-node"
 }
 
 resource "aws_iam_instance_profile" "node" {
-  name = "${var.name}-${data.aws_region.current.name}-node"
+  name = "${var.name}-node"
   role = aws_iam_role.node.name
 }
 

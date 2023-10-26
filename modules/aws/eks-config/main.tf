@@ -44,7 +44,7 @@ module "ebs_csi_irsa" {
   oidc_provider   = var.oidc_provider
   namespace       = "kube-system"
   service_account = "ebs-csi-controller-sa"
-  role_name       = "${var.name_prefix}-${data.aws_region.current.name}-ebs-csi"
+  role_name       = "${var.name_prefix}-ebs-csi"
   role_policies   = [data.aws_iam_policy.ebs_csi_driver_policy.arn]
 }
 
