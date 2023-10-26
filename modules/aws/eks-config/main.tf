@@ -1,29 +1,3 @@
-terraform {
-  required_version = ">= 1.2.0"
-
-  required_providers {
-    aws = {
-      source  = "hashicorp/aws"
-      version = ">= 5.0"
-    }
-
-    helm = {
-      source  = "hashicorp/helm"
-      version = "~> 2.9"
-    }
-
-    http = {
-      source  = "hashicorp/http"
-      version = "~> 3.3"
-    }
-
-    kubernetes = {
-      source  = "hashicorp/kubernetes"
-      version = ">= 2.18"
-    }
-  }
-}
-
 data "aws_region" "current" {}
 
 resource "kubernetes_config_map" "aws_auth" {
@@ -70,7 +44,7 @@ module "ebs_csi_irsa" {
   oidc_provider   = var.oidc_provider
   namespace       = "kube-system"
   service_account = "ebs-csi-controller-sa"
-  role_name       = "${var.cluster_name}-${data.aws_region.current.name}-ebs-csi"
+  role_name       = "${var.name_prefix}-${data.aws_region.current.name}-ebs-csi"
   role_policies   = [data.aws_iam_policy.ebs_csi_driver_policy.arn]
 }
 

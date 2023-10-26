@@ -1,14 +1,3 @@
-terraform {
-  required_version = ">= 1.2.0"
-
-  required_providers {
-    aws = {
-      source  = "hashicorp/aws"
-      version = ">= 5.0"
-    }
-  }
-}
-
 locals {
   len_public_subnets  = length(var.public_subnets)
   len_private_subnets = length(var.private_subnets)

@@ -1,14 +1,3 @@
-terraform {
-  required_version = ">= 1.2.0"
-
-  required_providers {
-    aws = {
-      source  = "hashicorp/aws"
-      version = ">= 5.0"
-    }
-  }
-}
-
 # The interface handling here is non-ideal but is the best we can do.
 #
 # Ideally would cold-attach networking interfaces (i.e. attach when

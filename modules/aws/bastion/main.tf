@@ -1,14 +1,3 @@
-terraform {
-  required_version = ">= 1.2.0"
-
-  required_providers {
-    aws = {
-      source  = "hashicorp/aws"
-      version = ">= 5.0"
-    }
-  }
-}
-
 data "aws_ec2_instance_type" "this" {
   instance_type = var.instance_type
 }
@@ -43,4 +32,8 @@ resource "aws_instance" "this" {
   key_name               = var.key_name
   vpc_security_group_ids = var.security_group_ids
   subnet_id              = var.subnet_id
+
+  tags = {
+    Name = var.name
+  }
 }

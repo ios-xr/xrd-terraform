@@ -15,3 +15,8 @@ variable "oidc_issuer" {
 variable "oidc_provider" {
   type = string
 }
+
+variable "name_prefix" {
+  type = string
+  nullable = false
+}

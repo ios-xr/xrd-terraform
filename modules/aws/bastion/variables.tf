@@ -35,3 +35,8 @@ variable "remote_access_cidr" {
   default     = ["0.0.0.0/0"]
   nullable    = false
 }
+
+variable "name" {
+  type = string
+  nullable = false
+}
