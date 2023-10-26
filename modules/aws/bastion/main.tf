@@ -22,9 +22,13 @@ data "aws_ami" "this" {
   }
 }
 
+data "aws_subnet" "this" {
+  id = var.subnet_id
+}
+
 resource "aws_security_group" "this" {
   name   = var.name
-  vpc_id = module.vpc.vpc_id
+  vpc_id = data.aws_subnet.this.vpc_id
   ingress {
     from_port = 0
     to_port   = 0

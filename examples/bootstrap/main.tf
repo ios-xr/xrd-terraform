@@ -1,3 +1,8 @@
+variable "name" {
+  type    = string
+  default = null
+}
+
 variable "cluster_version" {
   type    = string
   default = "1.27"
@@ -7,6 +12,12 @@ data "aws_availability_zones" "available" {
   state = "available"
 }
 
+resource "random_uuid" "name" {}
+
+locals {
+  name = var.name != null ? var.name : "xrd-terraform-${substr(random_uuid.name.id, 0, 8)}"
+}
+
 module "bootstrap" {
   source = "../../modules/aws/bootstrap"
 
@@ -14,6 +25,7 @@ module "bootstrap" {
   data_subnet_azs = []
   data_subnets    = []
   cluster_version = var.cluster_version
+  name = local.name
 }
 
 output "cluster_name" {
@@ -62,4 +74,8 @@ output "node_iam_instance_profile_name" {
 
 output "private_subnet_ids" {
   value = module.bootstrap.private_subnet_ids
+}
+
+output "name" {
+  value = local.name
 }

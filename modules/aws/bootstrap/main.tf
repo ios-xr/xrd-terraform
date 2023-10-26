@@ -93,7 +93,7 @@ resource "aws_iam_role" "node" {
 }
 
 resource "aws_iam_instance_profile" "node" {
-  name = "${var.cluster_name}-${data.aws_region.current.name}-node"
+  name = "${var.name}-${data.aws_region.current.name}-node"
   role = aws_iam_role.node.name
 }
 
