@@ -29,6 +29,7 @@
 | <a name="output_node_iam_role_name"></a> [node\_iam\_role\_name](#output\_node\_iam\_role\_name) | n/a |
 | <a name="output_oidc_issuer"></a> [oidc\_issuer](#output\_oidc\_issuer) | n/a |
 | <a name="output_oidc_provider"></a> [oidc\_provider](#output\_oidc\_provider) | n/a |
+| <a name="output_placement_group_name"></a> [placement\_group\_name](#output\_placement\_group\_name) | n/a |
 | <a name="output_private_subnet_ids"></a> [private\_subnet\_ids](#output\_private\_subnet\_ids) | n/a |
 | <a name="output_vpc_id"></a> [vpc\_id](#output\_vpc\_id) | n/a |
 <!-- END_TF_DOCS -->

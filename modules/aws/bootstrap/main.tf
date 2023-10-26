@@ -105,6 +105,11 @@ resource "aws_iam_openid_connect_provider" "this" {
   url             = data.tls_certificate.this.url
 }
 
+resource "aws_placement_group" "this" {
+  name     = var.name
+  strategy = "cluster"
+}
+
 output "private_subnet_ids" {
   value = module.vpc.private_subnet_ids
 }
@@ -147,4 +152,8 @@ output "node_iam_role_name" {
 
 output "vpc_id" {
   value = module.vpc.vpc_id
+}
+
+output "placement_group_name" {
+  value = aws_placement_group.this.name
 }

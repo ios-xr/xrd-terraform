@@ -7,3 +7,8 @@ variable "node_ami" {
   type    = string
   default = null
 }
+
+variable "placement_group" {
+  type    = string
+  default = null
+}

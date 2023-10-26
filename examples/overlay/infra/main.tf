@@ -88,13 +88,17 @@ module "eks_config" {
   name_prefix       = local.name_prefix
 }
 
-
 locals {
   access_a_subnet_id = aws_subnet.data[0].id
   trunk_1_subnet_id  = aws_subnet.data[1].id
   trunk_2_subnet_id  = aws_subnet.data[2].id
   access_b_subnet_id = aws_subnet.data[3].id
 
+  placement_group = (
+    var.placement_group == null ?
+    data.terraform_remote_state.bootstrap.outputs.placement_group_name :
+    var.placement_group
+  )
   xrd_ami = coalesce(var.node_ami, module.xrd_ami[0].id)
 
   nodes = {
@@ -192,6 +196,7 @@ module "node" {
   instance_type        = each.value.instance_type
   key_name             = data.terraform_remote_state.bootstrap.outputs.key_name
   network_interfaces   = each.value.network_interfaces
+  placement_group      = local.placement_group
   private_ip_address   = each.value.private_ip_address
   security_groups      = each.value.security_groups
   subnet_id            = each.value.subnet_id
