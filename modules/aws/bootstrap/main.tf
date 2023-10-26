@@ -13,9 +13,9 @@ variable "data_subnets" {
   type = list(string)
 }
 
-variable "cluster_name" {
+variable "name" {
   type    = string
-  default = "xrd-cluster"
+  nullable = false
 }
 
 data "aws_region" "current" {}
@@ -23,7 +23,7 @@ data "aws_region" "current" {}
 module "vpc" {
   source = "../../../modules/aws/vpc"
 
-  name = "${var.cluster_name}-vpc"
+  name = var.name
   azs  = var.azs
   cidr = "10.0.0.0/16"
 
@@ -48,14 +48,14 @@ resource "aws_subnet" "data" {
 module "key_pair" {
   source = "../../../modules/aws/key-pair"
 
-  key_name = "${var.cluster_name}-instance"
-  filename = "${abspath(path.root)}/${var.cluster_name}-instance.pem"
+  key_name = var.name
+  filename = "${abspath(path.root)}/${var.name}.pem"
 }
 
 module "eks" {
   source = "../../../modules/aws/eks"
 
-  name               = var.cluster_name
+  name               = var.name
   cluster_version    = var.cluster_version
   security_group_ids = []
   subnet_ids         = module.vpc.private_subnet_ids
@@ -87,6 +87,7 @@ module "bastion" {
   key_name           = module.key_pair.key_name
   security_group_ids = [aws_security_group.bastion.id]
   subnet_id          = module.vpc.public_subnet_ids[0]
+  name = "${var.name}-bastion"
 }
 
 data "aws_iam_policy_document" "node" {
@@ -106,7 +107,7 @@ resource "aws_iam_role" "node" {
     "arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly",
     "arn:aws:iam::aws:policy/AmazonEKS_CNI_Policy",
   ]
-  name = "${var.cluster_name}-${data.aws_region.current.name}-node"
+  name = "${var.name}-${data.aws_region.current.name}-node"
 }
 
 resource "aws_iam_instance_profile" "node" {
