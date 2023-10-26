@@ -63,29 +63,11 @@ module "eks" {
   #depends_on = [aws_ec2_subnet_cidr_reservation.this]
 }
 
-resource "aws_security_group" "bastion" {
-  name   = "bastion"
-  vpc_id = module.vpc.vpc_id
-  ingress {
-    from_port = 0
-    to_port   = 0
-    protocol  = -1
-    self      = true
-  }
-  egress {
-    from_port   = 0
-    to_port     = 0
-    protocol    = -1
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-}
-
 module "bastion" {
   source = "../../../modules/aws/bastion"
 
   instance_type      = "t3.nano"
   key_name           = module.key_pair.key_name
-  security_group_ids = [aws_security_group.bastion.id]
   subnet_id          = module.vpc.public_subnet_ids[0]
   name = "${var.name}-bastion"
 }
@@ -134,7 +116,7 @@ output "data_subnet_ids" {
 }
 
 output "bastion_security_group_id" {
-  value = aws_security_group.bastion.id
+  value = module.bastion.security_group_id
 }
 
 output "cluster_security_group_id" {
