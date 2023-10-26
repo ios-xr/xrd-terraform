@@ -68,7 +68,7 @@ module "eks_config" {
   cluster_name      = data.terraform_remote_state.bootstrap.outputs.cluster_name
   oidc_issuer       = data.terraform_remote_state.bootstrap.outputs.oidc_issuer
   oidc_provider     = data.terraform_remote_state.bootstrap.outputs.oidc_provider
-  name_prefix = local.name_prefix
+  name_prefix       = local.name_prefix
   node_iam_role_arn = data.aws_iam_role.node.arn
 }
 

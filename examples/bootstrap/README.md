@@ -12,6 +12,7 @@
 | Name | Description | Type | Default | Required |
 |------|-------------|------|---------|:--------:|
 | <a name="input_cluster_version"></a> [cluster\_version](#input\_cluster\_version) | n/a | `string` | `"1.27"` | no |
+| <a name="input_name"></a> [name](#input\_name) | n/a | `string` | `null` | no |
 
 ## Outputs
 
@@ -23,6 +24,7 @@
 | <a name="output_cluster_version"></a> [cluster\_version](#output\_cluster\_version) | n/a |
 | <a name="output_key_name"></a> [key\_name](#output\_key\_name) | n/a |
 | <a name="output_kubeconfig_path"></a> [kubeconfig\_path](#output\_kubeconfig\_path) | n/a |
+| <a name="output_name"></a> [name](#output\_name) | n/a |
 | <a name="output_node_iam_instance_profile_name"></a> [node\_iam\_instance\_profile\_name](#output\_node\_iam\_instance\_profile\_name) | n/a |
 | <a name="output_node_iam_role_name"></a> [node\_iam\_role\_name](#output\_node\_iam\_role\_name) | n/a |
 | <a name="output_oidc_issuer"></a> [oidc\_issuer](#output\_oidc\_issuer) | n/a |

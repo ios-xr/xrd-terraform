@@ -14,7 +14,7 @@ variable "data_subnets" {
 }
 
 variable "name" {
-  type    = string
+  type     = string
   nullable = false
 }
 
@@ -64,10 +64,10 @@ module "eks" {
 module "bastion" {
   source = "../../../modules/aws/bastion"
 
-  instance_type      = "t3.nano"
-  key_name           = module.key_pair.key_name
-  subnet_id          = module.vpc.public_subnet_ids[0]
-  name = "${var.name}-bastion"
+  instance_type = "t3.nano"
+  key_name      = module.key_pair.key_name
+  subnet_id     = module.vpc.public_subnet_ids[0]
+  name          = "${var.name}-bastion"
 }
 
 data "aws_iam_policy_document" "node" {

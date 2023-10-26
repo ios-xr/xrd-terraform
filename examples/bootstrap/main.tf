@@ -25,7 +25,7 @@ module "bootstrap" {
   data_subnet_azs = []
   data_subnets    = []
   cluster_version = var.cluster_version
-  name = local.name
+  name            = local.name
 }
 
 output "cluster_name" {

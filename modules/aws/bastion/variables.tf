@@ -37,6 +37,6 @@ variable "remote_access_cidr" {
 }
 
 variable "name" {
-  type = string
+  type     = string
   nullable = false
 }
