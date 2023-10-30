@@ -37,3 +37,8 @@ variable "public_access_cidrs" {
   type        = list(string)
   default     = null
 }
+
+variable "kubeconfig_output_path" {
+  type = string
+  default = null
+}

@@ -34,14 +34,22 @@ resource "aws_eks_cluster" "this" {
   }
   version = var.cluster_version
 
-  provisioner "local-exec" {
-    command = "aws eks update-kubeconfig --name ${var.name} --kubeconfig ${path.root}/.kubeconfig"
-  }
-
   # It is not possible to downgrade the EKS cluster version; instead
   # unconditionally replace the resource when the cluster version changes.
   lifecycle {
     replace_triggered_by = [null_resource.cluster_version]
+  }
+}
+
+resource "null_resource" "kubeconfig" {
+  count = var.kubeconfig_output_path != null ? 1 : 0
+
+  triggers = {
+    id = aws_eks_cluster.this.id
+  }
+
+  provisioner "local-exec" {
+    command = "aws eks update-kubeconfig --name ${var.name} --kubeconfig ${var.kubeconfig_output_path}"
   }
 }
 

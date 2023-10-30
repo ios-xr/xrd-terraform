@@ -55,6 +55,7 @@ module "eks" {
 
   name               = var.name
   cluster_version    = var.cluster_version
+  kubeconfig_output_path = "${abspath(path.root)}/.kubeconfig"
   security_group_ids = []
   subnet_ids         = module.vpc.private_subnet_ids
 
