@@ -26,7 +26,8 @@ variable "ami" {
 variable "security_group_ids" {
   description = "Additional security group IDs to add to the primary interface on the bastion node"
   type        = list(string)
-  default     = null
+  default     = []
+  nullable = false
 }
 
 variable "remote_access_cidr" {
