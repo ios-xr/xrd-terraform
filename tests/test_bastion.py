@@ -70,6 +70,7 @@ def base_vars(subnet: Subnet, key_pair: KeyPair) -> dict[str, Any]:
     return {
         "ami": ami,
         "key_name": key_pair.key_name,
+        "name": str(uuid.uuid4()),
         "subnet_id": subnet.id,
     }
 
