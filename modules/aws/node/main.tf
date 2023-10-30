@@ -148,3 +148,50 @@ resource "aws_network_interface" "this" {
     "node.k8s.amazonaws.com/no_manage" = "true"
   }
 }
+
+resource "time_sleep" "wait" {
+  count = var.wait ? 1 : 0
+
+  create_duration = "10s"
+
+  triggers = {
+    id = aws_instance.this.id
+  }
+}
+
+resource "kubernetes_job" "wait" {
+  count = var.wait ? 1 : 0
+
+  metadata {
+    generate_name = "wait-for-node-ready-"
+    namespace     = "kube-system"
+    labels = {
+      "triggered-by" = time_sleep.wait[0].id
+    }
+  }
+
+  spec {
+    template {
+      metadata {}
+      spec {
+        container {
+          name    = "main"
+          image   = "alpine"
+          command = ["sh", "-c", "true"]
+        }
+
+        node_selector = {
+          name = aws_instance.this.tags["Name"]
+        }
+
+        restart_policy = "Never"
+      }
+    }
+  }
+
+  timeouts {
+    create = "5m"
+  }
+
+  wait_for_completion = true
+}

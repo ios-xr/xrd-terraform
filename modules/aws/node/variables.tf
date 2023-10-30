@@ -92,3 +92,8 @@ variable "placement_group_name" {
   type        = string
   default     = null
 }
+
+variable "wait" {
+  type = bool
+  default = true
+}
