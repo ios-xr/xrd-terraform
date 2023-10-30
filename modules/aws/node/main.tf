@@ -166,7 +166,7 @@ resource "kubernetes_job" "wait" {
     generate_name = "wait-for-node-ready-"
     namespace     = "kube-system"
     labels = {
-      "triggered-by" = time_sleep.wait[0].id
+      "triggered-by" = replace(time_sleep.wait[0].id, ":", "-")
     }
   }
 
