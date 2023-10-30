@@ -67,7 +67,7 @@ resource "aws_vpc_security_group_egress_rule" "all" {
   from_port   = -1
   to_port     = -1
   ip_protocol = -1
- }
+}
 
 resource "aws_instance" "this" {
   ami                    = coalesce(var.ami, data.aws_ami.this.id)

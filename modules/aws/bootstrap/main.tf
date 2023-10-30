@@ -53,11 +53,11 @@ module "key_pair" {
 module "eks" {
   source = "../../../modules/aws/eks"
 
-  name               = var.name
-  cluster_version    = var.cluster_version
+  name                   = var.name
+  cluster_version        = var.cluster_version
   kubeconfig_output_path = "${abspath(path.root)}/.kubeconfig"
-  security_group_ids = []
-  subnet_ids         = module.vpc.private_subnet_ids
+  security_group_ids     = []
+  subnet_ids             = module.vpc.private_subnet_ids
 
   #depends_on = [aws_ec2_subnet_cidr_reservation.this]
 }

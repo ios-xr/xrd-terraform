@@ -39,6 +39,6 @@ variable "public_access_cidrs" {
 }
 
 variable "kubeconfig_output_path" {
-  type = string
+  type    = string
   default = null
 }
