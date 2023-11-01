@@ -27,4 +27,5 @@ def create_bootstrap(bootstrap: Terraform) -> None:
         bootstrap.apply()
         yield
     finally:
+        return
         bootstrap.destroy()
