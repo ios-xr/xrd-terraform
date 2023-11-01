@@ -5,7 +5,8 @@ import pytest
 from attrs import define
 from mypy_boto3_ec2 import EC2ServiceResource
 
-from ._types import MotoServer, Terraform, TerraformOutputs
+from .._types import Terraform
+from ._types import MotoServer, TerraformOutputs
 
 
 @define

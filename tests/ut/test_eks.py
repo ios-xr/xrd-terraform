@@ -9,7 +9,8 @@ from mypy_boto3_ec2 import EC2ServiceResource
 from mypy_boto3_ec2.service_resource import SecurityGroup, Subnet, Vpc
 from mypy_boto3_eks import EKSClient
 
-from ._types import MotoServer, Terraform
+from .._types import Terraform
+from ._types import MotoServer
 
 
 @define

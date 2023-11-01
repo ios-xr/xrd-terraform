@@ -30,7 +30,7 @@ locals {
 }
 
 resource "aws_subnet" "data" {
-  for-each = { for i, name in ["data-1", "data-2", "data-3"] : i => name }
+  for_each = { for i, name in ["data-1", "data-2", "data-3"] : i => name }
 
   availability_zone = data.aws_subnet.cluster.availability_zone
   cidr_block        = "10.0.${each.key + 10}.0/24"
@@ -90,7 +90,7 @@ locals {
 module "node" {
   source = "../../../modules/aws/node"
 
-  name                 = var.name_prefix
+  name                 = local.name_prefix
   ami                  = local.xrd_ami
   cluster_name         = data.terraform_remote_state.bootstrap.outputs.cluster_name
   iam_instance_profile = data.terraform_remote_state.bootstrap.outputs.node_iam_instance_profile_name

@@ -11,13 +11,17 @@ provider "kubernetes" {
 }
 
 locals {
-  image_repository = coalesce(
-    var.image_repository,
-    format(
-      "%s.dkr.ecr.%s.amazonaws.com/xrd/xrd-vrouter",
-      data.aws_caller_identity.current.account_id,
-      data.aws_region.current.name,
+  image_repository = format(
+    "%s/%s",
+    coalesce(
+      var.image_registry,
+      format(
+        "%s.dkr.ecr.%s.amazonaws.com",
+        data.aws_caller_identity.current.account_id,
+        data.aws_region.current.name,
+      ),
     ),
+    var.image_repository,
   )
 }
 

@@ -28,13 +28,19 @@ locals {
     "vRouter" : "xrd/xrd-vrouter"
     "ControlPlane" : "xrd/xrd-control-plane"
   }
-  default_image_repository = format(
-    "%s.dkr.ecr.%s.amazonaws.com/%s",
-    data.aws_caller_identity.current.account_id,
-    data.aws_region.current.name,
-    local.default_repo_names[var.xrd_platform]
+
+  image_repository = format(
+    "%s/%s",
+    coalesce(
+      var.image_registry,
+      format(
+        "%s.dkr.ecr.%s.amazonaws.com",
+        data.aws_caller_identity.current.account_id,
+        data.aws_region.current.name,
+      ),
+    ),
+    coalesce(var.image_repository, local.default_repo_names[var.xrd_platform]),
   )
-  image_repository = coalesce(var.image_repository, local.default_image_repository)
 }
 
 resource "helm_release" "xrd" {
