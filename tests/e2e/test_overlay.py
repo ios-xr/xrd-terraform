@@ -1,7 +1,6 @@
 from pathlib import Path
 
 import pytest
-
 from common.utils import Terraform, run_cmd
 
 
@@ -33,5 +32,21 @@ def create_overlay(
 
 
 def test_smoke():
-    run_cmd(["kubectl", "rollout", "status", "sts/xrd1-xrd-vrouter", "--timeout=1m"])
-    run_cmd(["kubectl", "rollout", "status", "sts/xrd2-xrd-vrouter", "--timeout=1m"])
+    run_cmd(
+        [
+            "kubectl",
+            "rollout",
+            "status",
+            "sts/xrd1-xrd-vrouter",
+            "--timeout=1m",
+        ],
+    )
+    run_cmd(
+        [
+            "kubectl",
+            "rollout",
+            "status",
+            "sts/xrd2-xrd-vrouter",
+            "--timeout=1m",
+        ],
+    )

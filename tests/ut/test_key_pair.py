@@ -8,6 +8,7 @@ import pytest
 from mypy_boto3_ec2 import EC2ServiceResource
 
 from terraform import Terraform
+
 from ._types import MotoServer
 
 

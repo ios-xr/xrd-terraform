@@ -1,7 +1,4 @@
-
-__all__ = (
-    "MotoServer",
-)
+__all__ = ("MotoServer",)
 
 
 import requests
@@ -31,5 +28,3 @@ class MotoServer:
 
     def reset(self):
         requests.post(f"{self.endpoint}/moto-api/reset")
-
-

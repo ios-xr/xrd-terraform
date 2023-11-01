@@ -1,12 +1,9 @@
-__all__ = (
-    "run_cmd",
-)
+__all__ = ("run_cmd",)
 
 
-import shlex
 import logging
+import shlex
 import subprocess
-
 
 logger = logging.getLogger(__name__)
 

@@ -1,7 +1,6 @@
 from pathlib import Path
 
 import pytest
-
 from common.utils import Terraform, run_cmd
 
 
@@ -33,4 +32,12 @@ def create_singleton(
 
 
 def test_smoke():
-    run_cmd(["kubectl", "rollout", "status", "sts/xrd-xrd-vrouter", "--timeout=1m"])
+    run_cmd(
+        [
+            "kubectl",
+            "rollout",
+            "status",
+            "sts/xrd-xrd-vrouter",
+            "--timeout=1m",
+        ],
+    )

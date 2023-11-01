@@ -9,6 +9,7 @@ from mypy_boto3_ec2 import EC2ServiceResource
 from mypy_boto3_ec2.service_resource import KeyPair, SecurityGroup, Subnet, Vpc
 
 from terraform import Terraform, TerraformOutputs
+
 from .moto_server import MotoServer
 
 
