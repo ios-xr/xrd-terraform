@@ -69,6 +69,12 @@ locals {
   hugepages_gb   = local.is_xrd_packer_ami ? local.req_hugepages_gb : null
   isolated_cores = local.is_xrd_packer_ami ? local.req_isolated_cores : null
   xrd_cpuset     = local.is_xrd_packer_ami ? local.req_xrd_cpuset : null
+
+  kubelet_node_labels_arg = (
+    var.labels != null ?
+    join(",", [for k, v in var.labels : "${k}=${v}"]) :
+    null
+  )
 }
 
 resource "aws_instance" "this" {
@@ -99,9 +105,13 @@ resource "aws_instance" "this" {
       isolated_cores = local.isolated_cores
       cluster_name   = var.cluster_name
       kubelet_extra_args = format(
-        "--node-labels=name=%s%s",
-        var.name,
-        var.kubelet_extra_args == "" ? "" : format(" %s", var.kubelet_extra_args),
+        "%s%s",
+        (
+          local.kubelet_node_labels_arg != null ?
+          "--node-labels ${local.kubelet_node_labels_arg}" :
+          ""
+        ),
+        var.kubelet_extra_args != null ? " ${var.kubelet_extra_args}" : "",
       )
       additional_user_data = var.user_data
     }
@@ -125,7 +135,7 @@ resource "aws_instance" "this" {
     "kubernetes.io/cluster/${var.cluster_name}" = "owned"
   }
 
-  placement_group = var.placement_group_name
+  placement_group = var.placement_group
 }
 
 resource "aws_network_interface" "this" {

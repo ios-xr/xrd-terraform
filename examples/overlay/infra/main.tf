@@ -200,6 +200,10 @@ module "node" {
   private_ip_address   = each.value.private_ip_address
   security_groups      = each.value.security_groups
   subnet_id            = each.value.subnet_id
+
+  labels = {
+    name = each.key
+  }
 }
 
 

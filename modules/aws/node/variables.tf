@@ -57,7 +57,7 @@ variable "cluster_name" {
 variable "kubelet_extra_args" {
   description = "Extra arguments to pass to kubelet when booting the node"
   type        = string
-  default     = ""
+  default     = null
 }
 
 variable "xrd_ami_data" {
@@ -81,7 +81,7 @@ variable "user_data" {
   default     = ""
 }
 
-variable "placement_group_name" {
+variable "placement_group" {
   description = <<-EOT
   Placement group to launch the node into.  Placement groups can be used to
   align instances to the same (or nearby) compute, thus minimizing expected
@@ -96,4 +96,9 @@ variable "placement_group_name" {
 variable "wait" {
   type    = bool
   default = true
+}
+
+variable "labels" {
+  type    = map(string)
+  default = null
 }
