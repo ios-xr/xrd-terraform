@@ -70,11 +70,15 @@ locals {
   isolated_cores = local.is_xrd_packer_ami ? local.req_isolated_cores : null
   xrd_cpuset     = local.is_xrd_packer_ami ? local.req_xrd_cpuset : null
 
-  kubelet_node_labels_arg = (
-    var.labels != null ?
-    join(",", [for k, v in var.labels : "${k}=${v}"]) :
-    null
-  )
+  # Add a 'name' label to the user-provided labels.
+  # Note that this takes precedence (`merge` has right-precedence); this is
+  # because the "wait" Job below is scheduled onto this node via this label.
+  required_labels = {
+    "ios-xr.cisco.com/name" = var.name
+  }
+  labels = var.labels != null ? merge(var.labels, local.required_labels) : local.required_labels
+
+  kubelet_node_labels_arg = join(",", [for k, v in local.labels : "${k}=${v}"])
 }
 
 resource "aws_instance" "this" {
@@ -191,7 +195,7 @@ resource "kubernetes_job" "wait" {
         }
 
         node_selector = {
-          name = aws_instance.this.tags["Name"]
+          "ios-xr.cisco.com/name" = aws_instance.this.tags["Name"]
         }
 
         restart_policy = "Never"
