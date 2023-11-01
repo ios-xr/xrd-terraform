@@ -59,7 +59,7 @@ class Terraform:
         *,
         upgrade: bool = False,
     ) -> subprocess.CompletedProcess[str]:
-        cmd = ["init"]
+        cmd = ["init", "-no-color"]
         if upgrade:
             cmd.append("-upgrade")
         return self._run_terraform_cmd(cmd)
