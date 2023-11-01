@@ -1,16 +1,26 @@
-__all__ = ("run_cmd",)
 
-import shlex
+__all__ = (
+    "Terraform",
+    "TerraformOutputs",
+)
+
+from utils import run_cmd
 import json
+from functools import partial
+from typing import Any, Mapping
+
+import cattrs
+from cattrs.errors import ForbiddenExtraKeysError
 import logging
 import os
 import subprocess
 from pathlib import Path
 from tempfile import NamedTemporaryFile
 
-from attrs import define
+from attrs import define, fields
 
 logger = logging.getLogger(__name__)
+
 
 
 @define
@@ -117,48 +127,47 @@ class Terraform:
         return self._run_terraform_cmd(["output", "-json"])
 
 
-def run_cmd(
-    cmd: list[str],
-    *,
-    check: bool = True,
-    log_output: bool = True,
-    **kwargs,
-) -> subprocess.CompletedProcess[str]:
-    kwargs = {
-        "bufsize": 1,
-        "encoding": "utf-8",
-        "stdout": subprocess.PIPE,
-        "stderr": subprocess.PIPE,
-        "text": True,
-        **kwargs,
-    }
+class TerraformOutputs:
+    """
+    Represents Terraform outputs.
 
-    logger.info("Running command: %s", shlex.join(cmd))
+    Example usage::
 
-    with subprocess.Popen(cmd, **kwargs) as p:
-        if log_output:
-            for line in p.stdout:
-                logger.info(line.rstrip())
+        @attrs.define
+        class Outputs(TerraformOutputs):
+            foo: str
+            bar: str
 
-    if check and p.returncode != 0:
-        stdout = ""
-        stderr = ""
-        if p.stdout and not log_output:
-            # Print stdout if we have not already done so.
-            stdout = f"\nstdout:\n{p.stdout}"
-        if p.stderr:
-            stderr = f"\nstderr:\n{p.stderr}"
-        logger.info(
-            "Command failed with exit code: %s%s%s",
-            p.returncode,
-            stdout,
-            stderr,
+        outputs = Outputs.from_terraform(tf)
+        print(outputs.foo)
+        print(outputs.bar)
+
+    This class provides the `from_terraform` helper to parse the output of
+    ``terraform output`.
+
+    """
+
+    @staticmethod
+    def structure(
+        c,
+        d: Mapping[str, Any],
+        t: "TerraformOutputs",
+    ) -> "TerraformOutputs":
+        conv_obj = {}
+        for a in fields(t):
+            value = d.pop(a.name)["value"]
+            conv_obj[a.name] = c.structure(value, a.type)
+        if d:
+            raise ForbiddenExtraKeysError("", t, set(d.keys()))
+        return t(**conv_obj)
+
+    @classmethod
+    def from_terraform(cls, tf: Terraform):
+        out = tf.output().stdout
+        d = json.loads(out)
+        converter = cattrs.Converter()
+        converter.register_structure_hook(
+            cls,
+            partial(cls.structure, converter),
         )
-        raise subprocess.CalledProcessError(p.returncode, cmd)
-
-    return subprocess.CompletedProcess(
-        p.args,
-        p.returncode,
-        p.stdout,
-        p.stderr,
-    )
+        return converter.structure(d, cls)

@@ -17,8 +17,8 @@ from mypy_boto3_ec2.service_resource import (
 from mypy_boto3_iam import IAMServiceResource
 from mypy_boto3_iam.service_resource import InstanceProfile
 
-from .._types import Terraform
-from ._types import MotoServer, TerraformOutputs
+from terraform import Terraform, TerraformOutputs
+from moto_server import MotoServer
 
 
 @define

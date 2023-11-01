@@ -8,8 +8,8 @@ from attrs import define
 from mypy_boto3_iam import IAMServiceResource
 from mypy_boto3_iam.service_resource import RolePolicy
 
-from .._types import Terraform
-from ._types import MotoServer, TerraformOutputs
+from terraform import Terraform, TerraformOutputs
+from moto_server import MotoServer
 
 
 @define
