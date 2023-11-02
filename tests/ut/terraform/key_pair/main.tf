@@ -5,7 +5,7 @@ provider "aws" {
 }
 
 module "key_pair" {
-  source   = "../../../modules/aws/key-pair"
+  source   = "../../../../modules/aws/key-pair"
   key_name = var.key_name
   filename = var.filename
 }

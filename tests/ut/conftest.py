@@ -9,7 +9,7 @@ from mypy_boto3_ec2 import EC2ServiceResource
 from mypy_boto3_eks import EKSClient
 from mypy_boto3_iam import IAMServiceResource
 
-from ._types import MotoServer
+from .moto_server import MotoServer
 
 logger = logging.getLogger(__name__)
 

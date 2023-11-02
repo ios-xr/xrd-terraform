@@ -7,7 +7,7 @@ provider "aws" {
 }
 
 module "node" {
-  source = "../../../modules/aws/node"
+  source = "../../../../modules/aws/node"
 
   wait = false
 

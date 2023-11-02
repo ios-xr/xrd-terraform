@@ -28,28 +28,35 @@ def run_cmd(
 
     with subprocess.Popen(cmd, **kwargs) as p:
         if log_output:
+            stdout = ""
             for line in p.stdout:
+                stdout += line
                 logger.info(line.rstrip())
 
+        maybe_stdout, stderr = p.communicate()
+
+        if not log_output:
+            stdout = maybe_stdout
+
     if check and p.returncode != 0:
-        stdout = ""
-        stderr = ""
+        stdout_msg = ""
+        stderr_msg = ""
         if p.stdout and not log_output:
             # Print stdout if we have not already done so.
-            stdout = f"\nstdout:\n{p.stdout}"
+            stdout_msg = f"\nstdout:\n{stdout}"
         if p.stderr:
-            stderr = f"\nstderr:\n{p.stderr}"
+            stderr_msg = f"\nstderr:\n{stderr}"
         logger.info(
             "Command failed with exit code: %s%s%s",
             p.returncode,
-            stdout,
-            stderr,
+            stdout_msg,
+            stderr_msg,
         )
         raise subprocess.CalledProcessError(p.returncode, cmd)
 
     return subprocess.CompletedProcess(
         p.args,
         p.returncode,
-        p.stdout,
-        p.stderr,
+        stdout,
+        stderr,
     )

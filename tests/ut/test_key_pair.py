@@ -8,15 +8,15 @@ import pytest
 from mypy_boto3_ec2 import EC2ServiceResource
 
 from terraform import Terraform
+from .moto_server import MotoServer
 
-from ._types import MotoServer
 
 
 @pytest.fixture(scope="module")
 def tf(this_dir: Path, moto_server) -> Terraform:
     tf = Terraform(
         this_dir / "terraform" / "key_pair",
-        f"http://localhost:{moto_server.port}",
+        vars={"endpoint": f"http://localhost:{moto_server.port}"},
     )
     tf.init(upgrade=True)
     return tf

@@ -3,7 +3,7 @@ from pathlib import Path
 
 import pytest
 from attrs import define
-from moto_server import MotoServer
+from .moto_server import MotoServer
 from mypy_boto3_ec2 import EC2ServiceResource
 
 from terraform import Terraform, TerraformOutputs
@@ -30,7 +30,7 @@ class Outputs(TerraformOutputs):
 def tf(this_dir: Path, moto_server) -> Terraform:
     tf = Terraform(
         this_dir / "terraform" / "vpc",
-        f"http://localhost:{moto_server.port}",
+        vars={"endpoint": f"http://localhost:{moto_server.port}"},
     )
     tf.init(upgrade=True)
     return tf

@@ -5,7 +5,7 @@ from typing import Any
 
 import pytest
 from attrs import define
-from moto_server import MotoServer
+from .moto_server import MotoServer
 from mypy_boto3_iam import IAMServiceResource
 from mypy_boto3_iam.service_resource import RolePolicy
 
@@ -21,7 +21,7 @@ class Outputs(TerraformOutputs):
 def tf(this_dir: Path, moto_server: MotoServer) -> Terraform:
     tf = Terraform(
         this_dir / "terraform" / "irsa",
-        f"http://localhost:{moto_server.port}",
+        vars={"endpoint": f"http://localhost:{moto_server.port}"},
     )
     tf.init(upgrade=True)
     return tf

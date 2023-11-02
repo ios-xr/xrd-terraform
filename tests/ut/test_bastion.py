@@ -23,7 +23,7 @@ class Outputs(TerraformOutputs):
 def tf(this_dir: Path, moto_server) -> Terraform:
     tf = Terraform(
         this_dir / "terraform" / "bastion",
-        f"http://localhost:{moto_server.port}",
+        vars={"endpoint": f"http://localhost:{moto_server.port}"},
     )
     tf.init(upgrade=True)
     return tf

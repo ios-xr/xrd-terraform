@@ -5,7 +5,7 @@ provider "aws" {
 }
 
 module "bastion" {
-  source = "../../../modules/aws/bastion"
+  source = "../../../../modules/aws/bastion"
 
   subnet_id          = var.subnet_id
   instance_type      = var.instance_type

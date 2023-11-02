@@ -5,7 +5,7 @@ provider "aws" {
 }
 
 module "vpc" {
-  source = "../../../modules/aws/vpc"
+  source = "../../../../modules/aws/vpc"
 
   azs                     = var.azs
   cidr                    = var.cidr

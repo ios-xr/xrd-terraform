@@ -6,7 +6,7 @@ from typing import Any
 
 import pytest
 from attrs import define
-from moto_server import MotoServer
+from .moto_server import MotoServer
 from mypy_boto3_ec2 import EC2ServiceResource
 from mypy_boto3_ec2.service_resource import (
     Instance,
@@ -31,7 +31,7 @@ class Outputs(TerraformOutputs):
 def tf(this_dir: Path, moto_server: MotoServer) -> Terraform:
     tf = Terraform(
         this_dir / "terraform" / "node",
-        f"http://localhost:{moto_server.port}",
+        vars={"endpoint": f"http://localhost:{moto_server.port}"},
     )
     tf.init(upgrade=True)
     return tf
@@ -211,7 +211,7 @@ def test_kubelet_extra_args(ec2, tf: Terraform, base_vars: dict[str, Any]):
     ]
     user_data = base64.b64decode(user_data).decode()
     assert (
-        f"""--kubelet-extra-args '--node-labels=name={base_vars["name"]} foo bar baz'"""
+        f"""--kubelet-extra-args '--node-labels ios-xr.cisco.com/name={base_vars["name"]} foo bar baz'"""
         in user_data
     )
 

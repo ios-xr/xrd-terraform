@@ -10,8 +10,9 @@ from mypy_boto3_ec2.service_resource import SecurityGroup, Subnet, Vpc
 from mypy_boto3_eks import EKSClient
 
 from terraform import Terraform
+from .moto_server import MotoServer
 
-from ._types import MotoServer
+
 
 
 @define
@@ -49,7 +50,7 @@ class Cluster:
 def tf(this_dir: Path, moto_server) -> Terraform:
     tf = Terraform(
         this_dir / "terraform" / "eks",
-        f"http://localhost:{moto_server.port}",
+        vars={"endpoint": f"http://localhost:{moto_server.port}"},
     )
     tf.init(upgrade=True)
     return tf
