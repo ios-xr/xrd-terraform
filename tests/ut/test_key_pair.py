@@ -8,8 +8,8 @@ import pytest
 from mypy_boto3_ec2 import EC2ServiceResource
 
 from terraform import Terraform
-from .moto_server import MotoServer
 
+from .moto_server import MotoServer
 
 
 @pytest.fixture(scope="module")

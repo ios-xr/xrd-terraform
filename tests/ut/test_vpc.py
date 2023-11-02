@@ -3,10 +3,11 @@ from pathlib import Path
 
 import pytest
 from attrs import define
-from .moto_server import MotoServer
 from mypy_boto3_ec2 import EC2ServiceResource
 
 from terraform import Terraform, TerraformOutputs
+
+from .moto_server import MotoServer
 
 
 @define

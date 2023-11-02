@@ -5,11 +5,12 @@ from typing import Any
 
 import pytest
 from attrs import define
-from .moto_server import MotoServer
 from mypy_boto3_iam import IAMServiceResource
 from mypy_boto3_iam.service_resource import RolePolicy
 
 from terraform import Terraform, TerraformOutputs
+
+from .moto_server import MotoServer
 
 
 @define

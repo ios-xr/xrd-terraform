@@ -10,9 +10,8 @@ from mypy_boto3_ec2.service_resource import SecurityGroup, Subnet, Vpc
 from mypy_boto3_eks import EKSClient
 
 from terraform import Terraform
+
 from .moto_server import MotoServer
-
-
 
 
 @define
