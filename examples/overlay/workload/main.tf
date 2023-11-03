@@ -10,6 +10,14 @@ provider "kubernetes" {
   config_path = data.terraform_remote_state.infra.outputs.kubeconfig_path
 }
 
+data "aws_instance" "alpha" {
+  id = data.terraform_remote_state.infra.outputs.nodes["alpha"].id
+}
+
+data "aws_instance" "beta" {
+  id = data.terraform_remote_state.infra.outputs.nodes["beta"].id
+}
+
 locals {
   image_repository = format(
     "%s/%s",
@@ -38,8 +46,12 @@ resource "helm_release" "xrd1" {
         xr_root_password = var.xr_root_password
         image_repository = local.image_repository
         image_tag        = var.image_tag
-        cpuset           = "2-3"
-      }
+        cpuset           = (
+          contains(["m5.24xlarge", "m5n.24xlarge"], data.aws_instance.alpha.instance_type) ?
+          "12-23" :
+          "2-3"
+        )
+      },
     )
   ]
 }
@@ -57,8 +69,12 @@ resource "helm_release" "xrd2" {
         xr_root_password = var.xr_root_password
         image_repository = local.image_repository
         image_tag        = var.image_tag
-        cpuset           = "2-3"
-      }
+        cpuset           = (
+          contains(["m5.24xlarge", "m5n.24xlarge"], data.aws_instance.beta.instance_type) ?
+          "12-23" :
+          "2-3"
+        )
+      },
     )
   ]
 }

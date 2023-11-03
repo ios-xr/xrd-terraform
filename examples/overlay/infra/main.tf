@@ -40,25 +40,21 @@ data "aws_ami" "eks_optimized" {
   }
 }
 
-module "xrd_ami" {
-  source = "../../../modules/aws/xrd-ami"
-  count  = var.node_ami == null ? 1 : 0
-
-  cluster_version = data.terraform_remote_state.bootstrap.outputs.cluster_version
+locals {
+  name_prefix = data.terraform_remote_state.bootstrap.outputs.name
 }
 
 resource "aws_subnet" "data" {
-  for_each = { for i, cidr_block in [
-  "10.0.10.0/24", "10.0.11.0/24", "10.0.12.0/24", "10.0.13.0/24"] : i => cidr_block }
-
+  for_each = {
+    for i, cidr_block in [
+      "10.0.10.0/24", "10.0.11.0/24", "10.0.12.0/24", "10.0.13.0/24",
+    ] :
+    i => cidr_block
+  }
 
   availability_zone = data.aws_subnet.cluster.availability_zone
   vpc_id            = data.terraform_remote_state.bootstrap.outputs.vpc_id
   cidr_block        = each.value
-}
-
-locals {
-  name_prefix = data.terraform_remote_state.bootstrap.outputs.name
 }
 
 resource "aws_security_group" "data" {
@@ -82,10 +78,17 @@ module "eks_config" {
   source = "../../../modules/aws/eks-config"
 
   cluster_name      = data.terraform_remote_state.bootstrap.outputs.cluster_name
+  name_prefix       = local.name_prefix
+  node_iam_role_arn = data.aws_iam_role.node.arn
   oidc_issuer       = data.terraform_remote_state.bootstrap.outputs.oidc_issuer
   oidc_provider     = data.terraform_remote_state.bootstrap.outputs.oidc_provider
-  node_iam_role_arn = data.aws_iam_role.node.arn
-  name_prefix       = local.name_prefix
+}
+
+module "xrd_ami" {
+  source = "../../../modules/aws/xrd-ami"
+  count  = var.node_ami == null ? 1 : 0
+
+  cluster_version = data.terraform_remote_state.bootstrap.outputs.cluster_version
 }
 
 locals {
@@ -99,6 +102,7 @@ locals {
     data.terraform_remote_state.bootstrap.outputs.placement_group_name :
     var.placement_group
   )
+
   xrd_ami = coalesce(var.node_ami, module.xrd_ami[0].id)
 
   nodes = {
@@ -160,7 +164,8 @@ locals {
 
     gamma = {
       ami = data.aws_ami.eks_optimized.id
-      # Used for Alpine Linux containers; m5.large is sufficiently large.
+      # This node is used for Alpine Linux containers.
+      # m5.large (which allows at most three attached ENIs) is sufficient.
       instance_type      = "m5.large"
       subnet_id          = data.aws_subnet.cluster.id
       private_ip_address = "10.0.0.13"
@@ -206,7 +211,6 @@ module "node" {
   }
 }
 
-
 output "cluster_name" {
   value = data.terraform_remote_state.bootstrap.outputs.cluster_name
 }
@@ -221,4 +225,8 @@ output "node_iam_role_name" {
 
 output "kubeconfig_path" {
   value = data.terraform_remote_state.bootstrap.outputs.kubeconfig_path
+}
+
+output "nodes" {
+  value = { for i, name in keys(local.nodes) : name => module.node[i].id }
 }
