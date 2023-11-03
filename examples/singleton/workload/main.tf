@@ -9,6 +9,10 @@ data "aws_caller_identity" "current" {}
 
 data "aws_region" "current" {}
 
+data "aws_instance" "node" {
+  instance_id = data.terraform_remote_state.infra.outputs.node
+}
+
 provider "helm" {
   repository_config_path = "${path.root}/.helm/repositories.yaml"
   repository_cache       = "${path.root}/.helm"
@@ -59,7 +63,11 @@ resource "helm_release" "xrd" {
         loopback_ip              = "1.1.1.1"
         interface_count          = 3
         interface_ipv4_addresses = ["10.0.10.10", "10.0.11.10", "10.0.12.10"]
-        cpuset                   = "2-3" #@@@
+        cpuset           = (
+          contains(["m5.24xlarge", "m5n.24xlarge"], data.aws_instance.node.instance_type) ?
+          "12-23" :
+          "2-3"
+        )
       }
     )
   ]
