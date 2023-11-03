@@ -11,11 +11,11 @@ provider "kubernetes" {
 }
 
 data "aws_instance" "alpha" {
-  id = data.terraform_remote_state.infra.outputs.nodes["alpha"].id
+  instance_id = data.terraform_remote_state.infra.outputs.nodes["alpha"]
 }
 
 data "aws_instance" "beta" {
-  id = data.terraform_remote_state.infra.outputs.nodes["beta"].id
+  instance_id = data.terraform_remote_state.infra.outputs.nodes["beta"]
 }
 
 locals {

@@ -228,5 +228,5 @@ output "kubeconfig_path" {
 }
 
 output "nodes" {
-  value = { for i, name in keys(local.nodes) : name => module.node[i].id }
+  value = { for name in keys(local.nodes) : name => module.node[name].id }
 }
