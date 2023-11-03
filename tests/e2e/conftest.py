@@ -1,7 +1,7 @@
 from pathlib import Path
 
 import pytest
-from common.utils import Terraform
+from terraform import Terraform
 
 
 @pytest.fixture(scope="session")

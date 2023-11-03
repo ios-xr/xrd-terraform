@@ -1,7 +1,8 @@
 from pathlib import Path
 
 import pytest
-from common.utils import Terraform, run_cmd
+from terraform import Terraform
+from utils import run_cmd
 
 
 @pytest.fixture(scope="module")
