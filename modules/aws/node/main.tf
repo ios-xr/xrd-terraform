@@ -24,51 +24,26 @@ data "aws_ami" "this" {
 }
 
 locals {
-  instance_type_to_isolated_cores = {
-    "m5.2xlarge" : "2-3",
-    "m5n.2xlarge" : "2-3",
-    "m5.24xlarge" : "16-23",
-    "m5n.24xlarge" : "16-23",
-  }
-
-  instance_type_to_xrd_cpuset = {
-    "m5.2xlarge" : "2-3",
-    "m5n.2xlarge" : "2-3",
-    "m5.24xlarge" : "12-23",
-    "m5n.24xlarge" : "12-23",
-  }
-
-  instance_type_to_hugepages_gb = {
-    "m5.2xlarge" : "6",
-    "m5n.2xlarge" : "6",
-    "m5.24xlarge" : "6",
-    "m5n.24xlarge" : "6",
-  }
-
   ami_generated_by_packer = [
     for k, v in data.aws_ami.this.tags : true
     if k == "Generated_By" && v == "xrd-packer"
   ]
   is_xrd_packer_ami = length(local.ami_generated_by_packer) > 0
 
-  req_hugepages_gb = try(
-    var.xrd_ami_data.hugepages_gb,
-    local.instance_type_to_hugepages_gb[var.instance_type],
-    6,
-  )
-  req_xrd_cpuset = try(
-    local.instance_type_to_xrd_cpuset[var.instance_type],
-    "2-3",
-  )
-  req_isolated_cores = try(
-    var.xrd_ami_data.isolated_cores,
-    local.instance_type_to_isolated_cores[var.instance_type],
-    "2-3",
-  )
+  # Default hugepages: 6GiB, regardless of instance type.
+  hugepages_gb   = coalesce(var.hugepages_gb, 6)
 
-  hugepages_gb   = local.is_xrd_packer_ami ? local.req_hugepages_gb : null
-  isolated_cores = local.is_xrd_packer_ami ? local.req_isolated_cores : null
-  xrd_cpuset     = local.is_xrd_packer_ami ? local.req_xrd_cpuset : null
+  # Default isolated cores:
+  #   16-23 for m5[n].24xlarge.
+  #   2-3 otherwise.
+  isolated_cores = coalesce(
+    var.isolated_cores,
+    (
+      contains(["m5.24xlarge", "m5n.24xlarge"], var.instance_type) ?
+      "16-23",
+      "2-3",
+    ),
+  )
 
   # Add a 'name' label to the user-provided labels.
   # Note that this takes precedence (`merge` has right-precedence); this is
