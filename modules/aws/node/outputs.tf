@@ -18,11 +18,6 @@ output "hugepages_gb" {
   value       = local.hugepages_gb
 }
 
-output "xrd_cpuset" {
-  description = "The cpuset XRd vRouter should be configured with on the given node instance type"
-  value       = local.xrd_cpuset
-}
-
 output "network_interface" {
   value = aws_network_interface.this
 }

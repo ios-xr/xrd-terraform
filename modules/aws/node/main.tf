@@ -40,8 +40,8 @@ locals {
     var.isolated_cores,
     (
       contains(["m5.24xlarge", "m5n.24xlarge"], var.instance_type) ?
-      "16-23",
-      "2-3",
+      "16-23" :
+      "2-3"
     ),
   )
 
