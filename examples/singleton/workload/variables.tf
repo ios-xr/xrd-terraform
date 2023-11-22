@@ -31,7 +31,7 @@ variable "image_registry" {
 variable "image_repository" {
   description = "Image repository where the XRd container image is hosted."
   type        = string
-  default     = "xrd-test/xrd-vrouter"
+  default     = null
 }
 
 variable "image_tag" {
