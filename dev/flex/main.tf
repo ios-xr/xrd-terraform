@@ -33,7 +33,7 @@ resource "aws_subnet" "data" {
   count = var.interface_count
 
   availability_zone = data.aws_subnet.cluster.availability_zone
-  cidr_block        = "10.0.${count.index + 1}.0/24"
+  cidr_block        = "10.0.${count.index + 10}.0/24"
   vpc_id            = data.terraform_remote_state.bootstrap.outputs.vpc_id
 }
 
@@ -109,15 +109,18 @@ module "node" {
   for_each = local.nodes
 
   name                 = "${local.name_prefix}-${each.key}"
-  ami                  = each.value.ami
+  ami                  = var.node_ami != null ? var.node_ami : module.xrd_ami[0].id
   cluster_name         = data.terraform_remote_state.bootstrap.outputs.cluster_name
   iam_instance_profile = data.terraform_remote_state.bootstrap.outputs.node_iam_instance_profile_name
-  instance_type        = each.value.instance_type
+  instance_type        = var.node_instance_type
   key_name             = data.terraform_remote_state.bootstrap.outputs.key_name
   network_interfaces   = each.value.network_interfaces
   private_ip_address   = each.value.private_ip_address
-  security_groups      = each.value.security_groups
-  subnet_id            = each.value.subnet_id
+  security_groups = [
+    data.terraform_remote_state.bootstrap.outputs.bastion_security_group_id,
+    data.terraform_remote_state.bootstrap.outputs.cluster_security_group_id,
+  ]
+  subnet_id            = data.aws_subnet.cluster.id
 
   labels = {
     name = each.key
@@ -146,6 +149,12 @@ locals {
   chart_name = local.chart_names[var.xrd_platform]
 
   values_template_file = local.vrouter ? "${path.module}/templates/values-vrouter.yaml.tftpl" : "${path.module}/templates/values-control-plane.yaml.tftpl"
+
+  cpuset = (
+    contains(["m5.24xlarge", "m5n.24xlarge"], var.node_instance_type) ?
+    "12-23" :
+    "2-3"
+  ) 
 }
 
 resource "local_file" "chart_yaml" {
@@ -176,7 +185,7 @@ resource "local_file" "chart_values_yaml" {
       xr_root_password = var.xr_root_password
       nodes            = local.nodes
       ifname_stem      = local.vrouter ? "HundredGigE" : "GigabitEthernet"
-      cpusets          = { for name, out in module.node : name => out.xrd_cpuset }
+      cpusets          = { for name, out in module.node : name => local.cpuset }
       hugepages        = { for name, out in module.node : name => out.hugepages_gb }
     }
   )
