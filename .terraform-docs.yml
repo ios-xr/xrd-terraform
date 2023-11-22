@@ -1,9 +1,0 @@
----
-formatter: markdown
-output:
-  file: README.md
-sections:
-  show:
-    - requirements
-    - inputs
-    - outputs

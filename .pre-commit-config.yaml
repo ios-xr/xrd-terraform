@@ -25,6 +25,9 @@ repos:
     rev: v1.81.0
     hooks:
       - id: terraform_fmt
+      - id: terraform_docs
+        args:
+          - "--args=--show=requirements,inputs,outputs"
       - id: terraform_validate
         stages: ["manual"]
       - id: terraform_tflint

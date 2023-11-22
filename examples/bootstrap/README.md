@@ -15,8 +15,7 @@ This must be applied before applying other example configurations.
 terraform init
 terraform apply
 ```
-
-<!-- BEGIN_TF_DOCS -->
+<!-- BEGINNING OF PRE-COMMIT-TERRAFORM DOCS HOOK -->
 ## Requirements
 
 | Name | Version |
@@ -50,4 +49,4 @@ terraform apply
 | <a name="output_placement_group_name"></a> [placement\_group\_name](#output\_placement\_group\_name) | n/a |
 | <a name="output_private_subnet_ids"></a> [private\_subnet\_ids](#output\_private\_subnet\_ids) | n/a |
 | <a name="output_vpc_id"></a> [vpc\_id](#output\_vpc\_id) | n/a |
-<!-- END_TF_DOCS -->
+<!-- END OF PRE-COMMIT-TERRAFORM DOCS HOOK -->
