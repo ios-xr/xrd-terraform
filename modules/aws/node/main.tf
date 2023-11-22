@@ -31,7 +31,7 @@ locals {
   is_xrd_packer_ami = length(local.ami_generated_by_packer) > 0
 
   # Default hugepages: 6GiB, regardless of instance type.
-  hugepages_gb   = coalesce(var.hugepages_gb, 6)
+  hugepages_gb = coalesce(var.hugepages_gb, 6)
 
   # Default isolated cores:
   #   16-23 for m5[n].24xlarge.

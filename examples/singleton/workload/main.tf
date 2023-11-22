@@ -63,7 +63,7 @@ resource "helm_release" "xrd" {
         loopback_ip              = "1.1.1.1"
         interface_count          = 3
         interface_ipv4_addresses = ["10.0.10.10", "10.0.11.10", "10.0.12.10"]
-        cpuset           = (
+        cpuset = (
           contains(["m5.24xlarge", "m5n.24xlarge"], data.aws_instance.node.instance_type) ?
           "12-23" :
           "2-3"

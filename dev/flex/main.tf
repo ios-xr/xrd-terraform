@@ -120,7 +120,7 @@ module "node" {
     data.terraform_remote_state.bootstrap.outputs.bastion_security_group_id,
     data.terraform_remote_state.bootstrap.outputs.cluster_security_group_id,
   ]
-  subnet_id            = data.aws_subnet.cluster.id
+  subnet_id = data.aws_subnet.cluster.id
 
   labels = {
     name = each.key
@@ -154,7 +154,7 @@ locals {
     contains(["m5.24xlarge", "m5n.24xlarge"], var.node_instance_type) ?
     "12-23" :
     "2-3"
-  ) 
+  )
 }
 
 resource "local_file" "chart_yaml" {

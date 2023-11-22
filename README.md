@@ -230,7 +230,7 @@ When you've finished with the topology, it can be torn down with:
 ```
 terraform -chdir=examples/overlay/workload destroy -var-file=vars.tfvars
 terraform -chdir=examples/overlay/infra destroy
-terraform -chdir=examples/boostrap destroy
+terraform -chdir=examples/bootstrap destroy
 ```
 
 N.B. It is recommended to pass the same configuration to `terraform destroy`

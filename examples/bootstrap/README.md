@@ -11,8 +11,8 @@
 
 | Name | Description | Type | Default | Required |
 |------|-------------|------|---------|:--------:|
-| <a name="input_cluster_version"></a> [cluster\_version](#input\_cluster\_version) | n/a | `string` | `"1.27"` | no |
-| <a name="input_name"></a> [name](#input\_name) | n/a | `string` | `null` | no |
+| <a name="input_cluster_version"></a> [cluster\_version](#input\_cluster\_version) | Cluster version | `string` | `"1.28"` | no |
+| <a name="input_name"></a> [name](#input\_name) | Used as a prefix for the 'Name' tag for each created resource.<br>If null, then a random name 'xrd-terraform-[0-9a-z]{8}' is used. | `string` | `null` | no |
 
 ## Outputs
 
