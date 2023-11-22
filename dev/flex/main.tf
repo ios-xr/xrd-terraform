@@ -1,3 +1,11 @@
+provider "helm" {
+  repository_config_path = "${path.root}/.helm/repositories.yaml"
+  repository_cache       = "${path.root}/.helm"
+  kubernetes {
+    config_path = data.terraform_remote_state.bootstrap.outputs.kubeconfig_path
+  }
+}
+
 provider "kubernetes" {
   config_path = data.terraform_remote_state.bootstrap.outputs.kubeconfig_path
 }
