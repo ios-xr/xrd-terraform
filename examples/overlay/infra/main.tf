@@ -1,3 +1,13 @@
+provider "aws" {
+  default_tags {
+    tags = {
+      "ios-xr:xrd:terraform": "true",
+      #"ios-xr:xrd:terraform-infrastructure": local.name_prefix,
+      "ios-xr:xrd:terraform-configuration": "overlay-infra",
+    }
+  }
+}
+
 provider "helm" {
   repository_config_path = "${path.root}/.helm/repositories.yaml"
   repository_cache       = "${path.root}/.helm"
