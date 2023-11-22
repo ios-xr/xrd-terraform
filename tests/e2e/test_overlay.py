@@ -22,14 +22,15 @@ def create_overlay(
     infra: Terraform,
     workload: Terraform,
 ) -> None:
+    vars={"xr_root_user": "user", "xr_root_password": "password"}
     infra.init()
     workload.init()
     try:
         infra.apply()
-        workload.apply()
+        workload.apply(vars=vars)
         yield
     finally:
-        workload.destroy()
+        workload.destroy(vars=vars)
         infra.destroy()
 
 
