@@ -31,7 +31,7 @@ def run_cmd(
             stdout = ""
             for line in p.stdout:
                 stdout += line
-                logger.info(line.rstrip())
+                logger.debug(line.rstrip())
 
         maybe_stdout, stderr = p.communicate()
 
