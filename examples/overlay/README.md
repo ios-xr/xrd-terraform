@@ -1,13 +1,27 @@
-# Overlay Example
+# Overlay
 
-The overlay example brings up an EKS cluster with three nodes.
+This example brings up two XRd vRouter instances connected via an overlay network constructed using GRE, IS-IS and L3VPN, as well as two Alpine Linux containers that are connected to each other via the overlay network (i.e. through the two XRd routers).
 
-Two of the nodes are used for XRd vRouter instances, which are connected
-back-to-back and have a GRE overlay running on the link.
+## Usage
 
-The third node is used to host two alpine linux containers simulating
-clients that can communicate with each other over the GRE link.
+The [Bootstrap configuration](/examples/bootstrap/README.md) must be applied before running this example.
 
-## How to run
+Then to run this example, execute:
 
-See [Running Examples](/README.md#running-examples).
+```
+terraform -chdir=infra init
+terraform -chdir=infra apply
+terraform -chdir=workload init
+terraform -chdir=workload apply
+```
+
+To destroy this example, execute:
+
+```
+terraform -chdir=workload destroy
+terraform -chdir=infra destroy
+```
+
+## Inputs
+
+Configuration inputs are documented on the [infra configuration](infra/README.md) and [workload configuration](workload/README.md) pages.

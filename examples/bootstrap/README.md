@@ -1,3 +1,21 @@
+# Bootstrap configuration
+
+This configuration creates a base set of cloud infrastructure resources:
+
+- VPC
+- EKS cluster
+- Bastion node (used for access to any subsequently created worker nodes)
+- Key pair (assigned to the Bastion and any subsequently created worker nodes)
+
+This must be applied before applying other example configurations.
+
+## Usage
+
+```
+terraform init
+terraform apply
+```
+
 <!-- BEGIN_TF_DOCS -->
 ## Requirements
 
