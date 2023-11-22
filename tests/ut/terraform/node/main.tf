@@ -23,5 +23,4 @@ module "node" {
   security_groups      = var.security_groups
   subnet_id            = var.subnet_id
   user_data            = var.user_data
-  xrd_ami_data         = var.xrd_ami_data
 }

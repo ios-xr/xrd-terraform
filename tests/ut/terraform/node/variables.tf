@@ -58,11 +58,3 @@ variable "user_data" {
   type    = string
   default = ""
 }
-
-variable "xrd_ami_data" {
-  type = object({
-    hugepages_gb : number
-    isolated_cores : string
-  })
-  default = null
-}
