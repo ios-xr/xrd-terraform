@@ -22,7 +22,7 @@ def create_singleton(
     infra: Terraform,
     workload: Terraform,
 ) -> None:
-    vars={"xr_root_user": "user", "xr_root_password": "password"}
+    vars = {"xr_root_user": "user", "xr_root_password": "password"}
     infra.init()
     workload.init()
     try:

@@ -3,7 +3,6 @@ from pathlib import Path
 import pytest
 
 from terraform import Terraform
-from utils import run_cmd
 
 
 @pytest.fixture(scope="module")
@@ -16,7 +15,12 @@ def create_flex(
     create_bootstrap: None,
     flex: Terraform,
 ) -> None:
-    vars={"node_count": 1, "interface_count": 1, "xr_root_user": "user", "xr_root_password": "password"}
+    vars = {
+        "node_count": 1,
+        "interface_count": 1,
+        "xr_root_user": "user",
+        "xr_root_password": "password",
+    }
     flex.init()
     try:
         flex.apply(vars=vars)
