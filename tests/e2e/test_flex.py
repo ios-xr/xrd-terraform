@@ -16,12 +16,13 @@ def create_flex(
     create_bootstrap: None,
     flex: Terraform,
 ) -> None:
+    vars={"node_count": 1, "interface_count": 1, "xr_root_user": "user", "xr_root_password": "password"}
     flex.init()
     try:
-        flex.apply(vars={"node_count": 1, "interface_count": 1, "xr_root_user": "user", "xr_root_password": "password"})
+        flex.apply(vars=vars)
         yield
     finally:
-        flex.destroy()
+        flex.destroy(vars=vars)
 
 
 def test_smoke():
