@@ -18,16 +18,16 @@ module "vpc" {
 module "key_pair" {
   source = "../../../modules/aws/key-pair"
 
-  key_name = var.name
   filename = "${abspath(path.root)}/${var.name}.pem"
+  key_name = var.name
 }
 
 module "eks" {
   source = "../../../modules/aws/eks"
 
-  name                   = var.name
   cluster_version        = var.cluster_version
   kubeconfig_output_path = "${abspath(path.root)}/.kubeconfig"
+  name                   = var.name
   security_group_ids     = []
   subnet_ids             = module.vpc.private_subnet_ids
 
@@ -39,8 +39,8 @@ module "bastion" {
 
   instance_type = "t3.nano"
   key_name      = module.key_pair.key_name
-  subnet_id     = module.vpc.public_subnet_ids[0]
   name          = "${var.name}-bastion"
+  subnet_id     = module.vpc.public_subnet_ids[0]
 }
 
 data "aws_iam_policy_document" "node" {

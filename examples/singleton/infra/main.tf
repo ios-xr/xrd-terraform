@@ -1,8 +1,8 @@
 provider "aws" {
   default_tags {
     tags = {
-      "ios-xr:xrd:terraform"                = "true"
-      "ios-xr:xrd:terraform-configuration"  = "singleton-infra"
+      "ios-xr:xrd:terraform"               = "true"
+      "ios-xr:xrd:terraform-configuration" = "singleton-infra"
     }
   }
 }
