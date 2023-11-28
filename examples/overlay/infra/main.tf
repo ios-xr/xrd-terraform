@@ -19,36 +19,6 @@ provider "kubernetes" {
   config_path = data.terraform_remote_state.bootstrap.outputs.kubeconfig_path
 }
 
-data "terraform_remote_state" "bootstrap" {
-  backend = "local"
-  config = {
-    path = "${path.root}/../../bootstrap/terraform.tfstate"
-  }
-}
-
-data "aws_iam_role" "node" {
-  name = data.terraform_remote_state.bootstrap.outputs.node_iam_role_name
-}
-
-data "aws_subnet" "cluster" {
-  id = data.terraform_remote_state.bootstrap.outputs.private_subnet_ids[0]
-}
-
-data "aws_ami" "eks_optimized" {
-  most_recent = true
-  owners      = ["amazon"]
-
-  filter {
-    name   = "name"
-    values = ["amazon-eks-node-${data.terraform_remote_state.bootstrap.outputs.cluster_version}-*"]
-  }
-
-  filter {
-    name   = "virtualization-type"
-    values = ["hvm"]
-  }
-}
-
 locals {
   name_prefix = data.terraform_remote_state.bootstrap.outputs.name
 }
@@ -218,24 +188,4 @@ module "node" {
   labels = {
     name = each.key
   }
-}
-
-output "cluster_name" {
-  value = data.terraform_remote_state.bootstrap.outputs.cluster_name
-}
-
-output "oidc_provider" {
-  value = data.terraform_remote_state.bootstrap.outputs.oidc_provider
-}
-
-output "node_iam_role_name" {
-  value = data.terraform_remote_state.bootstrap.outputs.node_iam_role_name
-}
-
-output "kubeconfig_path" {
-  value = data.terraform_remote_state.bootstrap.outputs.kubeconfig_path
-}
-
-output "nodes" {
-  value = { for name in keys(local.nodes) : name => module.node[name].id }
 }

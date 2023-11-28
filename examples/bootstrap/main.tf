@@ -7,10 +7,6 @@ provider "aws" {
   }
 }
 
-data "aws_availability_zones" "available" {
-  state = "available"
-}
-
 resource "random_uuid" "name_prefix" {
   count = var.name_prefix == null ? 1 : 0
 }

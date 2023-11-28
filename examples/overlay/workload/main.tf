@@ -10,14 +10,6 @@ provider "kubernetes" {
   config_path = data.terraform_remote_state.infra.outputs.kubeconfig_path
 }
 
-data "aws_instance" "alpha" {
-  instance_id = data.terraform_remote_state.infra.outputs.nodes["alpha"]
-}
-
-data "aws_instance" "beta" {
-  instance_id = data.terraform_remote_state.infra.outputs.nodes["beta"]
-}
-
 locals {
   image_repository = format(
     "%s/%s",

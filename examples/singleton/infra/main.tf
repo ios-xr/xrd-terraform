@@ -19,21 +19,6 @@ provider "kubernetes" {
   config_path = data.terraform_remote_state.bootstrap.outputs.kubeconfig_path
 }
 
-data "terraform_remote_state" "bootstrap" {
-  backend = "local"
-  config = {
-    path = "${path.root}/../../bootstrap/terraform.tfstate"
-  }
-}
-
-data "aws_iam_role" "node" {
-  name = data.terraform_remote_state.bootstrap.outputs.node_iam_role_name
-}
-
-data "aws_subnet" "cluster" {
-  id = data.terraform_remote_state.bootstrap.outputs.private_subnet_ids[0]
-}
-
 locals {
   name_prefix = data.terraform_remote_state.bootstrap.outputs.name
 }
@@ -128,12 +113,4 @@ module "node" {
     data.terraform_remote_state.bootstrap.outputs.cluster_security_group_id,
   ]
   subnet_id = data.aws_subnet.cluster.id
-}
-
-output "kubeconfig_path" {
-  value = data.terraform_remote_state.bootstrap.outputs.kubeconfig_path
-}
-
-output "node" {
-  value = module.node.id
 }
