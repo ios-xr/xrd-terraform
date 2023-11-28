@@ -11,12 +11,12 @@ data "aws_availability_zones" "available" {
   state = "available"
 }
 
-resource "random_uuid" "name" {
-  count = var.name == null ? 1 : 0
+resource "random_uuid" "name_prefix" {
+  count = var.name_prefix == null ? 1 : 0
 }
 
 locals {
-  name = var.name != null ? var.name : "xrd-terraform-${substr(random_uuid.name[0].id, 0, 8)}"
+  name_prefix = var.name_prefix != null ? var.name_prefix : "xrd-terraform-${substr(random_uuid.name_prefix[0].id, 0, 8)}"
 }
 
 module "bootstrap" {
@@ -24,5 +24,5 @@ module "bootstrap" {
 
   azs             = slice(data.aws_availability_zones.available.names, 0, 2)
   cluster_version = var.cluster_version
-  name            = local.name
+  name_prefix            = local.name_prefix
 }
