@@ -11,13 +11,6 @@ provider "kubernetes" {
 }
 
 locals {
-  vrouter = var.xrd_platform == "vRouter"
-
-  default_repo_names = {
-    "vRouter" : "xrd/xrd-vrouter"
-    "ControlPlane" : "xrd/xrd-control-plane"
-  }
-
   image_repository = format(
     "%s/%s",
     coalesce(
@@ -28,18 +21,18 @@ locals {
         data.aws_region.current.name,
       ),
     ),
-    coalesce(var.image_repository, local.default_repo_names[var.xrd_platform]),
+    coalesce(var.image_repository, "xrd/${var.xrd_platform}"),
   )
 }
 
 resource "helm_release" "xrd" {
   name       = "xrd"
   repository = "https://ios-xr.github.io/xrd-helm"
-  chart      = local.vrouter ? "xrd-vrouter" : "xrd-control-plane"
+  chart      = var.xrd_platform
 
   values = [
     templatefile(
-      local.vrouter ? "${path.module}/templates/xrd-vr.yaml.tftpl" : "${path.module}/templates/xrd-cp.yaml.tftpl",
+      "${path.module}/templates/${var.xrd_platform}.yaml.tftpl",
       {
         image_repository         = local.image_repository
         image_tag                = var.image_tag
