@@ -25,3 +25,7 @@ terraform -chdir=infra destroy
 ## Inputs
 
 Configuration inputs are documented on the [infra configuration](infra/README.md) and [workload configuration](workload/README.md) pages.
+
+## Outputs
+
+Configuration outputs are documented on the [workload configuration](workload/README.md) page.

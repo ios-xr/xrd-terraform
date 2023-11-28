@@ -11,10 +11,18 @@ This must be applied before applying other example configurations.
 
 ## Usage
 
+To run this example, execute:
+
 ```
 terraform init
 terraform apply
 ```
+
+To destroy this example, execute:
+```
+terraform destroy
+```
+
 <!-- BEGINNING OF PRE-COMMIT-TERRAFORM DOCS HOOK -->
 ## Requirements
 
