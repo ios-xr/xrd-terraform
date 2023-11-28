@@ -1,43 +1,47 @@
-variable "subnet_id" {
-  description = "Subnet ID to deploy the bastion node into"
+variable "ami" {
+  description = <<-EOT
+  AMI to use for the Bastion instance.
+  If null, the latest Amazon Linux 2023 AMI is used.
+  EOT
   type        = string
-  nullable    = false
+  default     = null
 }
 
 variable "instance_type" {
-  description = "EC2 instance type for the bastion node"
+  description = "Instance type to use for the Bastion instance"
   type        = string
   default     = "t3.nano"
   nullable    = false
 }
 
 variable "key_name" {
-  description = "Name of an existing EC2 key pair to install onto the bastion node"
+  description = "Name of an existing key pair to assign to the Bastion instance"
   type        = string
   nullable    = false
 }
 
-variable "ami" {
-  description = "AMI to use for the bastion. Default is to use the latest Amazon Linux 2023 AMI"
-  type        = string
-  default     = null
-}
-
-variable "security_group_ids" {
-  description = "Additional security group IDs to add to the primary interface on the bastion node"
-  type        = list(string)
-  default     = []
-  nullable    = false
+variable "name" {
+  description = "Name of the Bastion instance"
+  type     = string
+  nullable = false
 }
 
 variable "remote_access_cidr" {
-  description = "Allowed CIDR blocks for external SSH access to the bastion. Default is unrestricted (0.0.0.0/0)"
+  description = "Allowed CIDR blocks for external SSH access to the Bastion instance"
   type        = list(string)
   default     = ["0.0.0.0/0"]
   nullable    = false
 }
 
-variable "name" {
-  type     = string
-  nullable = false
+variable "security_group_ids" {
+  description = "Additional security group IDs to add to the primary interface"
+  type        = list(string)
+  default     = []
+  nullable    = false
+}
+
+variable "subnet_id" {
+  description = "Subnet ID to launch the Bastion instance in"
+  type        = string
+  nullable    = false
 }

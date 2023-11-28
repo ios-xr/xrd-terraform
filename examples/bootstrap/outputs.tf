@@ -8,11 +8,6 @@ output "cluster_name" {
   value       = module.bootstrap.cluster_name
 }
 
-output "cluster_security_group_id" {
-  description = "Cluster security group ID"
-  value       = module.bootstrap.cluster_security_group_id
-}
-
 output "cluster_version" {
   description = "Cluster version"
   value       = var.cluster_version
@@ -28,7 +23,7 @@ output "key_name" {
 
 output "kubeconfig_path" {
   description = "Path to the kubeconfig file used for cluster access"
-  value       = "${abspath(path.root)}/.kubeconfig"
+  value       = module.bootstrap.kubeconfig_path
 }
 
 output "name_prefix" {

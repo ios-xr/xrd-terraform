@@ -23,6 +23,11 @@ output "key_name" {
   value       = module.key_pair.key_name
 }
 
+output "kubeconfig_path" {
+  description = "Path to the kubeconfig file used for cluster access"
+  value       = local.kubeconfig_path
+}
+
 output "oidc_issuer" {
   description = "Cluster OIDC issuer"
   value       = module.eks.oidc_issuer

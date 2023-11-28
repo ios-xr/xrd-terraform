@@ -31,18 +31,6 @@ resource "aws_eks_cluster" "this" {
   }
 }
 
-resource "null_resource" "kubeconfig" {
-  count = var.kubeconfig_output_path != null ? 1 : 0
-
-  triggers = {
-    id = aws_eks_cluster.this.id
-  }
-
-  provisioner "local-exec" {
-    command = "aws eks update-kubeconfig --name ${var.name} --kubeconfig ${var.kubeconfig_output_path}"
-  }
-}
-
 locals {
   ca_cert = aws_eks_cluster.this.certificate_authority[0].data
 }
