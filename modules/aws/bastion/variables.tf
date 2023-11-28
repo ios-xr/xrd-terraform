@@ -22,8 +22,8 @@ variable "key_name" {
 
 variable "name" {
   description = "Name of the Bastion instance"
-  type     = string
-  nullable = false
+  type        = string
+  nullable    = false
 }
 
 variable "remote_access_cidr" {

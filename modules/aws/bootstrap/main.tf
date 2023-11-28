@@ -30,9 +30,9 @@ module "key_pair" {
 module "eks" {
   source = "../../../modules/aws/eks"
 
-  cluster_version        = var.cluster_version
-  name                   = var.name_prefix
-  subnet_ids             = module.vpc.private_subnet_ids
+  cluster_version = var.cluster_version
+  name            = var.name_prefix
+  subnet_ids      = module.vpc.private_subnet_ids
 
   depends_on = [aws_ec2_subnet_cidr_reservation.this]
 }
@@ -47,7 +47,7 @@ resource "null_resource" "kubeconfig" {
   }
 
   provisioner "local-exec" {
-    command = "aws eks update-kubeconfig --name ${module.eks.name} --kubeconfig ${local.kubeconfig_path}
+    command = "aws eks update-kubeconfig --name ${module.eks.name} --kubeconfig ${local.kubeconfig_path}"
   }
 }
 

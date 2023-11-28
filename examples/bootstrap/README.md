@@ -45,7 +45,6 @@ terraform destroy
 |------|-------------|
 | <a name="output_bastion_security_group_id"></a> [bastion\_security\_group\_id](#output\_bastion\_security\_group\_id) | Bastion security group ID |
 | <a name="output_cluster_name"></a> [cluster\_name](#output\_cluster\_name) | Cluster name |
-| <a name="output_cluster_security_group_id"></a> [cluster\_security\_group\_id](#output\_cluster\_security\_group\_id) | Cluster security group ID |
 | <a name="output_cluster_version"></a> [cluster\_version](#output\_cluster\_version) | Cluster version |
 | <a name="output_key_name"></a> [key\_name](#output\_key\_name) | Key pair name.<br>This is assigned to the Bastion instance, and may be assigned to worker node instances. |
 | <a name="output_kubeconfig_path"></a> [kubeconfig\_path](#output\_kubeconfig\_path) | Path to the kubeconfig file used for cluster access |
