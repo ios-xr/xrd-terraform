@@ -18,7 +18,10 @@ terraform init
 terraform apply
 ```
 
-To destroy this example, execute:
+You may then run other example configurations which are layered above the Bootstrap configuration.
+
+When you are finished, make sure you first destroy any other configurations layered above the Bootstrap configuration.  Then to destroy this example, execute:
+
 ```
 terraform destroy
 ```
