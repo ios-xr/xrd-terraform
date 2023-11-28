@@ -1,5 +1,3 @@
-data "aws_region" "current" {}
-
 resource "kubernetes_config_map" "aws_auth" {
   data = {
     "mapRoles" = <<-EOT
@@ -33,10 +31,6 @@ resource "kubernetes_env" "max_eni" {
   }
 }
 
-data "aws_iam_policy" "ebs_csi_driver_policy" {
-  name = "AmazonEBSCSIDriverPolicy"
-}
-
 module "ebs_csi_irsa" {
   source = "../irsa"
 
@@ -58,10 +52,6 @@ resource "helm_release" "ebs_csi" {
     value = module.ebs_csi_irsa.role_arn
   }
   wait = false
-}
-
-data "http" "multus_yaml" {
-  url = "https://raw.githubusercontent.com/aws/amazon-vpc-cni-k8s/master/config/multus/v3.7.2-eksbuild.1/aws-k8s-multus.yaml"
 }
 
 resource "kubernetes_manifest" "multus" {

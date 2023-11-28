@@ -12,17 +12,6 @@
 # be destroyed before destroying the instance on teardown, which can
 # take a few minutes.
 
-data "aws_ec2_instance_type" "this" {
-  instance_type = var.instance_type
-}
-
-data "aws_ami" "this" {
-  filter {
-    name   = "image-id"
-    values = [var.ami]
-  }
-}
-
 locals {
   ami_generated_by_packer = [
     for k, v in data.aws_ami.this.tags : true

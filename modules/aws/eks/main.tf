@@ -1,13 +1,3 @@
-data "aws_iam_policy_document" "cluster" {
-  statement {
-    actions = ["sts:AssumeRole"]
-    principals {
-      type        = "Service"
-      identifiers = ["eks.amazonaws.com"]
-    }
-  }
-}
-
 resource "aws_iam_role" "cluster" {
   assume_role_policy = data.aws_iam_policy_document.cluster.json
   managed_policy_arns = [

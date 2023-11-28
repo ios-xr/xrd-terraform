@@ -1,7 +1,7 @@
 module "vpc" {
   source = "../../../modules/aws/vpc"
 
-  name = var.name
+  name = var.name_prefix
   azs  = var.azs
   cidr = "10.0.0.0/16"
 
@@ -13,13 +13,18 @@ module "vpc" {
   map_public_ip_on_launch = true
 }
 
-#resource "aws_ec2_subnet_cidr_reservation" "this" {
+resource "aws_ec2_subnet_cidr_reservation" "this" {
+  cidr_block       = "10.0.0.0/28"
+  description      = "Reservation for worker node primary IPs"
+  reservation_type = "explicit"
+  subnet_id        = module.vpc.private_subnet_ids[0]
+}
 
 module "key_pair" {
   source = "../../../modules/aws/key-pair"
 
-  filename = "${abspath(path.root)}/${var.name}.pem"
-  key_name = var.name
+  filename = "${abspath(path.root)}/${var.name_prefix}.pem"
+  key_name = var.name_prefix
 }
 
 module "eks" {
@@ -27,11 +32,10 @@ module "eks" {
 
   cluster_version        = var.cluster_version
   kubeconfig_output_path = "${abspath(path.root)}/.kubeconfig"
-  name                   = var.name
-  security_group_ids     = []
+  name                   = var.name_prefix
   subnet_ids             = module.vpc.private_subnet_ids
 
-  #depends_on = [aws_ec2_subnet_cidr_reservation.this]
+  depends_on = [aws_ec2_subnet_cidr_reservation.this]
 }
 
 module "bastion" {
@@ -39,18 +43,8 @@ module "bastion" {
 
   instance_type = "t3.nano"
   key_name      = module.key_pair.key_name
-  name          = "${var.name}-bastion"
+  name          = "${var.name_prefix}-bastion"
   subnet_id     = module.vpc.public_subnet_ids[0]
-}
-
-data "aws_iam_policy_document" "node" {
-  statement {
-    actions = ["sts:AssumeRole"]
-    principals {
-      type        = "Service"
-      identifiers = ["ec2.amazonaws.com"]
-    }
-  }
 }
 
 resource "aws_iam_role" "node" {
@@ -60,25 +54,21 @@ resource "aws_iam_role" "node" {
     "arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly",
     "arn:aws:iam::aws:policy/AmazonEKS_CNI_Policy",
   ]
-  name = "${var.name}-node"
+  name = "${var.name_prefix}-node"
 }
 
 resource "aws_iam_instance_profile" "node" {
-  name = "${var.name}-node"
+  name = "${var.name_prefix}-node"
   role = aws_iam_role.node.name
-}
-
-data "tls_certificate" "this" {
-  url = module.eks.oidc_issuer
 }
 
 resource "aws_iam_openid_connect_provider" "this" {
   client_id_list  = ["sts.amazonaws.com"]
-  thumbprint_list = data.tls_certificate.this.certificates[*].sha1_fingerprint
-  url             = data.tls_certificate.this.url
+  thumbprint_list = data.tls_certificate.oidc.certificates[*].sha1_fingerprint
+  url             = data.tls_certificate.oidc.url
 }
 
 resource "aws_placement_group" "this" {
-  name     = var.name
+  name     = var.name_prefix
   strategy = "cluster"
 }
