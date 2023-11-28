@@ -20,7 +20,7 @@ provider "kubernetes" {
 }
 
 locals {
-  name_prefix = data.terraform_remote_state.bootstrap.outputs.name
+  name_prefix = data.terraform_remote_state.bootstrap.outputs.name_prefix
 }
 
 resource "aws_subnet" "data" {

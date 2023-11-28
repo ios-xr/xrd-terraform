@@ -46,8 +46,8 @@ output "private_subnet_ids" {
   value = module.bootstrap.private_subnet_ids
 }
 
-output "name" {
-  value = local.name
+output "name_prefix" {
+  value = local.name_prefix
 }
 
 output "placement_group_name" {
