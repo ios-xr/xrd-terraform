@@ -110,7 +110,7 @@ module "node" {
   private_ip_address = "10.0.0.10"
   security_groups = [
     data.terraform_remote_state.bootstrap.outputs.bastion_security_group_id,
-    data.terraform_remote_state.bootstrap.outputs.cluster_security_group_id,
+    data.aws_eks_cluster.this.vpc_config[0].cluster_security_group_id,
   ]
   subnet_id = data.aws_subnet.cluster.id
 }

@@ -8,11 +8,6 @@ output "bastion_security_group_id" {
   value       = module.bastion.security_group_id
 }
 
-output "cluster_security_group_id" {
-  description = "Cluster security group ID"
-  value       = module.eks.cluster_security_group_id
-}
-
 output "cluster_name" {
   description = "Cluster name"
   value       = module.eks.name

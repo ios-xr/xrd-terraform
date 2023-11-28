@@ -5,6 +5,10 @@ data "terraform_remote_state" "bootstrap" {
   }
 }
 
+data "aws_eks_cluster" "this" {
+  name = data.terraform_remote_state.bootstrap.outputs.cluster_name
+}
+
 data "aws_iam_role" "node" {
   name = data.terraform_remote_state.bootstrap.outputs.node_iam_role_name
 }

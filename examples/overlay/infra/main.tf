@@ -90,7 +90,7 @@ locals {
       instance_type = var.node_instance_type
       security_groups = [
         data.terraform_remote_state.bootstrap.outputs.bastion_security_group_id,
-        data.terraform_remote_state.bootstrap.outputs.cluster_security_group_id,
+        data.aws_eks_cluster.this.vpc_config[0].cluster_security_group_id,
       ]
       private_ip_address = "10.0.0.11"
       subnet_id          = data.aws_subnet.cluster.id
@@ -120,7 +120,7 @@ locals {
       private_ip_address = "10.0.0.12"
       security_groups = [
         data.terraform_remote_state.bootstrap.outputs.bastion_security_group_id,
-        data.terraform_remote_state.bootstrap.outputs.cluster_security_group_id,
+        data.aws_eks_cluster.this.vpc_config[0].cluster_security_group_id,
       ]
       network_interfaces = [
         {
@@ -150,7 +150,7 @@ locals {
       private_ip_address = "10.0.0.13"
       security_groups = [
         data.terraform_remote_state.bootstrap.outputs.bastion_security_group_id,
-        data.terraform_remote_state.bootstrap.outputs.cluster_security_group_id,
+        data.aws_eks_cluster.this.vpc_config[0].cluster_security_group_id,
       ]
       network_interfaces = [
         {

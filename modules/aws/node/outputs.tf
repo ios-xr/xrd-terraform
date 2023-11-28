@@ -17,7 +17,3 @@ output "hugepages_gb" {
   description = "The number of 1GiB hugepages allocated (null if not using an xrd-packer AMI)"
   value       = local.hugepages_gb
 }
-
-output "network_interface" {
-  value = aws_network_interface.this
-}
