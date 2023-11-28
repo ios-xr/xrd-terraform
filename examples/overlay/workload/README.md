@@ -3,9 +3,9 @@
 
 | Name | Version |
 |------|---------|
-| <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | >= 1.2.0 |
+| <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | ~> 1.2.0 |
 | <a name="requirement_helm"></a> [helm](#requirement\_helm) | ~> 2.9 |
-| <a name="requirement_kubernetes"></a> [kubernetes](#requirement\_kubernetes) | >= 2.18 |
+| <a name="requirement_kubernetes"></a> [kubernetes](#requirement\_kubernetes) | ~> 2.18 |
 
 ## Inputs
 
@@ -20,5 +20,7 @@
 
 ## Outputs
 
-No outputs.
+| Name | Description |
+|------|-------------|
+| <a name="output_kubeconfig_path"></a> [kubeconfig\_path](#output\_kubeconfig\_path) | Path to the kubeconfig file used for cluster access |
 <!-- END OF PRE-COMMIT-TERRAFORM DOCS HOOK -->

@@ -3,10 +3,10 @@
 
 | Name | Version |
 |------|---------|
-| <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | >= 1.2.0 |
+| <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | ~> 1.2.0 |
 | <a name="requirement_aws"></a> [aws](#requirement\_aws) | ~> 5.2 |
 | <a name="requirement_helm"></a> [helm](#requirement\_helm) | ~> 2.9 |
-| <a name="requirement_kubernetes"></a> [kubernetes](#requirement\_kubernetes) | >= 2.18 |
+| <a name="requirement_kubernetes"></a> [kubernetes](#requirement\_kubernetes) | ~> 2.18 |
 | <a name="requirement_time"></a> [time](#requirement\_time) | ~> 0.9 |
 
 ## Inputs
@@ -20,6 +20,6 @@
 
 | Name | Description |
 |------|-------------|
-| <a name="output_kubeconfig_path"></a> [kubeconfig\_path](#output\_kubeconfig\_path) | n/a |
-| <a name="output_node"></a> [node](#output\_node) | n/a |
+| <a name="output_kubeconfig_path"></a> [kubeconfig\_path](#output\_kubeconfig\_path) | Path to the kubeconfig file used for cluster access |
+| <a name="output_node"></a> [node](#output\_node) | Instance ID of the single worker node instance |
 <!-- END OF PRE-COMMIT-TERRAFORM DOCS HOOK -->

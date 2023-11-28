@@ -11,7 +11,7 @@ variable "cluster_version" {
 variable "security_group_ids" {
   description = "List of security group IDs to allow access to the Kubernetes control plane"
   type        = list(string)
-  default = []
+  default     = []
 }
 
 variable "subnet_ids" {

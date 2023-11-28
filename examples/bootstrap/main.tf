@@ -20,5 +20,5 @@ module "bootstrap" {
 
   azs             = slice(data.aws_availability_zones.available.names, 0, 2)
   cluster_version = var.cluster_version
-  name_prefix            = local.name_prefix
+  name_prefix     = local.name_prefix
 }
