@@ -4,7 +4,7 @@ data "aws_ami" "eks_optimized" {
 
   filter {
     name   = "name"
-    values = ["amazon-eks-node-${local.bootstrap.cluster_version}-*"]
+    values = ["amazon-eks-node-${data.aws_eks_cluster.this.version}-*"]
   }
 
   filter {
