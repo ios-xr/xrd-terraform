@@ -22,7 +22,7 @@ class Outputs(TerraformOutputs):
 def tf(this_dir: Path, moto_server: MotoServer) -> Terraform:
     tf = Terraform(
         this_dir / "terraform" / "irsa",
-        vars={"endpoint": f"http://localhost:{moto_server.port}"},
+        vars={"aws_endpoint": f"http://localhost:{moto_server.port}"},
     )
     tf.init(upgrade=True)
     return tf

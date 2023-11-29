@@ -1,8 +1,8 @@
 provider "aws" {
   endpoints {
-    ec2 = var.endpoint
-    eks = var.endpoint
-    iam = var.endpoint
+    ec2 = var.aws_endpoint
+    eks = var.aws_endpoint
+    iam = var.aws_endpoint
   }
 }
 

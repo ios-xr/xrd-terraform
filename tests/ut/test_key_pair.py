@@ -16,7 +16,7 @@ from .moto_server import MotoServer
 def tf(this_dir: Path, moto_server) -> Terraform:
     tf = Terraform(
         this_dir / "terraform" / "key_pair",
-        vars={"endpoint": f"http://localhost:{moto_server.port}"},
+        vars={"aws_endpoint": f"http://localhost:{moto_server.port}"},
     )
     tf.init(upgrade=True)
     return tf

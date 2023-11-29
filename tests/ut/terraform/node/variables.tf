@@ -1,4 +1,4 @@
-variable "endpoint" {
+variable "aws_endpoint" {
   type = string
 }
 

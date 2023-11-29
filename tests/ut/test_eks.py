@@ -49,7 +49,7 @@ class Cluster:
 def tf(this_dir: Path, moto_server) -> Terraform:
     tf = Terraform(
         this_dir / "terraform" / "eks",
-        vars={"endpoint": f"http://localhost:{moto_server.port}"},
+        vars={"aws_endpoint": f"http://localhost:{moto_server.port}"},
     )
     tf.init(upgrade=True)
     return tf

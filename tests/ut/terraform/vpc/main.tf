@@ -1,6 +1,6 @@
 provider "aws" {
   endpoints {
-    ec2 = var.endpoint
+    ec2 = var.aws_endpoint
   }
 }
 
