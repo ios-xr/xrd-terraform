@@ -1,3 +1,8 @@
+output "bastion_instance_id" {
+  description = "Bastion EC2 instance ID"
+  value       = module.bastion.id
+}
+
 output "bastion_security_group_id" {
   description = "Bastion security group ID"
   value       = module.bastion.security_group_id
@@ -8,14 +13,14 @@ output "cluster_name" {
   value       = module.eks.name
 }
 
-output "key_name" {
+output "key_pair_name" {
   description = "Name of the key pair assigned to the Bastion host"
   value       = module.key_pair.key_name
 }
 
-output "kubeconfig_path" {
-  description = "Path to the kubeconfig file used for cluster access"
-  value       = local.kubeconfig_path
+output "key_pair_filename" {
+  description = "Path to the downloaded key pair"
+  value       = module.key_pair.filename
 }
 
 output "node_iam_instance_profile_name" {
@@ -34,7 +39,7 @@ output "oidc_issuer" {
 }
 
 output "oidc_provider" {
-  description = "Cluster OIDC provider"
+  description = "IAM OIDC provider for the cluster OIDC issuer URL"
   value       = aws_iam_openid_connect_provider.this.arn
 }
 

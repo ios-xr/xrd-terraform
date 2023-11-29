@@ -37,20 +37,6 @@ module "eks" {
   depends_on = [aws_ec2_subnet_cidr_reservation.this]
 }
 
-locals {
-  kubeconfig_path = "${abspath(path.root)}/.kubeconfig"
-}
-
-resource "null_resource" "kubeconfig" {
-  triggers = {
-    id = module.eks.id
-  }
-
-  provisioner "local-exec" {
-    command = "aws eks update-kubeconfig --name ${module.eks.name} --kubeconfig ${local.kubeconfig_path}"
-  }
-}
-
 module "bastion" {
   source = "../../../modules/aws/bastion"
 
