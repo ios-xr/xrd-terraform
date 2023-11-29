@@ -14,7 +14,7 @@ variable "security_group_ids" {
 }
 
 variable "subnet_ids" {
-  description = "List of subnet IDs (in at least two different AZs) in which to proviision EKS cluster control plane ENIs"
+  description = "List of subnet IDs (in at least two different AZs) in which to provision EKS cluster control plane ENIs"
   type        = list(string)
 }
 
@@ -22,12 +22,14 @@ variable "endpoint_private_access" {
   description = "Whether the Amazon EKS private API server endpoint is enabled. Default is `true`"
   type        = bool
   default     = true
+  nullable    = false
 }
 
 variable "endpoint_public_access" {
   description = "Whether the Amazon EKS public API server endpoint is eanbled. Default is `true`"
   type        = bool
   default     = true
+  nullable    = false
 }
 
 variable "public_access_cidrs" {

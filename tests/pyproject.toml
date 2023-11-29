@@ -1,0 +1,18 @@
+[tool.black]
+line-length = 79
+
+[tool.isort]
+profile = "black"
+line_length = 79
+
+[tool.pytest.ini_options]
+addopts = "--strict-markers"
+log_file = "xrd_terraform_tests.log"
+log_file_level = "DEBUG"
+log_file_format = "%(asctime)s:%(levelname)s[%(name)s:%(lineno)s] %(message)s"
+log_cli = true
+log_cli_level = "INFO"
+
+[tool.ruff]
+select = ["B", "COM", "E", "F", "RUF", "UP", "W"]
+ignore = ["E501"]

@@ -1,5 +1,0 @@
-awscli
-boto3
-kubernetes
-pytest
-tftest

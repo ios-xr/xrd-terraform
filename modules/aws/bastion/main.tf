@@ -77,9 +77,12 @@ resource "aws_vpc_security_group_egress_rule" "all" {
 }
 
 resource "aws_instance" "this" {
-  ami                    = coalesce(var.ami, data.aws_ami.this.id)
-  instance_type          = var.instance_type
-  key_name               = var.key_name
-  vpc_security_group_ids = concat(var.security_group_ids, [aws_security_group.this.id])
-  subnet_id              = var.subnet_id
+  ami           = coalesce(var.ami, data.aws_ami.this.id)
+  instance_type = var.instance_type
+  key_name      = var.key_name
+  vpc_security_group_ids = concat(
+    coalesce(var.security_group_ids, [aws_security_group.this.id]),
+    [aws_security_group.this.id]
+  )
+  subnet_id = var.subnet_id
 }

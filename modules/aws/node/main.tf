@@ -86,10 +86,11 @@ locals {
 }
 
 resource "aws_instance" "this" {
-  ami                  = var.ami
-  iam_instance_profile = var.iam_instance_profile
-  instance_type        = var.instance_type
-  key_name             = var.key_name
+  ami                         = var.ami
+  associate_public_ip_address = false
+  iam_instance_profile        = var.iam_instance_profile
+  instance_type               = var.instance_type
+  key_name                    = var.key_name
 
   # Primary network interface.
   subnet_id              = var.subnet_id
@@ -112,9 +113,9 @@ resource "aws_instance" "this" {
       isolated_cores = local.isolated_cores
       cluster_name   = var.cluster_name
       kubelet_extra_args = format(
-        "--node-labels=name=%s %s",
+        "--node-labels=name=%s%s",
         var.name,
-        var.kubelet_extra_args
+        var.kubelet_extra_args == "" ? "" : format(" %s", var.kubelet_extra_args),
       )
       additional_user_data = var.user_data
     }
@@ -162,6 +163,8 @@ resource "aws_network_interface" "this" {
 }
 
 resource "kubernetes_job" "wait" {
+  count = var.wait ? 1 : 0
+
   metadata {
     generate_name = "wait-for-node-ready-"
     namespace     = "kube-system"
@@ -189,9 +192,11 @@ resource "kubernetes_job" "wait" {
 }
 
 resource "time_sleep" "wait" {
+  count = var.wait ? 1 : 0
+
   create_duration = "5s"
 
   triggers = {
-    job_uid = kubernetes_job.wait.metadata[0].uid
+    job_uid = kubernetes_job.wait[0].metadata[0].uid
   }
 }

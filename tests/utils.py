@@ -1,62 +1,21 @@
-# utils.py
-
-__all__ = (
-    "check_ping",
-    "run_cmd",
-    "wait_until",
-)
-
+__all__ = ("run_cmd",)
 
 import logging
 import shlex
 import subprocess
-import time
-from typing import Callable
-
-from ._types import Kubectl
-
 
 logger = logging.getLogger(__name__)
 
 
-def check_ping(kubectl: Kubectl, pod_name: str, address: str) -> bool:
-    """
-    Check whether it is possible to ping a given address from a given pod.
-
-    :param kubectl:
-        Kubectl context.
-
-    :param pod_name:
-        Pod from which to ping.
-
-    :param address:
-        IP address to ping.
-
-    :return:
-        True if ping is successful.
-        False otherwise.
-
-    """
-    try:
-        p = kubectl(
-            "exec",
-            pod_name,
-            "--",
-            "xrenv",
-            "ping",
-            address,
-        )
-    except subprocess.CalledProcessError:
-        return False
-
-    return "!!!!!" in p.stdout
-
-
 def run_cmd(
-    cmd: list[str], *, log_output: bool = False, **kwargs
+    cmd: list[str],
+    *,
+    log_output: bool = True,
+    **kwargs,
 ) -> subprocess.CompletedProcess[str]:
     """
-    Run a command, capturing stdout and stderr by default, and raising on error.
+    Run a command, capturing stdout and stderr by default, and raising on
+    error.
 
     :param cmd:
         The command to run.
@@ -85,7 +44,7 @@ def run_cmd(
         **kwargs,
     }
     if not {"stdout", "stderr", "capture_output"}.intersection(
-        kwargs
+        kwargs,
     ) or kwargs.pop("capture_output", False):
         kwargs["stdout"] = subprocess.PIPE
         kwargs["stderr"] = subprocess.PIPE
@@ -101,29 +60,35 @@ def run_cmd(
         if isinstance(e, subprocess.CalledProcessError):
             issue_desc = "failed"
             rc = e.returncode
+            stdout = e.stdout
+            stderr = e.stderr
         else:
             issue_desc = "timed out"
             rc = None
             # Workaround for https://github.com/python/cpython/issues/87597,
             # TimeoutExpired gives bytes rather than str.
             if isinstance(e.stdout, bytes):
-                e.stdout = e.stdout.decode("utf-8")
+                stdout = e.stdout.decode("utf-8")
+            else:
+                stdout = e.stdout
             if isinstance(e.stderr, bytes):
-                e.stderr = e.stderr.decode("utf-8")
-        if e.stderr:
+                stderr = e.stderr.decode("utf-8")
+            else:
+                stderr = e.stderr
+        if stderr:
             logger.debug(
                 "Command %s with exit code %s, stdout:\n%s\nstderr:\n%s",
                 issue_desc,
                 rc,
-                e.stdout.strip("\n"),
-                e.stderr.strip("\n"),
+                stdout.strip("\n"),
+                stderr.strip("\n"),
             )
-        elif e.stdout:
+        elif stdout:
             logger.debug(
                 "Command %s with exit code %s, output:\n%s",
                 issue_desc,
                 rc,
-                e.stdout.strip("\n"),
+                stdout.strip("\n"),
             )
         else:
             logger.debug("Command %s with exit code %s", issue_desc, rc)
@@ -134,19 +99,3 @@ def run_cmd(
         logger.debug("Command stderr:\n%s", (p.stderr or "").strip("\n"))
 
     return p
-
-
-def wait_until(
-    interval: int,
-    maximum: int,
-    predicate: Callable[..., bool],
-    *args,
-    **kwargs,
-) -> bool:
-    elapsed = 0
-    while elapsed < maximum:
-        if predicate(*args, **kwargs):
-            return True
-        time.sleep(interval)
-        elapsed += interval
-    return False

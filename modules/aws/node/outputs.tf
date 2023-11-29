@@ -36,5 +36,5 @@ output "network_interface" {
 }
 
 output "ready" {
-  value = time_sleep.wait.id
+  value = var.wait ? time_sleep.wait[0].id : 1
 }
