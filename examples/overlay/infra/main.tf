@@ -182,7 +182,7 @@ module "node" {
   cluster_name         = local.bootstrap.cluster_name
   iam_instance_profile = local.bootstrap.node_iam_instance_profile_name
   instance_type        = each.value.instance_type
-  key_name             = local.bootstrap.key_name
+  key_name             = local.bootstrap.key_pair_name
   network_interfaces   = each.value.network_interfaces
   placement_group      = local.placement_group
   private_ip_address   = each.value.private_ip_address

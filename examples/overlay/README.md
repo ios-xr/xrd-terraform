@@ -15,6 +15,12 @@ terraform -chdir=workload init
 terraform -chdir=workload apply
 ```
 
+This should take around two minutes to complete.  You may then configure `kubectl` so that you can connect to the cluster:
+
+```
+aws eks update-kubeconfig --name $(terraform -chdir=workload output -raw cluster_name)
+```
+
 To destroy this example, execute:
 
 ```

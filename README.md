@@ -215,6 +215,12 @@ terraform -chdir=examples/overlay/workload apply -var-file=vars.tfvars
 Configuration options can also be [configured on the
 CLI](https://developer.hashicorp.com/terraform/language/values/variables#variables-on-the-command-line).
 
+It should take around two minutes to apply the workload configuration.  When this is complete, you may then configure `kubectl` so that you can connect to the cluster:
+
+```
+aws eks update-kubeconfig --name $(terraform -chdir=examples/overlay/workload output -raw cluster_name)
+```
+
 ### Modification
 
 Once the topology has been launched, any changes you make to the configuration
