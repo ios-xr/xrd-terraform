@@ -130,6 +130,9 @@ resource "aws_network_interface" "this" {
 resource "time_sleep" "wait" {
   count = var.wait ? 1 : 0
 
+  # Wait for 10 seconds before starting the node-readiness Job.
+  # If using an XRd-compatible AMI this should give enough time for the XRd
+  # bootstrap script to run.
   create_duration = "10s"
 
   triggers = {
