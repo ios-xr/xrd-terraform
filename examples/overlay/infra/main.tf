@@ -24,7 +24,7 @@ provider "kubernetes" {
 }
 
 locals {
-  name_prefix = data.terraform_remote_state.bootstrap.outputs.name_prefix
+  name_prefix = local.bootstrap.name_prefix
 }
 
 resource "aws_subnet" "data" {
@@ -36,13 +36,13 @@ resource "aws_subnet" "data" {
   }
 
   availability_zone = data.aws_subnet.cluster.availability_zone
-  vpc_id            = data.terraform_remote_state.bootstrap.outputs.vpc_id
+  vpc_id            = local.bootstrap.vpc_id
   cidr_block        = each.value
 }
 
 resource "aws_security_group" "data" {
   name   = "${local.name_prefix}-data"
-  vpc_id = data.terraform_remote_state.bootstrap.outputs.vpc_id
+  vpc_id = local.bootstrap.vpc_id
   ingress {
     from_port = 0
     to_port   = 0
@@ -60,11 +60,11 @@ resource "aws_security_group" "data" {
 module "eks_config" {
   source = "../../../modules/aws/eks-config"
 
-  cluster_name      = data.terraform_remote_state.bootstrap.outputs.cluster_name
+  cluster_name      = local.bootstrap.cluster_name
   name_prefix       = local.name_prefix
   node_iam_role_arn = data.aws_iam_role.node.arn
-  oidc_issuer       = data.terraform_remote_state.bootstrap.outputs.oidc_issuer
-  oidc_provider     = data.terraform_remote_state.bootstrap.outputs.oidc_provider
+  oidc_issuer       = local.bootstrap.oidc_issuer
+  oidc_provider     = local.bootstrap.oidc_provider
 }
 
 module "xrd_ami" {
@@ -82,7 +82,7 @@ locals {
 
   placement_group = (
     var.placement_group == null ?
-    data.terraform_remote_state.bootstrap.outputs.placement_group_name :
+    local.bootstrap.placement_group_name :
     var.placement_group
   )
 
@@ -93,7 +93,7 @@ locals {
       ami           = local.xrd_ami
       instance_type = var.node_instance_type
       security_groups = [
-        data.terraform_remote_state.bootstrap.outputs.bastion_security_group_id,
+        local.bootstrap.bastion_security_group_id,
         data.aws_eks_cluster.this.vpc_config[0].cluster_security_group_id,
       ]
       private_ip_address = "10.0.0.11"
@@ -123,7 +123,7 @@ locals {
       subnet_id          = data.aws_subnet.cluster.id
       private_ip_address = "10.0.0.12"
       security_groups = [
-        data.terraform_remote_state.bootstrap.outputs.bastion_security_group_id,
+        local.bootstrap.bastion_security_group_id,
         data.aws_eks_cluster.this.vpc_config[0].cluster_security_group_id,
       ]
       network_interfaces = [
@@ -153,7 +153,7 @@ locals {
       subnet_id          = data.aws_subnet.cluster.id
       private_ip_address = "10.0.0.13"
       security_groups = [
-        data.terraform_remote_state.bootstrap.outputs.bastion_security_group_id,
+        local.bootstrap.bastion_security_group_id,
         data.aws_eks_cluster.this.vpc_config[0].cluster_security_group_id,
       ]
       network_interfaces = [
@@ -179,10 +179,10 @@ module "node" {
 
   name                 = "${local.name_prefix}-${each.key}"
   ami                  = each.value.ami
-  cluster_name         = data.terraform_remote_state.bootstrap.outputs.cluster_name
-  iam_instance_profile = data.terraform_remote_state.bootstrap.outputs.node_iam_instance_profile_name
+  cluster_name         = local.bootstrap.cluster_name
+  iam_instance_profile = local.bootstrap.node_iam_instance_profile_name
   instance_type        = each.value.instance_type
-  key_name             = data.terraform_remote_state.bootstrap.outputs.key_name
+  key_name             = local.bootstrap.key_name
   network_interfaces   = each.value.network_interfaces
   placement_group      = local.placement_group
   private_ip_address   = each.value.private_ip_address
