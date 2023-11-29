@@ -10,31 +10,12 @@ provider "kubernetes" {
   config_path = data.terraform_remote_state.bootstrap.outputs.kubeconfig_path
 }
 
-data "aws_caller_identity" "current" {}
-
-data "aws_region" "current" {}
-
-data "terraform_remote_state" "bootstrap" {
-  backend = "local"
-  config = {
-    path = "${path.root}/../../examples/bootstrap/terraform.tfstate"
-  }
-}
-
-data "aws_iam_role" "node" {
-  name = data.terraform_remote_state.bootstrap.outputs.node_iam_role_name
-}
-
-data "aws_subnet" "cluster" {
-  id = data.terraform_remote_state.bootstrap.outputs.private_subnet_ids[0]
-}
-
 locals {
   node_names = [for i in range(var.node_count) :
     try(var.node_names[i], format("node%d", i + 1))
   ]
 
-  name_prefix = data.terraform_remote_state.bootstrap.outputs.name
+  name_prefix = data.terraform_remote_state.bootstrap.outputs.name_prefix
 }
 
 resource "aws_subnet" "data" {
@@ -79,19 +60,6 @@ module "xrd_ami" {
   cluster_version = data.terraform_remote_state.bootstrap.outputs.cluster_version
 }
 
-data "aws_ec2_instance_type" "current" {
-  instance_type = var.node_instance_type
-
-  lifecycle {
-    # The number of interfaces requested must be attachable to the
-    # requested instance type.
-    postcondition {
-      condition     = self.maximum_network_interfaces >= var.interface_count
-      error_message = "Instance type does not support requested number of interfaces"
-    }
-  }
-}
-
 locals {
   # Use this data source so it's evaluated.
   instance_type = data.aws_ec2_instance_type.current.instance_type
@@ -126,7 +94,7 @@ module "node" {
   private_ip_address   = each.value.private_ip_address
   security_groups = [
     data.terraform_remote_state.bootstrap.outputs.bastion_security_group_id,
-    data.terraform_remote_state.bootstrap.outputs.cluster_security_group_id,
+    data.aws_eks_cluster.this.vpc_config[0].cluster_security_group_id,
   ]
   subnet_id = data.aws_subnet.cluster.id
 
