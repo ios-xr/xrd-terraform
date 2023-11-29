@@ -152,19 +152,29 @@ terraform_apply () {
   terraform -chdir="$SCRIPT_DIR"/examples/overlay/infra apply -auto-approve
   terraform -chdir="$SCRIPT_DIR"/examples/overlay/workload apply -auto-approve
 
+  echo $(terraform -chdir="$SCRIPT_DIR"/examples/overlay/workload output -raw cluster_name)
+
   trap - ERR EXIT
 }
 
 terraform_destroy () {
+  tfvars="${SCRIPT_DIR}/examples/overlay/workload/quickstart.auto.tfvars"
+  echo "xr_root_user=\"$XR_USERNAME\"" > "$tfvars"
+  echo "xr_root_password=\"$XR_PASSWORD\"" >> "$tfvars"
+
   terraform -chdir="$SCRIPT_DIR"/examples/overlay/workload destroy -auto-approve
   terraform -chdir="$SCRIPT_DIR"/examples/overlay/infra destroy -auto-approve
   terraform -chdir="$SCRIPT_DIR"/examples/bootstrap destroy -auto-approve
+
   rm -f "$SCRIPT_DIR"/examples/overlay/workload/quickstart.auto.tfvars
 }
 
 if [ -z "$DESTROY" ]; then
   ensure_ami_exists
-  terraform_apply
+  cluster_name=$(terraform_apply)
+  echo "Apply complete!"
+  echo "Run 'aws eks update-kubeconfig --name $cluster_name' to configure kubectl so that you can connect to the cluster."
 else
   terraform_destroy
+  echo "Destroy complete!"
 fi
