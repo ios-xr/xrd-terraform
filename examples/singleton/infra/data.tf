@@ -1,11 +1,8 @@
-data "terraform_remote_state" "bootstrap" {
-  backend = "local"
-  config = {
-    path = "${path.root}/../../bootstrap/terraform.tfstate"
-  }
+data "aws_eks_cluster" "this" {
+  name = local.bootstrap.cluster_name
 }
 
-data "aws_eks_cluster" "this" {
+data "aws_eks_cluster_auth" "this" {
   name = data.terraform_remote_state.bootstrap.outputs.cluster_name
 }
 

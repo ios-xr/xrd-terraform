@@ -1,4 +1,4 @@
-output "kubeconfig_path" {
-  description = "Path to the kubeconfig file used for cluster access"
-  value       = data.terraform_remote_state.infra.outputs.kubeconfig_path
+output "cluster_name" {
+  description = "Cluster name"
+  value       = local.infra.cluster_name
 }

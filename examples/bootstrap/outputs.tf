@@ -1,3 +1,8 @@
+output "bastion_instance_id" {
+  description = "Bastion EC2 instance ID"
+  value       = module.bootstrap.bastion_instance_id
+}
+
 output "bastion_security_group_id" {
   description = "Bastion security group ID"
   value       = module.bootstrap.bastion_security_group_id
@@ -8,22 +13,20 @@ output "cluster_name" {
   value       = module.bootstrap.cluster_name
 }
 
-output "cluster_version" {
-  description = "Cluster version"
-  value       = var.cluster_version
-}
-
-output "key_name" {
+output "key_pair_name" {
   description = <<-EOT
   Key pair name.
   This is assigned to the Bastion instance, and may be assigned to worker node instances.
   EOT
-  value       = module.bootstrap.key_name
+  value       = module.bootstrap.key_pair_name
 }
 
-output "kubeconfig_path" {
-  description = "Path to the kubeconfig file used for cluster access"
-  value       = module.bootstrap.kubeconfig_path
+output "key_pair_filename" {
+  description = <<-EOT
+  Key pair name.
+  This is assigned to the Bastion instance, and may be assigned to worker node instances.
+  EOT
+  value       = module.bootstrap.key_pair_filename
 }
 
 output "name_prefix" {

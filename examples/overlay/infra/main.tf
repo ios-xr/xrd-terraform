@@ -11,12 +11,16 @@ provider "helm" {
   repository_config_path = "${path.root}/.helm/repositories.yaml"
   repository_cache       = "${path.root}/.helm"
   kubernetes {
-    config_path = data.terraform_remote_state.bootstrap.outputs.kubeconfig_path
+    host                   = data.aws_eks_cluster.this.endpoint
+    cluster_ca_certificate = base64decode(data.aws_eks_cluster.this.certificate_authority[0].data)
+    token = data.aws_eks_cluster_auth.this.token
   }
 }
 
 provider "kubernetes" {
-  config_path = data.terraform_remote_state.bootstrap.outputs.kubeconfig_path
+  host                   = data.aws_eks_cluster.this.endpoint
+  cluster_ca_certificate = base64decode(data.aws_eks_cluster.this.certificate_authority[0].data)
+  token = data.aws_eks_cluster_auth.this.token
 }
 
 locals {
@@ -67,7 +71,7 @@ module "xrd_ami" {
   source = "../../../modules/aws/xrd-ami"
   count  = var.node_ami == null ? 1 : 0
 
-  cluster_version = data.terraform_remote_state.bootstrap.outputs.cluster_version
+  cluster_version = data.aws_eks_cluster.this.version
 }
 
 locals {
