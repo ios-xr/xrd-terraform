@@ -90,6 +90,12 @@ class Terraform:
         if auto_approve:
             cmd.append("-auto-approve")
 
+        logger.info(
+            "Applying Terraform configuration %s%s",
+            self.working_dir,
+            f" with vars {vars}" if vars else "",
+        )
+
         p = self._run_terraform_cmd(cmd)
 
         if vars:
@@ -113,6 +119,12 @@ class Terraform:
 
         if auto_approve:
             cmd.append("-auto-approve")
+
+        logger.info(
+            "Destroying Terraform configuration %s%s",
+            self.working_dir,
+            f" with vars {vars}" if vars else "",
+        )
 
         p = self._run_terraform_cmd(cmd)
 
