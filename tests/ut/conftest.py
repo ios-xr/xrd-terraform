@@ -14,6 +14,14 @@ from .moto_server import MotoServer
 logger = logging.getLogger(__name__)
 
 
+def pytest_configure(config: pytest.Config) -> None:
+    # Avoid overly verbose logging.
+    logging.getLogger("boto3").setLevel(logging.INFO)
+    logging.getLogger("botocore").setLevel(logging.INFO)
+    logging.getLogger("urllib3").setLevel(logging.INFO)
+    logging.getLogger("werkzeug").setLevel(logging.WARN)
+
+
 @pytest.fixture(scope="session", autouse=True)
 def moto_server() -> MotoServer:
     for i, port in enumerate(random.sample(range(50000, 50500), 100)):
