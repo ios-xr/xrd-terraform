@@ -114,7 +114,7 @@ resource "aws_network_interface" "this" {
   }
 
   subnet_id         = each.value.subnet_id
-  private_ips       = [each.value.private_ip_address]
+  private_ips       = each.value.private_ips
   security_groups   = each.value.security_groups
   source_dest_check = false
 

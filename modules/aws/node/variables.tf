@@ -102,9 +102,9 @@ variable "labels" {
 variable "network_interfaces" {
   description = "Configuration for secondary interfaces for the node"
   type = list(object({
-    subnet_id : string
-    private_ip_address : string
+    private_ips : list(string)
     security_groups : list(string)
+    subnet_id : string
   }))
   default = []
 }
