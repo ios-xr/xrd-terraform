@@ -2,12 +2,16 @@ provider "helm" {
   repository_config_path = "${path.root}/.helm/repositories.yaml"
   repository_cache       = "${path.root}/.helm"
   kubernetes {
-    config_path = data.terraform_remote_state.bootstrap.outputs.kubeconfig_path
+    host                   = data.aws_eks_cluster.this.endpoint
+    cluster_ca_certificate = base64decode(data.aws_eks_cluster.this.certificate_authority[0].data)
+    token                  = data.aws_eks_cluster_auth.this.token
   }
 }
 
 provider "kubernetes" {
-  config_path = data.terraform_remote_state.bootstrap.outputs.kubeconfig_path
+  host                   = data.aws_eks_cluster.this.endpoint
+  cluster_ca_certificate = base64decode(data.aws_eks_cluster.this.certificate_authority[0].data)
+  token                  = data.aws_eks_cluster_auth.this.token
 }
 
 locals {
@@ -15,7 +19,7 @@ locals {
     try(var.node_names[i], format("node%d", i + 1))
   ]
 
-  name_prefix = data.terraform_remote_state.bootstrap.outputs.name_prefix
+  name_prefix = local.bootstrap.name_prefix
 }
 
 resource "aws_subnet" "data" {
@@ -23,12 +27,12 @@ resource "aws_subnet" "data" {
 
   availability_zone = data.aws_subnet.cluster.availability_zone
   cidr_block        = "10.0.${count.index + 10}.0/24"
-  vpc_id            = data.terraform_remote_state.bootstrap.outputs.vpc_id
+  vpc_id            = local.bootstrap.vpc_id
 }
 
 resource "aws_security_group" "data" {
   name   = "${local.name_prefix}-data"
-  vpc_id = data.terraform_remote_state.bootstrap.outputs.vpc_id
+  vpc_id = local.bootstrap.vpc_id
   ingress {
     from_port = 0
     to_port   = 0
@@ -46,18 +50,18 @@ resource "aws_security_group" "data" {
 module "eks_config" {
   source = "../../modules/aws/eks-config"
 
-  cluster_name      = data.terraform_remote_state.bootstrap.outputs.cluster_name
+  cluster_name      = local.bootstrap.cluster_name
   name_prefix       = local.name_prefix
   node_iam_role_arn = data.aws_iam_role.node.arn
-  oidc_issuer       = data.terraform_remote_state.bootstrap.outputs.oidc_issuer
-  oidc_provider     = data.terraform_remote_state.bootstrap.outputs.oidc_provider
+  oidc_issuer       = local.bootstrap.oidc_issuer
+  oidc_provider     = local.bootstrap.oidc_provider
 }
 
 module "xrd_ami" {
   source = "../../modules/aws/xrd-ami"
   count  = var.node_ami == null ? 1 : 0
 
-  cluster_version = data.terraform_remote_state.bootstrap.outputs.cluster_version
+  cluster_version = data.aws_eks_cluster.this.version
 }
 
 locals {
@@ -71,9 +75,9 @@ locals {
       network_interfaces = [
         for j in range(var.interface_count) :
         {
-          subnet_id            = aws_subnet.data[j].id
-          private_ip_addresses = [cidrhost(aws_subnet.data[j].cidr_block, i + 11)]
-          security_groups      = [aws_security_group.data.id]
+          private_ips     = [cidrhost(aws_subnet.data[j].cidr_block, i + 11)]
+          security_groups = [aws_security_group.data.id]
+          subnet_id       = aws_subnet.data[j].id
         }
       ]
     }
@@ -86,14 +90,14 @@ module "node" {
 
   name                 = "${local.name_prefix}-${each.key}"
   ami                  = var.node_ami != null ? var.node_ami : module.xrd_ami[0].id
-  cluster_name         = data.terraform_remote_state.bootstrap.outputs.cluster_name
-  iam_instance_profile = data.terraform_remote_state.bootstrap.outputs.node_iam_instance_profile_name
+  cluster_name         = local.bootstrap.cluster_name
+  iam_instance_profile = local.bootstrap.node_iam_instance_profile_name
   instance_type        = var.node_instance_type
-  key_name             = data.terraform_remote_state.bootstrap.outputs.key_name
+  key_name             = local.bootstrap.key_pair_name
   network_interfaces   = each.value.network_interfaces
   private_ip_address   = each.value.private_ip_address
   security_groups = [
-    data.terraform_remote_state.bootstrap.outputs.bastion_security_group_id,
+    local.bootstrap.bastion_security_group_id,
     data.aws_eks_cluster.this.vpc_config[0].cluster_security_group_id,
   ]
   subnet_id = data.aws_subnet.cluster.id

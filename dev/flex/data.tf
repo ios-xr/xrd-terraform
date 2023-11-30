@@ -1,10 +1,3 @@
-data "terraform_remote_state" "bootstrap" {
-  backend = "local"
-  config = {
-    path = "${path.root}/../../examples/bootstrap/terraform.tfstate"
-  }
-}
-
 data "aws_caller_identity" "current" {}
 
 data "aws_ec2_instance_type" "current" {
@@ -21,7 +14,11 @@ data "aws_ec2_instance_type" "current" {
 }
 
 data "aws_eks_cluster" "this" {
-  name = data.terraform_remote_state.bootstrap.outputs.cluster_name
+  name = local.bootstrap.cluster_name
+}
+
+data "aws_eks_cluster_auth" "this" {
+  name = local.bootstrap.cluster_name
 }
 
 data "aws_iam_role" "node" {
