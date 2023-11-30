@@ -96,19 +96,19 @@ module "node" {
   key_name             = local.bootstrap.key_pair_name
   network_interfaces = [
     {
-      subnet_id          = local.data_1_subnet_id,
-      private_ip_address = "10.0.10.10",
-      security_groups    = [aws_security_group.data.id]
+      subnet_id       = local.data_1_subnet_id
+      private_ips     = ["10.0.10.10"]
+      security_groups = [aws_security_group.data.id]
     },
     {
-      subnet_id          = local.data_2_subnet_id,
-      private_ip_address = "10.0.11.10",
-      security_groups    = [aws_security_group.data.id]
+      subnet_id       = local.data_2_subnet_id
+      private_ips     = ["10.0.11.10"]
+      security_groups = [aws_security_group.data.id]
     },
     {
-      subnet_id          = local.data_3_subnet_id,
-      private_ip_address = "10.0.12.10",
-      security_groups    = [aws_security_group.data.id]
+      subnet_id       = local.data_3_subnet_id
+      private_ips     = ["10.0.12.10"]
+      security_groups = [aws_security_group.data.id]
     },
   ]
   private_ip_address = "10.0.0.10"

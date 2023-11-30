@@ -100,19 +100,19 @@ locals {
       subnet_id          = data.aws_subnet.cluster.id
       network_interfaces = [
         {
-          subnet_id          = local.access_a_subnet_id
-          private_ip_address = "10.0.10.11"
-          security_groups    = [aws_security_group.data.id]
+          subnet_id       = local.access_a_subnet_id
+          private_ips     = ["10.0.10.11"]
+          security_groups = [aws_security_group.data.id]
         },
         {
-          subnet_id          = local.trunk_1_subnet_id
-          private_ip_address = "10.0.11.11"
-          security_groups    = [aws_security_group.data.id]
+          subnet_id       = local.trunk_1_subnet_id
+          private_ips     = ["10.0.11.11"]
+          security_groups = [aws_security_group.data.id]
         },
         {
-          subnet_id          = local.trunk_2_subnet_id
-          private_ip_address = "10.0.12.11"
-          security_groups    = [aws_security_group.data.id]
+          subnet_id       = local.trunk_2_subnet_id
+          private_ips     = ["10.0.12.11"]
+          security_groups = [aws_security_group.data.id]
         },
       ]
     }
@@ -128,19 +128,19 @@ locals {
       ]
       network_interfaces = [
         {
-          subnet_id          = local.access_b_subnet_id
-          private_ip_address = "10.0.13.12"
-          security_groups    = [aws_security_group.data.id]
+          subnet_id       = local.access_b_subnet_id
+          private_ips     = ["10.0.13.12"]
+          security_groups = [aws_security_group.data.id]
         },
         {
-          subnet_id          = local.trunk_1_subnet_id
-          private_ip_address = "10.0.11.12"
-          security_groups    = [aws_security_group.data.id]
+          subnet_id       = local.trunk_1_subnet_id
+          private_ips     = ["10.0.11.12"]
+          security_groups = [aws_security_group.data.id]
         },
         {
-          subnet_id          = local.trunk_2_subnet_id
-          private_ip_address = "10.0.12.12"
-          security_groups    = [aws_security_group.data.id]
+          subnet_id       = local.trunk_2_subnet_id
+          private_ips     = ["10.0.12.12"]
+          security_groups = [aws_security_group.data.id]
         },
       ]
     }
@@ -158,14 +158,14 @@ locals {
       ]
       network_interfaces = [
         {
-          subnet_id          = local.access_a_subnet_id
-          private_ip_address = "10.0.10.10"
-          security_groups    = [aws_security_group.data.id]
+          subnet_id       = local.access_a_subnet_id
+          private_ips     = ["10.0.10.10"]
+          security_groups = [aws_security_group.data.id]
         },
         {
-          subnet_id          = local.access_b_subnet_id
-          private_ip_address = "10.0.13.10"
-          security_groups    = [aws_security_group.data.id]
+          subnet_id       = local.access_b_subnet_id
+          private_ips     = ["10.0.13.10"]
+          security_groups = [aws_security_group.data.id]
         },
       ]
     }
