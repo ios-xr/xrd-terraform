@@ -8,6 +8,11 @@ output "id" {
   value       = aws_instance.this.id
 }
 
+output "instance_type" {
+  description = "Instance type"
+  value       = aws_instance.this.instance_type
+}
+
 output "isolated_cores" {
   description = "The CPUs marked as isolated (null if not using an XRd Packer AMI)"
   value       = local.isolated_cores
