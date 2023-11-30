@@ -21,6 +21,6 @@
 
 | Name | Description |
 |------|-------------|
-| <a name="output_kubeconfig_path"></a> [kubeconfig\_path](#output\_kubeconfig\_path) | Path to the kubeconfig file used for cluster access |
+| <a name="output_cluster_name"></a> [cluster\_name](#output\_cluster\_name) | Cluster name |
 | <a name="output_nodes"></a> [nodes](#output\_nodes) | Map of worker node name to instance ID |
 <!-- END OF PRE-COMMIT-TERRAFORM DOCS HOOK -->
