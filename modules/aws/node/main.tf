@@ -55,6 +55,7 @@ resource "aws_instance" "this" {
   # Primary network interface.
   subnet_id              = var.subnet_id
   private_ip             = var.private_ip_address
+  secondary_private_ips  = var.secondary_private_ips
   vpc_security_group_ids = var.security_groups
   source_dest_check      = false
 

@@ -37,6 +37,13 @@ variable "private_ip_address" {
   nullable    = false
 }
 
+variable "secondary_private_ips" {
+  description = "List of secondary private IPv4 addresses to assign to the node's primary network interface"
+  type        = list(string)
+  default     = []
+  nullable    = false
+}
+
 variable "security_groups" {
   description = "List of security group IDs to apply to the node's primary interface"
   type        = list(string)
