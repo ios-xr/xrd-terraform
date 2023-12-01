@@ -46,6 +46,8 @@ EOF
 AMI_ID=""
 DESTROY=""
 KUBERNETES_VERSION="1.28"
+XR_USERNAME=""
+XR_PASSWORD=""
 
 # Parse the arguments
 while [ $# -gt 0 ]; do
@@ -78,11 +80,11 @@ while [ $# -gt 0 ]; do
 done
 
 ERROR=""
-if [ -z "${XR_USERNAME:-}" -a -z "$DESTROY" ]; then
+if [ -z "${XR_USERNAME:-}" ] && [ -z "$DESTROY" ]; then
   >&2 echo "error: XR username (-u|--username) must be specified"
   ERROR=1
 fi
-if [ -z "${XR_PASSWORD:-}" -a -z "$DESTROY" ]; then
+if [ -z "${XR_PASSWORD:-}" ] && [ -z "$DESTROY" ]; then
   >&2 echo "error: XR password (-p|--password) must be specified"
   ERROR=1
 fi
@@ -138,40 +140,37 @@ terraform_apply () {
   terraform -chdir="$SCRIPT_DIR"/examples/overlay/infra init
   terraform -chdir="$SCRIPT_DIR"/examples/overlay/workload init
 
-  tfvars="${SCRIPT_DIR}/examples/overlay/workload/quickstart.auto.tfvars"
-  echo "xr_root_user=\"$XR_USERNAME\"" > "$tfvars"
-  echo "xr_root_password=\"$XR_PASSWORD\"" >> "$tfvars"
-
-  if [ -n "$AMI_ID" ]; then
-    echo "node_ami=\"$AMI_ID\"" >> "$tfvars"
-  fi
-
   trap terraform_destroy ERR EXIT
 
-  terraform -chdir="$SCRIPT_DIR"/examples/bootstrap apply -auto-approve -var cluster_version="$KUBERNETES_VERSION"
-  terraform -chdir="$SCRIPT_DIR"/examples/overlay/infra apply -auto-approve
-  terraform -chdir="$SCRIPT_DIR"/examples/overlay/workload apply -auto-approve
-
-  echo $(terraform -chdir="$SCRIPT_DIR"/examples/overlay/workload output -raw cluster_name)
+  terraform -chdir="$SCRIPT_DIR"/examples/bootstrap apply \
+      -auto-approve \
+      -var "cluster_version=$KUBERNETES_VERSION"
+  terraform -chdir="$SCRIPT_DIR"/examples/overlay/infra apply \
+      -auto-approve \
+      ${AMI_ID:+"-var node_ami=$AMI_ID"}
+  terraform -chdir="$SCRIPT_DIR"/examples/overlay/workload apply \
+      -auto-approve \
+      -var "xr_root_user=$XR_USERNAME" \
+      -var "xr_root_password=$XR_PASSWORD"
 
   trap - ERR EXIT
 }
 
 terraform_destroy () {
-  tfvars="${SCRIPT_DIR}/examples/overlay/workload/quickstart.auto.tfvars"
-  echo "xr_root_user=\"$XR_USERNAME\"" > "$tfvars"
-  echo "xr_root_password=\"$XR_PASSWORD\"" >> "$tfvars"
-
-  terraform -chdir="$SCRIPT_DIR"/examples/overlay/workload destroy -auto-approve
-  terraform -chdir="$SCRIPT_DIR"/examples/overlay/infra destroy -auto-approve
-  terraform -chdir="$SCRIPT_DIR"/examples/bootstrap destroy -auto-approve
-
-  rm -f "$SCRIPT_DIR"/examples/overlay/workload/quickstart.auto.tfvars
+  terraform -chdir="$SCRIPT_DIR"/examples/overlay/workload destroy \
+      -auto-approve \
+      -var "xr_root_user=$XR_USERNAME" \
+      -var "xr_root_password=$XR_PASSWORD"
+  terraform -chdir="$SCRIPT_DIR"/examples/overlay/infra destroy \
+      -auto-approve
+  terraform -chdir="$SCRIPT_DIR"/examples/bootstrap destroy \
+      -auto-approve
 }
 
 if [ -z "$DESTROY" ]; then
   ensure_ami_exists
-  cluster_name=$(terraform_apply)
+  terraform_apply
+  cluster_name=$(terraform -chdir="$SCRIPT_DIR"/examples/overlay/workload output -raw cluster_name)
   echo "Apply complete!"
   echo "Run 'aws eks update-kubeconfig --name $cluster_name' to configure kubectl so that you can connect to the cluster."
 else
