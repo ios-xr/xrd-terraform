@@ -17,10 +17,6 @@ data "aws_eks_cluster" "this" {
   name = local.bootstrap.cluster_name
 }
 
-data "aws_eks_cluster_auth" "this" {
-  name = local.bootstrap.cluster_name
-}
-
 data "aws_iam_role" "node" {
   name = data.terraform_remote_state.bootstrap.outputs.node_iam_role_name
 }
