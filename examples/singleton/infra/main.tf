@@ -16,46 +16,25 @@ provider "helm" {
 }
 
 provider "kubernetes" {
-  host                   = data.aws_eks_cluster.this.endpoint
-  cluster_ca_certificate = base64decode(data.aws_eks_cluster.this.certificate_authority[0].data)
-  config_path            = local.bootstrap.kubeconfig_path
+  config_path = local.bootstrap.kubeconfig_path
 }
 
 locals {
   name_prefix = local.bootstrap.name_prefix
 }
 
-resource "aws_subnet" "data" {
-  for_each = { for i, name in ["data-1", "data-2", "data-3"] : i => name }
+module "data_subnets" {
+  source = "../../../modules/aws/data-subnets"
 
-  availability_zone = data.aws_subnet.cluster.availability_zone
-  cidr_block        = "10.0.${each.key + 10}.0/24"
-  vpc_id            = local.bootstrap.vpc_id
-
-  tags = {
-    Name = "${local.name_prefix}-${each.value}"
-  }
-}
-
-resource "aws_security_group" "data" {
-  name   = "${local.name_prefix}-data"
+  availability_zone   = data.aws_subnet.cluster.availability_zone
+  cidr_blocks         = ["10.0.10.0/24", "10.0.11.0/24", "10.0.12.0/24"]
+  security_group_name = "${local.name_prefix}-data"
+  names = [
+    "${local.name_prefix}-data-1",
+    "${local.name_prefix}-data-2",
+    "${local.name_prefix}-data-3",
+  ]
   vpc_id = local.bootstrap.vpc_id
-  ingress {
-    from_port = 0
-    to_port   = 0
-    protocol  = -1
-    self      = true
-  }
-  egress {
-    from_port = 0
-    to_port   = 0
-    protocol  = -1
-    self      = true
-  }
-
-  tags = {
-    Name = "${local.name_prefix}-data"
-  }
 }
 
 module "eks_config" {
@@ -76,10 +55,6 @@ module "xrd_ami" {
 }
 
 locals {
-  data_1_subnet_id = aws_subnet.data[0].id
-  data_2_subnet_id = aws_subnet.data[1].id
-  data_3_subnet_id = aws_subnet.data[2].id
-
   xrd_ami = var.node_ami != null ? var.node_ami : module.xrd_ami[0].id
 }
 
@@ -94,19 +69,19 @@ module "node" {
   key_name             = local.bootstrap.key_pair_name
   network_interfaces = [
     {
-      subnet_id       = local.data_1_subnet_id
+      subnet_id       = module.data_subnets.ids[0]
       private_ips     = ["10.0.10.10"]
-      security_groups = [aws_security_group.data.id]
+      security_groups = [module.data_subnets.security_group_id]
     },
     {
-      subnet_id       = local.data_2_subnet_id
+      subnet_id       = module.data_subnets.ids[1]
       private_ips     = ["10.0.11.10"]
-      security_groups = [aws_security_group.data.id]
+      security_groups = [module.data_subnets.security_group_id]
     },
     {
-      subnet_id       = local.data_3_subnet_id
+      subnet_id       = module.data_subnets.ids[2]
       private_ips     = ["10.0.12.10"]
-      security_groups = [aws_security_group.data.id]
+      security_groups = [module.data_subnets.security_group_id]
     },
   ]
   private_ip_address = "10.0.0.10"
