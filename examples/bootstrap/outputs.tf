@@ -36,7 +36,7 @@ output "kubeconfig_path" {
 
 output "name_prefix" {
   description = "Used as a prefix for the 'Name' tag for each created resource"
-  value       = local.name_prefix
+  value       = module.bootstrap.name_prefix
 }
 
 output "node_iam_instance_profile_name" {

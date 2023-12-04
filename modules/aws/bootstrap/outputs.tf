@@ -28,6 +28,11 @@ output "kubeconfig_path" {
   value       = local.kubeconfig_path
 }
 
+output "name_prefix" {
+  description = "Used as a prefix for the 'Name' tag for each created resource"
+  value       = local.name_prefix
+}
+
 output "node_iam_instance_profile_name" {
   description = "Name of the IAM instance profile suitable for use by node instances"
   value       = aws_iam_instance_profile.node.name
