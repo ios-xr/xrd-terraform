@@ -23,6 +23,11 @@ output "key_pair_filename" {
   value       = module.key_pair.filename
 }
 
+output "kubeconfig_path" {
+  description = "Path to the generated kubeconfig file"
+  value       = local.kubeconfig_path
+}
+
 output "node_iam_instance_profile_name" {
   description = "Name of the IAM instance profile suitable for use by node instances"
   value       = aws_iam_instance_profile.node.name

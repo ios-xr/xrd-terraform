@@ -29,6 +29,11 @@ output "key_pair_filename" {
   value       = module.bootstrap.key_pair_filename
 }
 
+output "kubeconfig_path" {
+  description = "Path to the generated kubeconfig file"
+  value       = module.bootstrap.kubeconfig_path
+}
+
 output "name_prefix" {
   description = "Used as a prefix for the 'Name' tag for each created resource"
   value       = local.name_prefix

@@ -14,6 +14,14 @@ variable "cluster_version" {
   nullable    = false
 }
 
+variable "kubeconfig_path" {
+  description = <<-EOT
+  Write kubectl configuration to this file.
+  If null, '${path.root}/.kubeconfig' is used.
+  EOT
+  default     = null
+}
+
 variable "name_prefix" {
   description = <<-EOT
   Used as a prefix for the 'Name' tag for each created resource.

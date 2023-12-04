@@ -51,6 +51,7 @@ terraform destroy
 | <a name="output_cluster_name"></a> [cluster\_name](#output\_cluster\_name) | Cluster name |
 | <a name="output_key_pair_filename"></a> [key\_pair\_filename](#output\_key\_pair\_filename) | Key pair name.<br>This is assigned to the Bastion instance, and may be assigned to worker node instances. |
 | <a name="output_key_pair_name"></a> [key\_pair\_name](#output\_key\_pair\_name) | Key pair name.<br>This is assigned to the Bastion instance, and may be assigned to worker node instances. |
+| <a name="output_kubeconfig_path"></a> [kubeconfig\_path](#output\_kubeconfig\_path) | Path to the generated kubeconfig file |
 | <a name="output_name_prefix"></a> [name\_prefix](#output\_name\_prefix) | Used as a prefix for the 'Name' tag for each created resource |
 | <a name="output_node_iam_instance_profile_name"></a> [node\_iam\_instance\_profile\_name](#output\_node\_iam\_instance\_profile\_name) | Worker node IAM instance profile name |
 | <a name="output_node_iam_role_name"></a> [node\_iam\_role\_name](#output\_node\_iam\_role\_name) | Worker node IAM role name |
