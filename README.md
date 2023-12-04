@@ -75,7 +75,7 @@ overlay network between them - the `overlay` example topology described below.
 To interact with the cluster, run:
 
 ```
-aws eks update-kubeconfig --name xrd-cluster
+aws eks update-kubeconfig --name $(terraform -chdir=examples/overlay/workload output -raw cluster_name)
 ```
 
 and then interact with the cluster as normal using `kubectl` commands, e.g. to
