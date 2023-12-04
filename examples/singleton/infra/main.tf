@@ -40,7 +40,6 @@ module "data_subnets" {
 module "eks_config" {
   source = "../../../modules/aws/eks-config"
 
-  cluster_name      = local.bootstrap.cluster_name
   oidc_issuer       = local.bootstrap.oidc_issuer
   oidc_provider     = local.bootstrap.oidc_provider
   name_prefix       = local.name_prefix

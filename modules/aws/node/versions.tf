@@ -6,5 +6,15 @@ terraform {
       source  = "hashicorp/aws"
       version = ">= 5.0"
     }
+
+    kubernetes = {
+      source  = "hashicorp/kubernetes"
+      version = ">= 2.18"
+    }
+
+    time = {
+      source  = "hashicorp/time"
+      version = ">= 0.9"
+    }
   }
 }

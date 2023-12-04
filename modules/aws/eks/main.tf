@@ -30,7 +30,3 @@ resource "aws_eks_cluster" "this" {
     replace_triggered_by = [null_resource.cluster_version]
   }
 }
-
-locals {
-  ca_cert = aws_eks_cluster.this.certificate_authority[0].data
-}

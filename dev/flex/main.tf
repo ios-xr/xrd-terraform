@@ -13,10 +13,6 @@ provider "kubernetes" {
 }
 
 locals {
-  node_names = [for i in range(var.node_count) :
-    try(var.node_names[i], format("node%d", i + 1))
-  ]
-
   name_prefix = local.bootstrap.name_prefix
 }
 
@@ -48,7 +44,6 @@ resource "aws_security_group" "data" {
 module "eks_config" {
   source = "../../modules/aws/eks-config"
 
-  cluster_name      = local.bootstrap.cluster_name
   name_prefix       = local.name_prefix
   node_iam_role_arn = data.aws_iam_role.node.arn
   oidc_issuer       = local.bootstrap.oidc_issuer
@@ -64,6 +59,7 @@ module "xrd_ami" {
 
 locals {
   # Use this data source so it's evaluated.
+  # tflint-ignore: terraform_unused_declarations
   instance_type = data.aws_ec2_instance_type.current.instance_type
 
   nodes = {

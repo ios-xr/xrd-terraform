@@ -4,6 +4,7 @@
 | Name | Version |
 |------|---------|
 | <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | >= 1.2.0 |
+| <a name="requirement_aws"></a> [aws](#requirement\_aws) | ~> 5.2 |
 | <a name="requirement_helm"></a> [helm](#requirement\_helm) | ~> 2.9 |
 | <a name="requirement_kubernetes"></a> [kubernetes](#requirement\_kubernetes) | ~> 2.18 |
 

@@ -56,7 +56,6 @@ resource "aws_security_group" "data" {
 module "eks_config" {
   source = "../../../modules/aws/eks-config"
 
-  cluster_name      = local.bootstrap.cluster_name
   name_prefix       = local.name_prefix
   node_iam_role_arn = data.aws_iam_role.node.arn
   oidc_issuer       = local.bootstrap.oidc_issuer

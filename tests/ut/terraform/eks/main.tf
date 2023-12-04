@@ -9,10 +9,11 @@ provider "aws" {
 module "eks" {
   source = "../../../../modules/aws/eks"
 
-  name                    = var.name
+  cluster_version         = var.cluster_version
   endpoint_public_access  = var.endpoint_public_access
   endpoint_private_access = var.endpoint_private_access
-  cluster_version         = var.cluster_version
+  name                    = var.name
+  public_access_cidrs     = var.public_access_cidrs
   security_group_ids      = var.security_group_ids
   subnet_ids              = var.subnet_ids
 }

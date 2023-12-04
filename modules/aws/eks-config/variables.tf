@@ -1,9 +1,3 @@
-variable "cluster_name" {
-  description = "Cluster name"
-  type        = string
-  nullable    = false
-}
-
 variable "name_prefix" {
   description = "Used as a prefix for the 'Name' tag for each created resource"
   type        = string
