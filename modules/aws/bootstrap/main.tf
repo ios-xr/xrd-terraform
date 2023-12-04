@@ -38,7 +38,7 @@ module "eks" {
 }
 
 locals {
-  kubeconfig_path = coalesce(var.kubeconfig, "${abspath(path.root)}/.kubeconfig")
+  kubeconfig_path = coalesce(var.kubeconfig_path, "${abspath(path.root)}/.kubeconfig")
 }
 
 resource "null_resource" "kubeconfig" {

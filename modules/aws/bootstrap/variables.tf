@@ -17,8 +17,9 @@ variable "cluster_version" {
 variable "kubeconfig_path" {
   description = <<-EOT
   Write kubectl configuration to this file.
-  If null, '${path.root}/.kubeconfig' is used.
+  If null, '.kubeconfig' relative to Terraform's working directory is used.
   EOT
+  type        = string
   default     = null
 }
 
