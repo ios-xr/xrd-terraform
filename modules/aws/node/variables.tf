@@ -15,8 +15,8 @@ variable "instance_type" {
   default = "m5.2xlarge"
 
   validation {
-    condition     = contains(["m5.2xlarge", "m5n.2xlarge", "m5.24xlarge", "m5n.24xlarge"], var.instance_type)
-    error_message = "Allowed values are m5.2xlarge, m5n.2xlarge, m5.24xlarge, m5n.24xlarge"
+    condition     = contains(["m5.2xlarge", "m5n.2xlarge", "m5.8xlarge", "m5n.8xlarge", "m5.24xlarge", "m5n.24xlarge"], var.instance_type)
+    error_message = "Allowed values are m5.2xlarge, m5n.2xlarge, m5.8xlarge, m5n.8xlarge, m5.24xlarge, m5n.24xlarge"
   }
 }
 

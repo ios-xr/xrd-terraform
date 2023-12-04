@@ -45,9 +45,12 @@ data "aws_ami" "this" {
 }
 
 locals {
+
   instance_type_to_isolated_cores = {
     "m5.2xlarge" : "2-3",
     "m5n.2xlarge" : "2-3",
+    "m5.8xlarge" : "8-15",
+    "m5n.8xlarge" : "8-15",
     "m5.24xlarge" : "16-23",
     "m5n.24xlarge" : "16-23",
   }
@@ -55,6 +58,8 @@ locals {
   instance_type_to_xrd_cpuset = {
     "m5.2xlarge" : "2-3",
     "m5n.2xlarge" : "2-3",
+    "m5.8xlarge" : "4-15",
+    "m5n.8xlarge" : "4-15",
     "m5.24xlarge" : "12-23",
     "m5n.24xlarge" : "12-23",
   }
@@ -62,6 +67,8 @@ locals {
   instance_type_to_hugepages_gb = {
     "m5.2xlarge" : "6",
     "m5n.2xlarge" : "6",
+    "m5.8xlarge" : "6",
+    "m5n.8xlarge" : "6",
     "m5.24xlarge" : "6",
     "m5n.24xlarge" : "6",
   }
