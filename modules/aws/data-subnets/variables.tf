@@ -4,21 +4,15 @@ variable "availability_zone" {
   nullable    = false
 }
 
-variable "cidr_blocks" {
-  description = "List of subnet CIDR blocks"
-  type        = list(string)
+variable "count" {
+  description = "Number of subnets to create"
+  type        = int
   nullable    = false
 }
 
-variable "security_group_name" {
-  description = "Security group name"
+variable "name_prefix" {
+  description = "Used as a prefix for the 'Name' tag for each created resource"
   type        = string
-  nullable    = false
-}
-
-variable "names" {
-  description = "Subnet names"
-  type        = list(string)
   nullable    = false
 }
 

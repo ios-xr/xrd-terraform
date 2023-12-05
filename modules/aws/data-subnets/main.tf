@@ -17,18 +17,38 @@ resource "aws_security_group" "this" {
   }
 
   tags = {
-    Name = var.security_group_name
+    Name = "${var.name_prefix}-data"
   }
 }
 
+module "cidr_blocks" {
+  source = "hashicorp/subnets/cidr"
+
+  base_cidr_block = data.aws_vpc.this.cidr_block
+  networks = concat(
+    [
+      {
+        name     = null
+        new_bits = 8
+      }
+    ],
+    [
+      for i in range(var.count) : {
+        name     = "{var.name_prefix}-data-{i + 1}"
+        new_bits = 8
+      }
+    ]
+  )
+}
+
 resource "aws_subnet" "this" {
-  count = length(var.cidr_blocks)
+  count = length(module.cidr_blocks.network)
 
   availability_zone = var.availability_zone
-  cidr_block        = var.cidr_blocks[count.index]
+  cidr_block        = module.cidr_blocks.network[each.index].cidr_block
   vpc_id            = var.vpc_id
 
   tags = {
-    Name = var.names[count.index]
+    Name = module.cidr_blocks.network[each.index].name
   }
 }
