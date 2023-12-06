@@ -21,13 +21,6 @@ locals {
         hugepages_gb = 6
       }
     }
-
-    "lab" = {
-      "m5n.2xlarge" = {
-        cpuset       = "2-3"
-        hugepages_gb = 4
-      }
-    }
   }
 }
 

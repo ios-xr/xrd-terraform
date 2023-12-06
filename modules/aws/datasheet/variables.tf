@@ -10,7 +10,7 @@ variable "use_case" {
   nullable    = false
 
   validation {
-    condition     = contains(["cloud-router", "lab", "minimal", "maximal"], var.use_case)
-    error_message = "Must be one of: 'cloud-router', 'lab', 'minimal', 'maximal'."
+    condition     = contains(["cloud-router", "minimal", "maximal"], var.use_case)
+    error_message = "Must be one of: 'cloud-router', 'minimal', 'maximal'."
   }
 }
