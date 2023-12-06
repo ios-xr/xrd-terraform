@@ -25,6 +25,15 @@ locals {
   )
 }
 
+module "datasheet" {
+  source = "../../../modules/aws/datasheet"
+
+  for_each = data.aws_instance.nodes
+
+  instance_type = data.aws_instance.node.instance_type
+  use_case = "maximal"
+}
+
 resource "helm_release" "xrd1" {
   name       = "xrd1"
   repository = "https://ios-xr.github.io/xrd-helm"
@@ -38,11 +47,7 @@ resource "helm_release" "xrd1" {
         xr_root_password = var.xr_root_password
         image_repository = local.image_repository
         image_tag        = var.image_tag
-        cpuset = (
-          contains(["m5.24xlarge", "m5n.24xlarge"], data.aws_instance.alpha.instance_type) ?
-          "12-23" :
-          "2-3"
-        )
+        cpuset = module.datasheet["alpha"].cpuset
       },
     )
   ]
@@ -61,11 +66,7 @@ resource "helm_release" "xrd2" {
         xr_root_password = var.xr_root_password
         image_repository = local.image_repository
         image_tag        = var.image_tag
-        cpuset = (
-          contains(["m5.24xlarge", "m5n.24xlarge"], data.aws_instance.beta.instance_type) ?
-          "12-23" :
-          "2-3"
-        )
+        cpuset = module.datasheet["beta"].cpuset
       },
     )
   ]
