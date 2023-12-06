@@ -30,7 +30,7 @@ module "datasheet" {
 
   for_each = data.aws_instance.nodes
 
-  instance_type = data.aws_instance.node.instance_type
+  instance_type = each.value.instance_type
   use_case      = "maximal"
 }
 

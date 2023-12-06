@@ -106,7 +106,7 @@ module "node" {
       security_groups = [aws_security_group.data.id]
     },
   ]
-  private_ip_address = "10.0.0.10"
+  private_ip_address = "10.0.100.10"
   security_groups = [
     local.bootstrap.bastion_security_group_id,
     data.aws_eks_cluster.this.vpc_config[0].cluster_security_group_id,

@@ -25,15 +25,19 @@ locals {
 
 resource "aws_subnet" "data" {
   for_each = {
-    for i, cidr_block in [
-      "10.0.10.0/24", "10.0.11.0/24", "10.0.12.0/24", "10.0.13.0/24",
-    ] :
-    i => cidr_block
+    "access-a" = "10.0.10.0/24"
+    "trunk-1"  = "10.0.11.0/24"
+    "trunk-2"  = "10.0.12.0/24"
+    "access-b" = "10.0.13.0/24"
   }
 
   availability_zone = data.aws_subnet.cluster.availability_zone
-  vpc_id            = local.bootstrap.vpc_id
   cidr_block        = each.value
+  vpc_id            = local.bootstrap.vpc_id
+
+  tags = {
+    Name = "${local.name_prefix}-${each.key}"
+  }
 }
 
 resource "aws_security_group" "data" {
@@ -70,10 +74,10 @@ module "xrd_ami" {
 }
 
 locals {
-  access_a_subnet_id = aws_subnet.data[0].id
-  trunk_1_subnet_id  = aws_subnet.data[1].id
-  trunk_2_subnet_id  = aws_subnet.data[2].id
-  access_b_subnet_id = aws_subnet.data[3].id
+  access_a_subnet_id = aws_subnet.data["access-a"].id
+  trunk_1_subnet_id  = aws_subnet.data["trunk-1"].id
+  trunk_2_subnet_id  = aws_subnet.data["trunk-2"].id
+  access_b_subnet_id = aws_subnet.data["access-b"].id
 
   placement_group = (
     var.placement_group == null ?
@@ -91,7 +95,7 @@ locals {
         local.bootstrap.bastion_security_group_id,
         data.aws_eks_cluster.this.vpc_config[0].cluster_security_group_id,
       ]
-      private_ip_address = "10.0.0.11"
+      private_ip_address = "10.0.100.11"
       subnet_id          = data.aws_subnet.cluster.id
       network_interfaces = [
         {
@@ -116,7 +120,7 @@ locals {
       ami                = local.xrd_ami
       instance_type      = var.node_instance_type
       subnet_id          = data.aws_subnet.cluster.id
-      private_ip_address = "10.0.0.12"
+      private_ip_address = "10.0.100.12"
       security_groups = [
         local.bootstrap.bastion_security_group_id,
         data.aws_eks_cluster.this.vpc_config[0].cluster_security_group_id,
@@ -146,7 +150,7 @@ locals {
       # m5.large (which allows at most three attached ENIs) is sufficient.
       instance_type      = "m5.large"
       subnet_id          = data.aws_subnet.cluster.id
-      private_ip_address = "10.0.0.13"
+      private_ip_address = "10.0.100.13"
       security_groups = [
         local.bootstrap.bastion_security_group_id,
         data.aws_eks_cluster.this.vpc_config[0].cluster_security_group_id,
