@@ -31,7 +31,7 @@ module "datasheet" {
   for_each = data.aws_instance.nodes
 
   instance_type = data.aws_instance.node.instance_type
-  use_case = "maximal"
+  use_case      = "maximal"
 }
 
 resource "helm_release" "xrd1" {
@@ -47,7 +47,7 @@ resource "helm_release" "xrd1" {
         xr_root_password = var.xr_root_password
         image_repository = local.image_repository
         image_tag        = var.image_tag
-        cpuset = module.datasheet["alpha"].cpuset
+        cpuset           = module.datasheet["alpha"].cpuset
       },
     )
   ]
@@ -66,7 +66,7 @@ resource "helm_release" "xrd2" {
         xr_root_password = var.xr_root_password
         image_repository = local.image_repository
         image_tag        = var.image_tag
-        cpuset = module.datasheet["beta"].cpuset
+        cpuset           = module.datasheet["beta"].cpuset
       },
     )
   ]

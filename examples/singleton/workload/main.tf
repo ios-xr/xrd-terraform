@@ -29,7 +29,7 @@ module "datasheet" {
   source = "../../../modules/aws/datasheet"
 
   instance_type = data.aws_instance.node.instance_type
-  use_case = "maximal"
+  use_case      = "maximal"
 }
 
 resource "helm_release" "xrd" {
@@ -48,7 +48,7 @@ resource "helm_release" "xrd" {
         loopback_ip              = "1.1.1.1"
         interface_count          = 3
         interface_ipv4_addresses = ["10.0.10.10", "10.0.11.10", "10.0.12.10"]
-        cpuset = module.datasheet.cpuset
+        cpuset                   = module.datasheet.cpuset
       }
     )
   ]
