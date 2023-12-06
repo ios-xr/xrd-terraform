@@ -25,8 +25,8 @@ locals {
   )
 }
 
-module "datasheet" {
-  source = "../../../modules/aws/datasheet"
+module "node_props" {
+  source = "../../../modules/aws/node-props"
 
   for_each = data.aws_instance.nodes
 
@@ -47,7 +47,7 @@ resource "helm_release" "xrd1" {
         xr_root_password = var.xr_root_password
         image_repository = local.image_repository
         image_tag        = var.image_tag
-        cpuset           = module.datasheet["alpha"].cpuset
+        cpuset           = module.node_props["alpha"].cpuset
       },
     )
   ]
@@ -66,7 +66,7 @@ resource "helm_release" "xrd2" {
         xr_root_password = var.xr_root_password
         image_repository = local.image_repository
         image_tag        = var.image_tag
-        cpuset           = module.datasheet["beta"].cpuset
+        cpuset           = module.node_props["beta"].cpuset
       },
     )
   ]

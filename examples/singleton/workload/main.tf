@@ -25,8 +25,8 @@ locals {
   )
 }
 
-module "datasheet" {
-  source = "../../../modules/aws/datasheet"
+module "node_props" {
+  source = "../../../modules/aws/node-props"
 
   instance_type = data.aws_instance.node.instance_type
   use_case      = "maximal"
@@ -48,7 +48,7 @@ resource "helm_release" "xrd" {
         loopback_ip              = "1.1.1.1"
         interface_count          = 3
         interface_ipv4_addresses = ["10.0.10.10", "10.0.11.10", "10.0.12.10"]
-        cpuset                   = module.datasheet.cpuset
+        cpuset                   = module.node_props.cpuset
       }
     )
   ]
