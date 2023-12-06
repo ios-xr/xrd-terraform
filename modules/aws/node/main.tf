@@ -29,7 +29,7 @@ locals {
 
   datasheet_lookup_required = (
     local.is_xrd_packer_ami &&
-    var.hugepages_gb == null || local.isolated_cores_lookup_required
+    (var.hugepages_gb == null || local.isolated_cores_lookup_required)
   )
 }
 
