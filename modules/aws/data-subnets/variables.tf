@@ -4,15 +4,15 @@ variable "availability_zone" {
   nullable    = false
 }
 
-variable "count" {
-  description = "Number of subnets to create"
-  type        = int
-  nullable    = false
-}
-
 variable "name_prefix" {
   description = "Used as a prefix for the 'Name' tag for each created resource"
   type        = string
+  nullable    = false
+}
+
+variable "subnet_count" {
+  description = "Number of subnets to create"
+  type        = number
   nullable    = false
 }
 

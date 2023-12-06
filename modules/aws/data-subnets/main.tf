@@ -1,5 +1,5 @@
 resource "aws_security_group" "this" {
-  name   = var.security_group_name
+  name   = "${var.name_prefix}-data"
   vpc_id = var.vpc_id
 
   ingress {
@@ -22,7 +22,8 @@ resource "aws_security_group" "this" {
 }
 
 module "cidr_blocks" {
-  source = "hashicorp/subnets/cidr"
+  source  = "hashicorp/subnets/cidr"
+  version = "1.0.0"
 
   base_cidr_block = data.aws_vpc.this.cidr_block
   networks = concat(
@@ -33,7 +34,7 @@ module "cidr_blocks" {
       }
     ],
     [
-      for i in range(var.count) : {
+      for i in range(var.subnet_count) : {
         name     = "{var.name_prefix}-data-{i + 1}"
         new_bits = 8
       }
@@ -42,13 +43,13 @@ module "cidr_blocks" {
 }
 
 resource "aws_subnet" "this" {
-  count = length(module.cidr_blocks.network)
+  count = length(module.cidr_blocks.networks)
 
   availability_zone = var.availability_zone
-  cidr_block        = module.cidr_blocks.network[count.index].cidr_block
+  cidr_block        = module.cidr_blocks.networks[count.index].cidr_block
   vpc_id            = var.vpc_id
 
   tags = {
-    Name = module.cidr_blocks.network[count.index].name
+    Name = module.cidr_blocks.networks[count.index].name
   }
 }
