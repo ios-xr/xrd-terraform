@@ -17,21 +17,81 @@ locals {
     for k, v in data.aws_ami.this.tags : true
     if k == "Generated_By" && v == "xrd-packer"
   ]
+
   is_xrd_packer_ami = length(local.ami_generated_by_packer) > 0
 
-  # Default hugepages: 6GiB, regardless of instance type.
-  hugepages_gb = coalesce(var.hugepages_gb, 6)
+  # We need to lookup isolated_cores if it is not provided, and if we cannot
+  # derive it from the provided CPU set and number of CP CPUs.
+  isolated_cores_lookup_required = (
+    var.isolated_cores == null &&
+    (var.vr_cpuset == null || var.vr_cp_num_cpus == null)
+  )
 
-  # Default isolated cores:
-  #   16-23 for m5[n].24xlarge.
-  #   2-3 otherwise.
-  isolated_cores = coalesce(
-    var.isolated_cores,
-    (
-      contains(["m5.24xlarge", "m5n.24xlarge"], var.instance_type) ?
-      "16-23" :
-      "2-3"
+  datasheet_lookup_required = (
+    local.is_xrd_packer_ami &&
+    var.hugepages_gb == null || local.isolated_cores_lookup_required
+  )
+}
+
+module "datasheet" {
+  source = "../datasheet"
+
+  count = local.datasheet_lookup_required ? 1 : 0
+
+  instance_type = var.instance_type
+  use_case      = "maximal"
+}
+
+locals {
+  hugepages_gb = try(
+    coalesce(var.hugepages_gb, module.datasheet[0].hugepages_gb),
+    null,
+  )
+
+  vr_cpuset = (
+    var.isolated_cores != null ?
+    null :
+    try(
+      coalesce(var.vr_cpuset, module.datasheet[0].cpuset),
+      null,
+    )
+  )
+
+  vr_cpuset_list = try(
+    range(
+      split("-", local.vr_cpuset)[0],
+      split("-", local.vr_cpuset)[1] + 1,
     ),
+    null,
+  )
+
+  vr_cp_num_cpus = (
+    var.isolated_cores != null ?
+    null :
+    try(
+      coalesce(var.vr_cp_num_cpus, module.datasheet[0].cp_num_cpus),
+      null,
+    )
+  )
+
+  isolated_cores_list = try(
+    range(
+      split("-", var.isolated_cores)[0],
+      split("-", var.isolated_cores)[1] + 1,
+    ),
+    range(
+      local.vr_cpuset_list[0] + local.vr_cp_num_cpus,
+      split("-", local.vr_cpuset)[1] + 1,
+    ),
+    null,
+  )
+
+  isolated_cores = try(
+    coalesce(
+      var.isolated_cores,
+      "${local.isolated_cores_list[0]}-${local.isolated_cores_list[length(local.isolated_cores_list) - 1]}",
+    ),
+    null,
   )
 
   # Add a 'name' label to the user-provided labels.
