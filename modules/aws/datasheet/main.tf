@@ -110,7 +110,7 @@ locals {
 
 locals {
   cp_num_cpus = try(
-    local.cpus_to_cp_num_cpus[data.aws_ec2_instance_type.this.default_cores],
+    local.cpus_to_cp_num_cpus[length(local.cpuset_list)],
     local.max_cp_num_cpus,
   )
 
