@@ -129,8 +129,8 @@ locals {
 }
 
 locals {
-  minimal_hugepages_gb = 6
-  maximal_hugepages_gb = 8
+  minimal_hugepages_gb = 4
+  maximal_hugepages_gb = 6
 
   hugepages_gb = try(
     local.constants[var.use_case][var.instance_type].hugepages_gb,
