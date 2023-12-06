@@ -1,5 +1,6 @@
 import base64
 import json
+import subprocess
 import uuid
 from pathlib import Path
 from typing import Any
@@ -25,6 +26,7 @@ from .moto_server import MotoServer
 @define
 class Outputs(TerraformOutputs):
     id: str
+    isolated_cores: str
     private_ip: str
 
 
@@ -193,12 +195,50 @@ def test_defaults(ec2, tf: Terraform, base_vars: dict[str, Any]):
     )
 
 
-def test_instance_type(ec2, tf: Terraform, base_vars: dict[str, Any]):
-    vars = base_vars | {"instance_type": "m5n.24xlarge"}
+@pytest.mark.parametrize(
+    ["instance_type", "expected_vr_cpuset", "expected_isolated_cores"],
+    [
+        ("m5.2xlarge", "2-3", "2-3"),
+        ("m5.4xlarge", "2-7", "4-7"),
+        ("m5.8xlarge", "2-15", "6-15"),
+        ("m5.12xlarge", "2-23", "6-23"),
+        ("m5.16xlarge", "2-15", "6-15"),
+        ("m5.24xlarge", "2-23", "6-23"),
+        ("m5n.2xlarge", "2-3", "2-3"),
+        ("m5n.24xlarge", "2-23", "6-23"),
+    ],
+)
+def test_instance_types(
+    ec2,
+    tf: Terraform,
+    base_vars: dict[str, Any],
+    instance_type: str,
+    expected_vr_cpuset: str,
+    expected_isolated_cores: str,
+):
+    """
+    Check that CPU set and isolated cores are correctly retrieved for various
+    known instance types.
+
+    """
+    vars = base_vars | {"instance_type": instance_type, "is_xrd_ami": True}
     tf.apply(vars=vars)
     outputs = Outputs.from_terraform(tf)
     instance = ec2.Instance(outputs.id)
-    assert instance.instance_type == "m5n.24xlarge"
+    assert instance.instance_type == instance_type
+    assert outputs.isolated_cores == expected_isolated_cores
+
+
+def test_unknown_instance_type(ec2, tf: Terraform, base_vars: dict[str, Any]):
+    """
+    Check that a useful error message is raised when attempting to use an
+    unknown instance type.
+
+    """
+    vars = base_vars | {"instance_type": "m7i.48xlarge", "is_xrd_ami": True}
+    with pytest.raises(subprocess.CalledProcessError) as excinfo:
+        tf.apply(vars=vars)
+        assert "Isolated cores was not provided" in str(excinfo.value)
 
 
 def test_kubelet_extra_args(ec2, tf: Terraform, base_vars: dict[str, Any]):

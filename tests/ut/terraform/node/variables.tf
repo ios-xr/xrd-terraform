@@ -6,6 +6,10 @@ variable "ami" {
   type = string
 }
 
+variable "is_xrd_ami" {
+  type = bool
+}
+
 variable "cluster_name" {
   type = string
 }

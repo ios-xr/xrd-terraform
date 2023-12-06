@@ -15,6 +15,7 @@ module "node" {
   cluster_name         = var.cluster_name
   iam_instance_profile = var.iam_instance_profile
   instance_type        = var.instance_type
+  is_xrd_ami           = var.is_xrd_ami
   key_name             = var.key_name
   kubelet_extra_args   = var.kubelet_extra_args
   name                 = var.name
