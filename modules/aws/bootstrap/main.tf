@@ -16,16 +16,18 @@ module "vpc" {
   enable_dns_hostnames = true
   enable_nat_gateway   = true
 
-  private_subnets         = ["10.0.0.0/24", "10.0.1.0/24"]
+  private_subnets         = ["10.0.100.0/24", "10.0.101.0/24"]
   public_subnets          = ["10.0.200.0/24", "10.0.201.0/24"]
   map_public_ip_on_launch = true
 }
 
 resource "aws_ec2_subnet_cidr_reservation" "this" {
-  cidr_block       = "10.0.0.0/28"
+  count = length(module.vpc.private_subnet_ids)
+
+  cidr_block       = module.vpc.private_subnet_cidr_blocks[each.index]
   description      = "Reservation for worker node primary IPs"
   reservation_type = "explicit"
-  subnet_id        = module.vpc.private_subnet_ids[0]
+  subnet_id        = module.vpc.private_subnet_ids[each.index]
 }
 
 module "key_pair" {
@@ -42,7 +44,7 @@ module "eks" {
   name            = local.name_prefix
   subnet_ids      = module.vpc.private_subnet_ids
 
-  depends_on = [aws_ec2_subnet_cidr_reservation.this]
+  depends_on = aws_ec2_subnet_cidr_reservation.this
 }
 
 locals {
