@@ -44,7 +44,7 @@ module "datasheet" {
 
 locals {
   hugepages_gb = try(
-    coalesce(var.hugepages_gb, module.datasheet[0].hugepages_gb),
+    coalesce(var.hugepages_gb, try(module.datasheet[0].hugepages_gb, null)),
     null,
   )
 
@@ -52,7 +52,7 @@ locals {
     var.isolated_cores != null ?
     null :
     try(
-      coalesce(var.vr_cpuset, module.datasheet[0].cpuset),
+      coalesce(var.vr_cpuset, try(module.datasheet[0].cpuset, null)),
       null,
     )
   )
@@ -69,7 +69,7 @@ locals {
     var.isolated_cores != null ?
     null :
     try(
-      coalesce(var.vr_cp_num_cpus, module.datasheet[0].cp_num_cpus),
+      coalesce(var.vr_cp_num_cpus, try(module.datasheet[0].cp_num_cpus, null)),
       null,
     )
   )
