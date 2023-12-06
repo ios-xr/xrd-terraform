@@ -35,7 +35,7 @@ module "cidr_blocks" {
     ],
     [
       for i in range(var.subnet_count) : {
-        name     = "{var.name_prefix}-data-{i + 1}"
+        name     = "${var.name_prefix}-data-${i + 1}"
         new_bits = 8
       }
     ]
