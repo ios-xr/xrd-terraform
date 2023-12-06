@@ -42,14 +42,18 @@ module "cidr_blocks" {
   )
 }
 
+locals {
+  networks = slice(module.cidr_blocks.networks, 1, length(module.cidr_blocks.networks))
+}
+
 resource "aws_subnet" "this" {
-  count = length(module.cidr_blocks.networks)
+  count = length(local.networks)
 
   availability_zone = var.availability_zone
-  cidr_block        = module.cidr_blocks.networks[count.index].cidr_block
+  cidr_block        = local.networks[count.index].cidr_block
   vpc_id            = var.vpc_id
 
   tags = {
-    Name = module.cidr_blocks.networks[count.index].name
+    Name = local.networks[count.index].name
   }
 }
