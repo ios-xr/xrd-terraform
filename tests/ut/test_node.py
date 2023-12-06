@@ -26,8 +26,8 @@ from .moto_server import MotoServer
 @define
 class Outputs(TerraformOutputs):
     id: str
-    isolated_cores: str
     private_ip: str
+    isolated_cores: str | None = None
 
 
 @pytest.fixture(scope="module")
@@ -125,6 +125,7 @@ def base_vars(
         "cluster_name": str(uuid.uuid4()),
         "name": str(uuid.uuid4()),
         "private_ip_address": "10.0.0.10",
+        "security_groups": [],
         "subnet_id": subnet.id,
         "key_name": key_pair.key_name,
         "iam_instance_profile": iam_instance_profile.name,

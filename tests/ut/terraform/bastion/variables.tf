@@ -1,38 +1,53 @@
 variable "aws_endpoint" {
-  type = string
+  description = "AWS endpoint URL"
+  type        = string
+  nullable    = false
 }
 
 variable "ami" {
-  type     = string
-  nullable = false
-}
-
-variable "key_name" {
-  type     = string
-  nullable = false
-}
-
-variable "subnet_id" {
-  type     = string
-  nullable = false
+  description = <<-EOT
+  AMI to use for the Bastion instance.
+  If null, the latest Amazon Linux 2023 AMI is used.
+  EOT
+  type        = string
+  default     = null
 }
 
 variable "instance_type" {
-  type    = string
-  default = null
+  description = "Instance type to use for the Bastion instance"
+  type        = string
+  default     = "t3.nano"
+  nullable    = false
 }
 
-variable "remote_access_cidr" {
-  type    = list(string)
-  default = ["0.0.0.0/0"]
-}
-
-variable "security_group_ids" {
-  type    = list(string)
-  default = null
+variable "key_name" {
+  description = "Name of an existing key pair to assign to the Bastion instance"
+  type        = string
+  nullable    = false
 }
 
 variable "name" {
-  type     = string
-  nullable = false
+  description = "Name of the Bastion instance"
+  type        = string
+  nullable    = false
+}
+
+variable "remote_access_cidr" {
+  description = "Allowed CIDR blocks for external SSH access to the Bastion instance"
+  type        = list(string)
+  default     = ["0.0.0.0/0"]
+  nullable    = false
+}
+
+variable "security_group_ids" {
+  description = "Additional security group IDs to add to the primary interface"
+  type        = list(string)
+  default     = []
+  nullable    = false
+}
+
+variable "subnet_id" {
+  description = "Subnet ID to launch the Bastion instance in"
+  type        = string
+  nullable    = false
 }

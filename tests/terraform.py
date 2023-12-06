@@ -13,7 +13,7 @@ from tempfile import NamedTemporaryFile
 from typing import Any, Mapping
 
 import cattrs
-from attrs import define, fields
+from attrs import NOTHING, define, fields
 from cattrs.errors import ForbiddenExtraKeysError
 
 from utils import run_cmd
@@ -146,7 +146,7 @@ class TerraformOutputs:
         @attrs.define
         class Outputs(TerraformOutputs):
             foo: str
-            bar: str
+            bar: str | None = None
 
         outputs = Outputs.from_terraform(tf)
         print(outputs.foo)
@@ -165,8 +165,12 @@ class TerraformOutputs:
     ) -> "TerraformOutputs":
         conv_obj = {}
         for a in fields(t):
-            value = d.pop(a.name)["value"]
-            conv_obj[a.name] = c.structure(value, a.type)
+            try:
+                value = d.pop(a.name)["value"]
+                conv_obj[a.name] = c.structure(value, a.type)
+            except KeyError:
+                if a is NOTHING:
+                    raise
         if d:
             raise ForbiddenExtraKeysError("", t, set(d.keys()))
         return t(**conv_obj)

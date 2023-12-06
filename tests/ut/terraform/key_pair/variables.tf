@@ -1,11 +1,17 @@
 variable "aws_endpoint" {
-  type = string
+  description = "AWS endpoint URL"
+  type        = string
+  nullable    = false
 }
 
 variable "key_name" {
-  type = string
+  description = "Name of the key pair to be generated"
+  type        = string
+  nullable    = false
 }
 
 variable "filename" {
-  type = string
+  description = "Path to the file that the key pair is written to"
+  type        = string
+  nullable    = false
 }
