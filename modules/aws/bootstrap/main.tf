@@ -24,10 +24,10 @@ module "vpc" {
 resource "aws_ec2_subnet_cidr_reservation" "this" {
   count = length(module.vpc.private_subnet_ids)
 
-  cidr_block       = module.vpc.private_subnet_cidr_blocks[each.index]
+  cidr_block       = cidrsubnet(module.vpc.private_subnet_cidr_blocks[count.index], 4, 0)
   description      = "Reservation for worker node primary IPs"
   reservation_type = "explicit"
-  subnet_id        = module.vpc.private_subnet_ids[each.index]
+  subnet_id        = module.vpc.private_subnet_ids[count.index]
 }
 
 module "key_pair" {
@@ -44,7 +44,7 @@ module "eks" {
   name            = local.name_prefix
   subnet_ids      = module.vpc.private_subnet_ids
 
-  depends_on = aws_ec2_subnet_cidr_reservation.this
+  depends_on = [aws_ec2_subnet_cidr_reservation.this]
 }
 
 locals {

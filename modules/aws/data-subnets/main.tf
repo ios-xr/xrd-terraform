@@ -45,10 +45,10 @@ resource "aws_subnet" "this" {
   count = length(module.cidr_blocks.network)
 
   availability_zone = var.availability_zone
-  cidr_block        = module.cidr_blocks.network[each.index].cidr_block
+  cidr_block        = module.cidr_blocks.network[count.index].cidr_block
   vpc_id            = var.vpc_id
 
   tags = {
-    Name = module.cidr_blocks.network[each.index].name
+    Name = module.cidr_blocks.network[count.index].name
   }
 }
