@@ -166,7 +166,7 @@ class TerraformOutputs:
         conv_obj = {}
         for a in fields(t):
             try:
-                value = d.pop(a.name)["value"]
+                value = d.pop(a.name)
                 conv_obj[a.name] = c.structure(value, a.type)
             except KeyError:
                 if a is NOTHING:
@@ -177,8 +177,24 @@ class TerraformOutputs:
 
     @classmethod
     def from_terraform(cls, tf: Terraform):
+        """
+        Create `TerraformOutputs` from an applied Terraform configuration.
+
+        This assumes that the Terraform configuration has one output named
+        "module", which is a map of the outputs of the module under test.
+
+        :raises KeyError:
+            If the "module" output is not present.
+            If a dataclass attribute exists, but not the corresponding module
+            output.
+
+        :raises ForbiddenExtraKeysError:
+            If there exists a module output without a corresponding attribute
+            in the dataclass.
+
+        """
         out = tf.output().stdout
-        d = json.loads(out)
+        d = json.loads(out)["module"]["value"]
         converter = cattrs.Converter()
         converter.register_structure_hook(
             cls,

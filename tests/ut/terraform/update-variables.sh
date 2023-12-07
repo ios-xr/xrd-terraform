@@ -1,9 +1,11 @@
 #!/usr/bin/env bash
+set -x
 
 this_dir=$(dirname "$0")
-modules_dir="${this_dir}/../../../modules/aws/"
+modules_dir="${this_dir}/../../../modules/aws"
 
-for dir in */; do
+for dir in "$this_dir"/*/; do
+    module=$(basename "$dir")
     echo "" > "${dir}variables.tf"
     cat << EOF > "${dir}variables.tf"
 variable "aws_endpoint" {
@@ -13,5 +15,5 @@ variable "aws_endpoint" {
 }
 
 EOF
-    cat "${modules_dir}${module}variables.tf" >> "${dir}variables.tf"
+    cat "${modules_dir}/${module}/variables.tf" >> "${dir}variables.tf"
 done
