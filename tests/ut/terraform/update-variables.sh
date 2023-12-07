@@ -1,5 +1,4 @@
 #!/usr/bin/env bash
-set -x
 
 this_dir=$(dirname "$0")
 modules_dir="${this_dir}/../../../modules/aws"

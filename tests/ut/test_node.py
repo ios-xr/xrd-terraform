@@ -31,8 +31,8 @@ class Outputs(TerraformOutputs):
     hugepages_gb: int | None = None
     isolated_cores: str | None = None
     isolated_cores_list: list[int] | None = None
-    vr_cp_num_cpus: int | None = None
-    vr_cpuset: str | None = None
+    xrd_vr_cp_num_cpus: int | None = None
+    xrd_vr_cpuset: str | None = None
 
 
 @pytest.fixture(scope="module")
@@ -202,7 +202,7 @@ def test_defaults(ec2, tf: Terraform, base_vars: dict[str, Any]):
 
 
 @pytest.mark.parametrize(
-    ["instance_type", "expected_vr_cpuset", "expected_isolated_cores"],
+    ["instance_type", "expected_xrd_vr_cpuset", "expected_isolated_cores"],
     [
         ("m5.2xlarge", "2-3", "2-3"),
         ("m5.4xlarge", "2-7", "4-7"),
@@ -219,7 +219,7 @@ def test_instance_types(
     tf: Terraform,
     base_vars: dict[str, Any],
     instance_type: str,
-    expected_vr_cpuset: str,
+    expected_xrd_vr_cpuset: str,
     expected_isolated_cores: str,
 ):
     """
