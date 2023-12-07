@@ -15,3 +15,7 @@ module "bastion" {
   security_group_ids = var.security_group_ids
   remote_access_cidr = var.remote_access_cidr
 }
+
+output "module" {
+  value = module.bastion
+}

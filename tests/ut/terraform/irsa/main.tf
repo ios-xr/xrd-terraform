@@ -14,3 +14,7 @@ module "irsa" {
   role_policies   = var.role_policies
   service_account = var.service_account
 }
+
+output "module" {
+  value = module.irsa
+}

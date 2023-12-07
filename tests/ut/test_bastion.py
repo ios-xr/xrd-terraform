@@ -17,6 +17,7 @@ from .moto_server import MotoServer
 class Outputs(TerraformOutputs):
     id: str
     public_ip: str
+    security_group_id: str
 
 
 @pytest.fixture(scope="module")

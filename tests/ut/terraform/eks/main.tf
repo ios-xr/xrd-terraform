@@ -17,3 +17,7 @@ module "eks" {
   security_group_ids      = var.security_group_ids
   subnet_ids              = var.subnet_ids
 }
+
+output "module" {
+  value = module.eks
+}

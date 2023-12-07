@@ -25,3 +25,7 @@ module "node" {
   subnet_id            = var.subnet_id
   user_data            = var.user_data
 }
+
+output "module" {
+  value = module.node
+}

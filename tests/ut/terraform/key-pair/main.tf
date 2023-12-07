@@ -9,3 +9,7 @@ module "key_pair" {
   key_name = var.key_name
   filename = var.filename
 }
+
+output "module" {
+  value = module.key_pair
+}

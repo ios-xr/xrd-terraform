@@ -26,8 +26,13 @@ from .moto_server import MotoServer
 @define
 class Outputs(TerraformOutputs):
     id: str
+    instance_type: str
     private_ip: str
+    hugepages_gb: int | None = None
     isolated_cores: str | None = None
+    isolated_cores_list: list[int] | None = None
+    vr_cp_num_cpus: int | None = None
+    vr_cpuset: str | None = None
 
 
 @pytest.fixture(scope="module")

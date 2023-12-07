@@ -33,3 +33,7 @@ module "vpc" {
   tags                    = var.tags
   vpc_tags                = var.vpc_tags
 }
+
+output "module" {
+  value = module.vpc
+}
