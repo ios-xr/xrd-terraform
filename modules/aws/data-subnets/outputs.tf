@@ -8,6 +8,11 @@ output "ids" {
   value       = aws_subnet.this[*].id
 }
 
+output "names" {
+  description = "Subnet names"
+  value       = local.networks[*].name
+}
+
 output "security_group_id" {
   description = "Security group ID"
   value       = aws_security_group.this.id

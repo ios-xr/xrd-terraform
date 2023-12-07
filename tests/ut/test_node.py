@@ -134,6 +134,7 @@ def base_vars(
         "subnet_id": subnet.id,
         "key_name": key_pair.key_name,
         "iam_instance_profile": iam_instance_profile.name,
+        "wait": False,
     }
 
 
