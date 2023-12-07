@@ -1,8 +1,9 @@
+#!/usr/bin/env bash
+
 this_dir=$(dirname "$0")
 modules_dir="${this_dir}/../../../modules/aws/"
 
 for dir in */; do
-    module=$(printf "%s" "$dir" | tr "_" "-")
     echo "" > "${dir}variables.tf"
     cat << EOF > "${dir}variables.tf"
 variable "aws_endpoint" {
