@@ -1,11 +1,11 @@
 output "cidr_blocks" {
-  description = "Subnet CIDR blocks"
-  value       = aws_subnet.this[*].cidr_block
+  description = "Map of subnet CIDR blocks, keyed by subnet name"
+  value       = { for i, name in local.networks[*].name : name => aws_subnet.this[i].cidr_block }
 }
 
 output "ids" {
-  description = "Subnet IDs"
-  value       = aws_subnet.this[*].id
+  description = "Map of subnet IDs, keyed by subnet name"
+  value       = { for i, name in local.networks[*].name : name => aws_subnet.this[i].id }
 }
 
 output "names" {

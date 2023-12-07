@@ -14,8 +14,9 @@ from .moto_server import MotoServer
 
 @define
 class Outputs(TerraformOutputs):
-    cidr_blocks: list[str]
-    ids: list[str]
+    cidr_blocks: dict[str, str]
+    ids: dict[str, str]
+    names: list[str]
     security_group_id: str
 
 
@@ -67,7 +68,9 @@ def test_subnet_count(
     tf.apply(vars=vars)
     outputs = Outputs.from_terraform(tf)
 
-    for subnet_id, cidr_block in zip(outputs.ids, outputs.cidr_blocks):
+    for subnet_name in outputs.names:
+        subnet_id = outputs.ids[subnet_name]
+        cidr_block = outputs.cidr_blocks[subnet_name]
         subnet = ec2.Subnet(subnet_id)
         assert subnet.cidr_block == cidr_block
         assert subnet.vpc_id == vpc.vpc_id
