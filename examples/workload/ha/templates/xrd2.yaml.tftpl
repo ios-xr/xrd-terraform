@@ -1,0 +1,124 @@
+haApp:
+  image:
+    repository: "${ha_app_image_repository}"
+    tag: "${ha_app_image_tag}"
+  affinity: null
+  nodeSelector:
+    name: beta
+  service:
+    clusterIP: "172.20.171.2"
+  serviceAccount:
+    annotations:
+      eks.amazonaws.com/role-arn: "${ha_app_role_arn}"
+  config: |
+    global:
+      aws:
+        ec2_private_endpoint_url: "https://${ec2_endpoint_url}"
+    groups:
+      - xr_interface: HundredGigE0/0/0/0
+        vrid: 10
+        action:
+          type: aws_activate_vip
+          device_index: 1
+          vip: 10.0.10.20
+      - xr_interface: HundredGigE0/0/0/1
+        vrid: 1
+        action:
+          type: aws_activate_vip
+          device_index: 2
+          vip: 10.0.11.20
+      - xr_interface: HundredGigE0/0/0/2
+        vrid: 2
+        action:
+          type: aws_update_route_table
+          route_table_id: ${route_table_id}
+          destination: 10.0.10.0/24
+          target_network_interface: ${target_network_interface}
+xrd:
+  enabled: true
+  image:
+    repository: "${xrd_image_repository}"
+    tag: "${xrd_image_tag}"
+  nodeSelector:
+    name: beta
+  config:
+    username: "${xr_root_user}"
+    password: "${xr_root_password}"
+    ascii: |
+      grpc no-tls
+      vrf ha-app
+      linux networking
+       linux-owned-vrf ha-app
+      !
+      interface HundredGigE0/0/0/0
+       ipv4 address 10.0.10.11/24
+      !
+      interface HundredGigE0/0/0/1
+       ipv4 address 10.0.11.11/24
+      !
+      interface HundredGigE0/0/0/2
+       ipv4 address 10.0.12.11/24
+      !
+      router static
+       address-family ipv4 unicast
+        10.0.13.0/24 10.0.12.1
+        0.0.0.0/0 10.0.10.1
+       !
+      !
+      router vrrp
+       interface HundredGigE0/0/0/0
+        bfd minimum-interval 100
+        address-family ipv4
+         vrrp 10
+          address 10.0.10.20
+          bfd fast-detect peer ipv4 10.0.10.11
+          priority 100
+          unicast-peer 10.0.10.10
+         !
+        !
+       !
+       interface HundredGigE0/0/0/1
+        bfd minimum-interval 100
+        address-family ipv4
+         vrrp 1
+          address 10.0.11.20
+          bfd fast-detect peer ipv4 10.0.11.11
+          priority 100
+          unicast-peer 10.0.11.10
+         !
+        !
+       !
+       interface HundredGigE0/0/0/2
+        bfd minimum-interval 100
+        address-family ipv4
+         vrrp 2
+          address 10.0.12.20
+          bfd fast-detect peer ipv4 10.0.12.11
+          priority 100
+          unicast-peer 10.0.12.10
+         !
+        !
+       !
+      !
+      telemetry model-driven
+       destination-group ha-app
+        vrf ha-app
+        destination 172.20.171.2 port 50051
+         encoding self-describing-gpb
+         protocol grpc no-tls
+        !
+       !
+       sensor-group ha-app
+        sensor-path Cisco-IOS-XR-ipv4-vrrp-oper:vrrp/ipv4/virtual-routers/virtual-router
+       !
+       subscription ha-app
+        sensor-group-id ha-app sample-interval 0
+        destination-id ha-app
+       !
+      !
+  cpu:
+    cpuset: 2-3
+  interfaces:
+    - type: pci
+      config:
+        last: 3
