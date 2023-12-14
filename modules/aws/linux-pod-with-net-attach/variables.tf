@@ -1,24 +1,35 @@
 variable "name" {
-  type = string
+  description = "Name of the Pod"
+  type        = string
+  nullable    = false
 }
 
 variable "device" {
-  type = string
+  description = "Name of the device to move from the host network namespace to the container network namespace"
+  type        = string
+  nullable    = false
 }
 
 variable "ip_address" {
-  type = string
+  description = "IP address to assign to the device"
+  type        = string
+  nullable    = false
 }
 
 variable "gateway" {
-  type = string
+  description = "Gateway address"
+  type        = string
+  nullable    = false
 }
 
 variable "routes" {
-  type = list(string)
+  description = "List of routes to add to the container network namespace"
+  type        = list(string)
+  nullable    = false
 }
 
 variable "node_selector" {
-  type    = map(string)
-  default = null
+  description = "Map of labels to values to use as the Pod node selector"
+  type        = map(string)
+  default     = null
 }
