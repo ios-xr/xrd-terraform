@@ -188,7 +188,6 @@ resource "aws_instance" "this" {
     Name                                        = var.name
     "kubernetes.io/cluster/${var.cluster_name}" = "owned"
   }
-
 }
 
 resource "aws_network_interface" "this" {
