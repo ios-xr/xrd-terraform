@@ -66,7 +66,7 @@ required:
      2. This will first build an AMI using the
         [XRd Packer](https://github.com/ios-xr/xrd-packer) templates if one
         is not detected.
-     3. Example: `./aws-quickstart -u root -p mypassword`
+     3. Example: `./aws-quickstart -u user -p password`
 
 This will bring up an EKS cluster called 'xrd-cluster', some worker nodes,
 and a dummy topology with a pair of back-to-back XRd instances running an
@@ -94,67 +94,23 @@ To tear down all of the resources, run:
 ./aws-quickstart --destroy
 ```
 
-## Modules
+## Other Examples
 
-This repository contains several Terraform modules to assist with deploying
-XRd on AWS. There are two types of modules:
-
-  - "Building block" modules (sometimes called 'resource' modules) - these are
-    focused on a single AWS area or resource, used to build a full
-    deployment stack.
-  - "Example" modules (sometimes called 'infrastructure' modules) - these use
-    the building block modules, and together can bring up an entire entire
-    example deployment.
-
-### Building Block Modules
-
-The following building block modules are provided in the repository:
- - VPC
- - EKS
- - IRSA
- - EC2 Key Pair
- - Bastion Node
- - Worker Node
-
-Each of these modules is focused on bringing up a constrained set of
-AWS resources. These are used by the example modules describe below, and
-generally its expected that only developers will need to use these directly.
-As such, more detail for these modules can be found on the
-[development](DEVELOPMENT.md) page.
-
-### Example Configurations
-
-Example Terraform configuration are provided; each of these either creates a
-set of cloud infrastructure resources, or a set of workload resources.
+Several example Terraform configurations are provided; each of these either
+creates a set of cloud infrastructure resources, or a set of workload
+resources.
 
 Together a stack of example configurations forms a complete and functional set
 of resources, representing an example XRd deployment.
 
-#### Bootstrap
-
-The [Bootstrap](/examples/bootstrap/README.md) configuration forms a common
-base; other example configurations are layered on top of this base.
-
-#### Singleton
-
-The Singleton example is formed of an [infrastructure
-configuration](/examples/singleton/infra/README.md) and a [workload
-configuration](/examples/singleton/workload/README.md).
-
-Together this runs an XRd Control Plane, or XRd vRouter workload on a single
-worker node.
-
-#### Overlay
-
-Similarly the Overlay example is formed of an [infrastructure
-configuration](/examples/overlay/infra/README.md) and a [workload
-configuration](/examples/overlay/workload/README.md).
-
-Together this launches three worker nodes, and deploys a pair of back-to-back
-XRd vRouter instances running an overlay network using GRE, IS-IS and L3VPN;
-and a pair of Linux containers that communicate via the overlay network.
-
-## Running Examples
+- [Bootstrap](/examples/bootstrap/README.md): this configuration forms a common
+  base; other example configurations are layered on top of this base.
+- [Singleton](/examples/singleton/README.md): this runs an XRd Control Plane,
+  or XRd vRouter workload on a single worker node.
+- [Overlay](/examples/singleton/README.md): this launches three worker nodes,
+  and deploys a pair of back-to-back XRd vRouter instances running an overlay
+  network using GRE, IS-IS and L3VPN, as well as a pair of Linux containers
+  that communicate via the overlay network.
 
 To launch an example, first make sure you have met all the requirements
 listed [above](#requirements), including having an AMI suitable for running
@@ -203,13 +159,13 @@ following the [variable definitions file
 format](https://developer.hashicorp.com/terraform/language/values/variables#variable-definitions-tfvars-files).
 
 ```
-cat << EOF
-xr_root_user = "root"
-xr_root_password = "mypassword"
-EOF > vars.tfvars
+cat << EOF > vars.tfvars
+xr_root_user = "user"
+xr_root_password = "password"
+EOF
 
 terraform -chdir=examples/overlay/workload init
-terraform -chdir=examples/overlay/workload apply -var-file=vars.tfvars
+terraform -chdir=examples/overlay/workload apply -var-file=$PWD/vars.tfvars
 ```
 
 Configuration options can also be [configured on the
@@ -225,7 +181,7 @@ aws eks update-kubeconfig --name $(terraform -chdir=examples/overlay/workload ou
 
 Once the topology has been launched, any changes you make to the configuration
 can be applied by modifying the configuration file and re-running the
-`terraform -chdir=examples/overlay/workload apply -var-file=vars.tfvars`
+`terraform -chdir=examples/overlay/workload apply -var-file=$PWD/vars.tfvars`
 command - Terraform will compute the minimal diff required to satisfy your new
 configuration and apply it.
 
@@ -234,7 +190,7 @@ configuration and apply it.
 When you've finished with the topology, it can be torn down with:
 
 ```
-terraform -chdir=examples/overlay/workload destroy -var-file=vars.tfvars
+terraform -chdir=examples/overlay/workload destroy -var-file=$PWD/vars.tfvars
 terraform -chdir=examples/overlay/infra destroy
 terraform -chdir=examples/bootstrap destroy
 ```
@@ -245,6 +201,28 @@ are set (even if their values don't matter) and means that any automatic
 inference of values is the same (e.g. automatically picking up XRd
 Packer AMIs at the correct cluster version, which will fail of no such
 image is present even in destroy mode).
+
+## Modules
+
+As well as the example configurations this repository contains several
+Terraform modules to assist with deploying XRd on AWS.  These are useful for
+those wanting to construct their own Terraform configurations for running XRd
+workloads.
+
+The following "building block" modules are provided in the repository:
+
+ - VPC
+ - EKS
+ - IRSA
+ - EC2 Key Pair
+ - Bastion Node
+ - Worker Node
+
+Each of these modules is focused on bringing up a constrained set of
+AWS resources.
+
+For more information on how to use these modules to build your own Terraform
+configurations, see the [development](DEVELOPMENT.md) page.
 
 ## Troubleshooting
 
