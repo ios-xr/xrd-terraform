@@ -86,6 +86,18 @@ variable "user_data" {
   default     = ""
 }
 
+variable "placement_group_name" {
+  description = <<-EOT
+  Placement group to launch the node into.  Placement groups can be used to
+  align instances to the same (or nearby) compute, thus minimizing expected
+  network latency between the two.   They can also be used to spread the
+  instances apart.
+  By default the node is not added to a placement group.
+  EOT
+  type        = string
+  default     = null
+}
+
 variable "wait" {
   description = "Wait for node readiness"
   type        = bool
