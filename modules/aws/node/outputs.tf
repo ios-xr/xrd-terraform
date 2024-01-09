@@ -32,6 +32,11 @@ output "isolated_cores_list" {
   value       = local.isolated_cores_list
 }
 
+output "network_interface" {
+  description = "Network interfaces attached to the node"
+  value       = aws_network_interface.this
+}
+
 output "private_ip" {
   description = "Primary private IPv4 address of the node"
   value       = aws_instance.this.private_ip
