@@ -3,6 +3,11 @@ output "bastion_instance_id" {
   value       = module.bastion.id
 }
 
+output "bastion_public_ip" {
+  description = "Bastion public IP address"
+  value       = module.bastion.public_ip
+}
+
 output "bastion_security_group_id" {
   description = "Bastion security group ID"
   value       = module.bastion.security_group_id
