@@ -107,10 +107,12 @@ of resources, representing an example XRd deployment.
   base; other example configurations are layered on top of this base.
 - [Singleton](/examples/singleton/README.md): this runs an XRd Control Plane,
   or XRd vRouter workload on a single worker node.
-- [Overlay](/examples/singleton/README.md): this launches three worker nodes,
+- [Overlay](/examples/overlay/README.md): this launches three worker nodes,
   and deploys a pair of back-to-back XRd vRouter instances running an overlay
   network using GRE, IS-IS and L3VPN, as well as a pair of Linux containers
   that communicate via the overlay network.
+- [HA](/examples/ha/README.md): this demonstrates the use of XRd vRouter as a
+  redundant Cloud Router.
 
 To launch an example, first make sure you have met all the requirements
 listed [above](#requirements), including having an AMI suitable for running
