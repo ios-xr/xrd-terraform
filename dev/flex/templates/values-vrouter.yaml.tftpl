@@ -31,7 +31,7 @@ xrd${i + 1}:
       !
       %{~ for j, interface_info in nodes[node_name].network_interfaces ~}
       interface HundredGigE0/0/0/${j}
-       ipv4 address ${interface_info.private_ip_addresses[0]} 255.255.255.0
+       ipv4 address ${interface_info.private_ips[0]} 255.255.255.0
       !
       %{~ endfor ~}
     asciiEveryBoot: true

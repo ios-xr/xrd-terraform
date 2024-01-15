@@ -66,7 +66,7 @@ required:
      2. This will first build an AMI using the
         [XRd Packer](https://github.com/ios-xr/xrd-packer) templates if one
         is not detected.
-     3. Example: `./aws-quickstart -u root -p mypassword`
+     3. Example: `./aws-quickstart -u user -p password`
 
 This will bring up an EKS cluster called 'xrd-cluster', some worker nodes,
 and a dummy topology with a pair of back-to-back XRd instances running an
@@ -75,7 +75,7 @@ overlay network between them - the `overlay` example topology described below.
 To interact with the cluster, run:
 
 ```
-aws eks update-kubeconfig --name xrd-cluster
+aws eks update-kubeconfig --name $(terraform -chdir=examples/overlay/workload output -raw cluster_name)
 ```
 
 and then interact with the cluster as normal using `kubectl` commands, e.g. to
@@ -94,147 +94,96 @@ To tear down all of the resources, run:
 ./aws-quickstart --destroy
 ```
 
-## Modules
+## Other Examples
 
-This repository contains several Terraform modules to assist with deploying
-XRd on AWS. There are two types of template:
+Several example Terraform configurations are provided; each of these either
+creates a set of cloud infrastructure resources, or a set of workload
+resources.
 
-  - "Building block" modules (sometimes called 'resource' modules) - these are
-    focused on a single AWS area or resource, used to build a full
-    deployment stack.
-  - "Example" modules (sometimes called 'infrastructure' modules) - these use
-    the building block modules to bring up an entire example deployment.
+Together a stack of example configurations forms a complete and functional set
+of resources, representing an example XRd deployment.
 
-### Building Block Modules
-
-The following building block modules are provided in the repository:
- - VPC
- - EKS
- - IRSA
- - EC2 Key Pair
- - Bastion Node
- - Worker Node
-
-Each of these modules is focused on bringing up a constrained set of
-AWS resources. These are used by the example modules describe below, and
-generally its expected that only developers will need to use these directly.
-As such, more detail for these modules can be found on the
-[development](DEVELOPMENT.md) page.
-
-### Example Modules
-
-Example modules are provided for the cloud infrastructure and workload layers.
-
-#### Cloud Infrastructure Modules
-
-Two modules are provided to create and setup an EKS cluster:
-
-  - [`eks-cluster`](examples/infra/eks-cluster/README.md): provision a minimal
-    EKS cluster.
-  - [`eks-setup`](examples/infra/eks-setup/README.md): setup a
-    pre-provisioned EKS cluster so that it is suitable for running XRd
-    workloads.
-
-Together these modules provide a base on top of which the workload modules
-can be applied.
-
-#### Workload Modules
-
-The workload modules require a pre-provisioned EKS cluster suitable for
-running XRd workloads.  A workload module should therefore be applied after
-both `eks-cluster` and `eks-setup` cloud infrastructure modules.
-
-There are two examples, each of which provides an illustrative deployment
-scenario:
-
-  - [`singleton`](examples/workload/singleton/README.md): launch a single
-    worker node in a pre-provisioned EKS cluster, and runs a single XRd
-    workload on it.
-  - [`overlay`](examples/workload/overlay/README.md): launch three worker
-    nodes in a pre-provisioned EKS cluster, and deploys a pair of back-to-back
-    XRd instances running an overlay network using GRE, IS-IS and L3VPN; and a
-    pair of linux containers that communicate via the overlay network.
-
-## Running Examples
+- [Bootstrap](/examples/bootstrap/README.md): this configuration forms a common
+  base; other example configurations are layered on top of this base.
+- [Singleton](/examples/singleton/README.md): this runs an XRd Control Plane,
+  or XRd vRouter workload on a single worker node.
+- [Overlay](/examples/overlay/README.md): this launches three worker nodes,
+  and deploys a pair of back-to-back XRd vRouter instances running an overlay
+  network using GRE, IS-IS and L3VPN, as well as a pair of Linux containers
+  that communicate via the overlay network.
+- [HA](/examples/ha/README.md): this demonstrates the use of XRd vRouter as a
+  redundant Cloud Router.
 
 To launch an example, first make sure you have met all the requirements
 listed [above](#requirements), including having an AMI suitable for running
 the required XRd platform available.
 
 Once you have satisfied the requirements, each example can be launched like any
-any other Terraform module.  The `eks-cluster` and `eks-setup` examples
-provision an EKS cluster suitable for running XRd workloads, and serve as a
-base for the workload modules; you should therefore launch these modules
-in-order before launching a workload module.
+any other Terraform configuration.  The Bootstrap configuration serves as a
+base for other configurations; an infrastructure configuration should be
+layered on top of the Bootstrap configuration, and a workload configuration
+should be layered on top of the associated infrastructure configuration.
 
-The following sections walk through instantiating the `overlay` workload.
-More details on all the Terraform command options can be found in the
-[Terraform CLI documentation](https://developer.hashicorp.com/terraform/cli).
+The following sections walk through instantiating the Overlay example.  More
+details on all the Terraform command options can be found in the [Terraform CLI
+documentation](https://developer.hashicorp.com/terraform/cli).
 
 ### Bring-up
 
 Firstly, clone this repository.
 
-The `eks-cluster` module must be run first; this provisions a minimal EKS
-cluster.
-
-Use [`terraform
-init`](https://developer.hashicorp.com/terraform/cli/commands/init) and
-[`terraform
-apply`](https://developer.hashicorp.com/terraform/cli/commands/apply) to run
-the `eks-cluster` module:
+The Bootstrap configuration must be run first; this provisions a VPC, EKS
+cluster, and Bastion node (for worker node access).
 
 ```
-terraform -chdir=examples/infra/eks-cluster init
-terraform -chdir=examples/infra/eks-cluster apply
+terraform -chdir=examples/bootstrap init
+terraform -chdir=examples/bootstrap apply
 ```
 
 Terraform will show you a changeset and ask you to confirm that it should
-proceed.  It takes around 15 minutes to bring up the EKS cluster.
+proceed.  It takes around 15 minutes to bring up the configuration.
 
-Then run the `eks-setup` module to setup the EKS cluster:
-
-```
-terraform -chdir=examples/infra/eks-setup init
-terraform -chdir=examples/infra/eks-setup apply
-```
-
-When the cloud infrastructure modules have been applied, you can then apply
-workload modules.  The procedure is largely the same; although you should first
-check the [`variables.tf`](examples/overlay/variables.tf) file to find all the
-configuration options, and then create a file `vars.tfvars` to set the
-configuration options you want use following the [variable definitions file
-format](https://developer.hashicorp.com/terraform/language/values/variables#variable-definitions-tfvars-files):
+Then apply the Overlay infrastructure configuration.  This creates the
+remaining cloud infrastructure resources necessary for running the Overlay
+workload.
 
 ```
-cat << EOF
-cluster_version = 1.28
-xr_root_user = "root"
-xr_root_password = "mypassword"
-EOF > vars.tfvars
+terraform -chdir=examples/overlay/infra init
+terraform -chdir=examples/overlay/infra apply
 ```
 
-The `overlay` workload can then be applied using the following command:
+Finally apply the Overlay workload configuration.  This accepts a number of
+input variables described in
+[`variables.tf`](/examples/overlay/workload/variables.tf) which may be of
+interest; e.g., it is necessary to set the IOS XR root username and password.
+To do so, create a file `vars.tfvars` with the desired configuration options
+following the [variable definitions file
+format](https://developer.hashicorp.com/terraform/language/values/variables#variable-definitions-tfvars-files).
 
 ```
-terraform -chdir=examples/workload/overlay init
-terraform -chdir=examples/workload/overlay apply -var-file=vars.tfvars
+cat << EOF > vars.tfvars
+xr_root_user = "user"
+xr_root_password = "password"
+EOF
+
+terraform -chdir=examples/overlay/workload init
+terraform -chdir=examples/overlay/workload apply -var-file=$PWD/vars.tfvars
 ```
 
 Configuration options can also be [configured on the
-CLI](https://developer.hashicorp.com/terraform/language/values/variables#variables-on-the-command-line):
+CLI](https://developer.hashicorp.com/terraform/language/values/variables#variables-on-the-command-line).
+
+It should take less than a minute to apply the workload configuration.  When this is complete, you may then configure `kubectl` so that you can connect to the cluster:
 
 ```
-terraform -chdir=examples/workload/overlay apply -var cluster_version=1.28
+aws eks update-kubeconfig --name $(terraform -chdir=examples/overlay/workload output -raw cluster_name)
 ```
-
-It should take around 5 minutes to bring up the `overlay` example.
 
 ### Modification
 
 Once the topology has been launched, any changes you make to the configuration
 can be applied by modifying the configuration file and re-running the
-`terraform -chdir=examples/workload/overlay apply -var-file=vars.tfvars`
+`terraform -chdir=examples/overlay/workload apply -var-file=$PWD/vars.tfvars`
 command - Terraform will compute the minimal diff required to satisfy your new
 configuration and apply it.
 
@@ -243,9 +192,9 @@ configuration and apply it.
 When you've finished with the topology, it can be torn down with:
 
 ```
-terraform -chdir=examples/workload/overlay destroy -var-file=vars.tfvars
-terraform -chdir=examples/infra/eks-setup destroy
-terraform -chdir=examples/infra/eks-cluster destroy
+terraform -chdir=examples/overlay/workload destroy -var-file=$PWD/vars.tfvars
+terraform -chdir=examples/overlay/infra destroy
+terraform -chdir=examples/bootstrap destroy
 ```
 
 N.B. It is recommended to pass the same configuration to `terraform destroy`
@@ -255,29 +204,27 @@ inference of values is the same (e.g. automatically picking up XRd
 Packer AMIs at the correct cluster version, which will fail of no such
 image is present even in destroy mode).
 
-## Alternative workflows
+## Modules
 
-### Using Terraform to manage infrastructure only
+As well as the example configurations this repository contains several
+Terraform modules to assist with deploying XRd on AWS.  These are useful for
+those wanting to construct their own Terraform configurations for running XRd
+workloads.
 
-All the examples in this repository support several configuration
-flags that control how much is brought up by Terraform. One of these is
-the `create_workload` flag, which is set to `true` by default.
+The following "building block" modules are provided in the repository:
 
-Setting this to `false` for an example template means that all the AWS
-infrastructure (e.g. VPC, EKS cluster, worker nodes) will be brought up,
-but no XRd workload will be installed into the cluster.
+ - VPC
+ - EKS
+ - IRSA
+ - EC2 Key Pair
+ - Bastion Node
+ - Worker Node
 
-This mode of operation can be useful to users who want to manage the workload
-outside of Terraform, e.g. by using Helm directly.
+Each of these modules is focused on bringing up a constrained set of
+AWS resources.
 
-### Flexible lab environments
-
-Users in a lab environment may want to bring up a single set of infrastructure
-that allows flexible topologies to be overlaid on top.
-
-Users comfortable with writing Terraform and debugging problems themselves
-can look at the [DEVELOPMENT](DEVELOPMENT.md) pages for more details
-on templates provided in this repository to help.
+For more information on how to use these modules to build your own Terraform
+configurations, see the [development](DEVELOPMENT.md) page.
 
 ## Troubleshooting
 

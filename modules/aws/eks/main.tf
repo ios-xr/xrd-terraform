@@ -1,32 +1,15 @@
-terraform {
-  required_version = ">= 1.2.0"
-
-  required_providers {
-    aws = {
-      source  = "hashicorp/aws"
-      version = ">= 5.0"
-    }
-  }
-}
-
-data "aws_region" "current" {}
-
-data "aws_iam_policy_document" "cluster" {
-  statement {
-    actions = ["sts:AssumeRole"]
-    principals {
-      type        = "Service"
-      identifiers = ["eks.amazonaws.com"]
-    }
-  }
-}
-
 resource "aws_iam_role" "cluster" {
   assume_role_policy = data.aws_iam_policy_document.cluster.json
   managed_policy_arns = [
     "arn:aws:iam::aws:policy/AmazonEKSClusterPolicy",
   ]
-  name = "${var.name}-${data.aws_region.current.name}-cluster"
+  name = "${var.name}-cluster"
+}
+
+resource "null_resource" "cluster_version" {
+  triggers = {
+    cluster_version = var.cluster_version
+  }
 }
 
 resource "aws_eks_cluster" "this" {
@@ -40,8 +23,10 @@ resource "aws_eks_cluster" "this" {
     subnet_ids              = var.subnet_ids
   }
   version = var.cluster_version
-}
 
-locals {
-  ca_cert = aws_eks_cluster.this.certificate_authority[0].data
+  # It is not possible to downgrade the EKS cluster version; instead
+  # unconditionally replace the resource when the cluster version changes.
+  lifecycle {
+    replace_triggered_by = [null_resource.cluster_version]
+  }
 }
