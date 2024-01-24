@@ -1,6 +1,7 @@
 provider "aws" {
   endpoints {
     iam = var.aws_endpoint
+    sts = var.aws_endpoint
   }
 }
 
