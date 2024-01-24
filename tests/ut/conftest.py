@@ -46,18 +46,12 @@ def moto_server() -> MotoServer:
 
 
 @pytest.fixture(scope="session")
-def ec2(
-    request: pytest.FixtureRequest,
-    moto_server: MotoServer,
-) -> EC2ServiceResource:
+def ec2(moto_server: MotoServer) -> EC2ServiceResource:
     return boto3.resource("ec2", endpoint_url=moto_server.endpoint)
 
 
 @pytest.fixture(scope="session")
-def iam(
-    request: pytest.FixtureRequest,
-    moto_server: MotoServer,
-) -> IAMServiceResource:
+def iam(moto_server: MotoServer) -> IAMServiceResource:
     return boto3.resource("iam", endpoint_url=moto_server.endpoint)
 
 
@@ -67,8 +61,5 @@ def this_dir() -> Path:
 
 
 @pytest.fixture(scope="module")
-def eks_client(
-    request: pytest.FixtureRequest,
-    moto_server: MotoServer,
-) -> EKSClient:
+def eks_client(moto_server: MotoServer) -> EKSClient:
     return boto3.client("eks", endpoint_url=moto_server.endpoint)
