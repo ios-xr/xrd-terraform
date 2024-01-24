@@ -1,0 +1,38 @@
+name: tests
+on:
+  pull_request:
+    branches:
+      - "main"
+    paths-ignore:
+      - ".gitignore"
+      - ".pre-commit-config.yaml"
+      - "*.md"
+  push:
+    branches:
+      - "gh-actions"
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    name: tests
+    steps:
+      - uses: "actions/checkout@main"
+        with:
+          fetch-depth: 0
+
+      - name: "Setup Python"
+        uses: "actions/setup-python@master"
+        with:
+          python-version: "3.11"
+
+      - name: "Install prerequisites"
+        run: |
+          curl -o terraform.zip https://releases.hashicorp.com/terraform/1.7.0/terraform_1.7.0_linux_amd64.zip
+          unzip -d /usr/bin terraform.zip
+
+      - name: "Install Python requirements"
+        run: |
+          pip install -U pip wheel
+          pip install -r tests/requirements.txt
+
+      - name: Run tests
+        run: pytest tests/
