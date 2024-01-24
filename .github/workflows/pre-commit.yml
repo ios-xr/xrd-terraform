@@ -1,3 +1,4 @@
+---
 name: pre-commit
 
 on:
@@ -16,8 +17,10 @@ jobs:
         with:
           fetch-depth: 0
       - name: "Setup prerequisites"
+        # yamllint disable rule:line-length
         run: |
           curl -s -L https://github.com/terraform-docs/terraform-docs/releases/download/v0.17.0/terraform-docs-v0.17.0-linux-amd64.tar.gz | sudo tar xz -C /usr/bin terraform-docs
+        # yamllint enable rule:line-length
       - uses: actions/setup-python@v3
         with:
           cache: "pip"
