@@ -24,10 +24,10 @@ jobs:
         with:
           python-version: "3.11"
 
-      - name: "Install prerequisites"
-        run: |
-          curl -o terraform.zip https://releases.hashicorp.com/terraform/1.7.0/terraform_1.7.0_linux_amd64.zip
-          unzip -d /usr/bin terraform.zip
+      - name: "Setup Terraform"
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: "1.7.1"
 
       - name: "Install Python requirements"
         run: |
