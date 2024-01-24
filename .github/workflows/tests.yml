@@ -29,6 +29,11 @@ jobs:
         with:
           terraform_version: "1.7.1"
 
+      - name: "Configure AWS"
+        run: |
+          mkdir ~/.aws
+          echo "[default]\nregion = us-east-1" > ~/.aws/config
+
       - name: "Install Python requirements"
         run: |
           pip install -U pip wheel
