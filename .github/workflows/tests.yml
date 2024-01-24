@@ -11,7 +11,11 @@ on:
       - "*.md"
   push:
     branches:
+      - "main"
       - "gh-actions"
+  schedule:
+    - cron: "0 0 * * *"
+
 jobs:
   test:
     runs-on: ubuntu-latest
@@ -21,13 +25,11 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: "Setup Terraform"
-        uses: hashicorp/setup-terraform@v3
+      - uses: hashicorp/setup-terraform@v3
         with:
           terraform_version: "1.7.1"
 
-      - name: "Setup Python"
-        uses: "actions/setup-python@master"
+      - uses: "actions/setup-python@master"
         with:
           python-version: "3.11"
           cache: "pip"
