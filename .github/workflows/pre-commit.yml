@@ -26,4 +26,5 @@ jobs:
         with:
           cache: "pip"
       - uses: pre-commit/action@v3.0.0
-        extra_args: "--hook-stage manual"
+        with:
+          extra_args: "--hook-stage manual"
