@@ -8,9 +8,6 @@ on:
   push:
     branches:
       - "main"
-      - "gh-actions"
-  schedule:
-    - cron: "0 0 * * *"
 
 jobs:
   pre-commit:
