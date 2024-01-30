@@ -27,6 +27,7 @@ from .moto_server import MotoServer
 class Outputs(TerraformOutputs):
     id: str
     instance_type: str
+    network_interface: dict[str, Any]
     private_ip: str
     hugepages_gb: int | None = None
     isolated_cores: str | None = None

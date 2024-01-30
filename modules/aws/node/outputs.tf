@@ -33,7 +33,7 @@ output "isolated_cores_list" {
 }
 
 output "network_interface" {
-  description = "Network interfaces attached to the node"
+  description = "The primary network interface attached to the node"
   value       = aws_network_interface.this
 }
 

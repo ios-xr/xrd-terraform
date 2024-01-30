@@ -1,4 +1,5 @@
 import logging
+import os
 import random
 from pathlib import Path
 
@@ -24,6 +25,13 @@ def pytest_configure(config: pytest.Config) -> None:
 
 @pytest.fixture(scope="session", autouse=True)
 def moto_server() -> MotoServer:
+    # Refer to http://docs.getmoto.org/en/latest/docs/getting_started.html#example-on-usage
+    os.environ["AWS_ACCESS_KEY_ID"] = "testing"
+    os.environ["AWS_SECRET_ACCESS_KEY"] = "testing"
+    os.environ["AWS_SECURITY_TOKEN"] = "testing"
+    os.environ["AWS_SESSION_TOKEN"] = "testing"
+    os.environ["AWS_DEFAULT_REGION"] = "us-east-1"
+
     for i, port in enumerate(random.sample(range(50000, 50500), 100)):
         try:
             server = MotoServer(ThreadedMotoServer(port=port))

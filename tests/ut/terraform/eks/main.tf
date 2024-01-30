@@ -3,6 +3,7 @@ provider "aws" {
     ec2 = var.aws_endpoint
     eks = var.aws_endpoint
     iam = var.aws_endpoint
+    sts = var.aws_endpoint
   }
 }
 
