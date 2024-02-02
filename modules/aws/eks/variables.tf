@@ -1,5 +1,5 @@
 variable "cluster_version" {
-  description = "Kubernetes `<major>.<minor>` version to use for the EKS cluster (e.g. `1.28`)"
+  description = "Desired Kubernetes version for the cluster"
   type        = string
   nullable    = false
 }

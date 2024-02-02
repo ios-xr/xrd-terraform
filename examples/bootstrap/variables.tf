@@ -10,6 +10,6 @@ variable "name_prefix" {
 variable "cluster_version" {
   description = "Cluster version"
   type        = string
-  default     = "1.28"
+  default     = "1.29"
   nullable    = false
 }

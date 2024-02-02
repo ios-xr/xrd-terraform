@@ -101,7 +101,7 @@ def security_group(ec2: EC2ServiceResource, vpc: Vpc) -> SecurityGroup:
 @pytest.fixture
 def base_vars(subnet1: Subnet, subnet2: Subnet) -> dict[str, Any]:
     return {
-        "cluster_version": "1.28",
+        "cluster_version": "1.29",
         "name": str(uuid.uuid4()),
         "subnet_ids": [subnet1.id, subnet2.id],
     }
@@ -123,7 +123,14 @@ def test_defaults(
 
 @pytest.mark.parametrize(
     "cluster_version",
-    ("1.23", "1.24", "1.25", "1.26", "1.27"),
+    (
+        "1.23",
+        "1.24",
+        "1.25",
+        "1.26",
+        "1.27",
+        "1.28",
+    ),
 )
 def test_cluster_version(
     eks_client: EKSClient,

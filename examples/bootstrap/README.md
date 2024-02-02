@@ -40,7 +40,7 @@ terraform destroy
 
 | Name | Description | Type | Default | Required |
 |------|-------------|------|---------|:--------:|
-| <a name="input_cluster_version"></a> [cluster\_version](#input\_cluster\_version) | Cluster version | `string` | `"1.28"` | no |
+| <a name="input_cluster_version"></a> [cluster\_version](#input\_cluster\_version) | Cluster version | `string` | `"1.29"` | no |
 | <a name="input_name_prefix"></a> [name\_prefix](#input\_name\_prefix) | Used as a prefix for the 'Name' tag for each created resource.<br>If null, then a random name 'xrd-terraform-[0-9a-z]{8}' is used. | `string` | `null` | no |
 
 ## Outputs
