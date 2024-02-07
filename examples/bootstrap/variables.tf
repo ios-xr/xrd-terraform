@@ -7,6 +7,22 @@ variable "name_prefix" {
   default     = null
 }
 
+variable "azs" {
+  description = <<-EOT
+  List of exactly two availability zones in the currently configured AWS region.
+  A private subnet and a public subnet is created in each of these availability zones.
+  Each cluster node is launched in one of the private subnets.
+  If null, then the first two availability zones in the currently configured AWS region is used.
+  EOT
+  type        = list(string)
+  default     = null
+
+  validation {
+    condition     = try(length(var.azs) == 2, var.azs == null)
+    error_message = "Must provide exactly two availability zones."
+  }
+}
+
 variable "cluster_version" {
   description = "Cluster version"
   type        = string
