@@ -127,6 +127,9 @@ resource "aws_instance" "this" {
       Try using a different instance type, or set 'var.isolated_cores' or 'var.xrd_vr_cpuset' to an appropriate value.
       EOT
     }
+
+    # Secondary IP addresses are assigned to the instance by the VPC CNI.
+    ignore_changes = ["secondary_private_ips"]
   }
 
   ami                         = var.ami
@@ -255,7 +258,10 @@ resource "kubernetes_job" "wait" {
   }
 
   timeouts {
-    create = "5m"
+    # If using the XRd-compatible AMI we must wait for the XRd bootstrap
+    # script, the EKS bootstrap script, and reboot.  This is a bit of a
+    # guessing game but 10 minutes should be more than enough.
+    create = "10m"
   }
 
   wait_for_completion = true
