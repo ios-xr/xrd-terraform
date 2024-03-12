@@ -129,7 +129,7 @@ resource "aws_instance" "this" {
     }
 
     # Secondary IP addresses are assigned to the instance by the VPC CNI.
-    ignore_changes = ["secondary_private_ips"]
+    ignore_changes = [secondary_private_ips]
   }
 
   ami                         = var.ami
