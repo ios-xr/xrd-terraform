@@ -3,12 +3,12 @@ locals {
     "cloud-router" = {
       "m5.2xlarge" = {
         cpuset       = "2-3"
-        hugepages_gb = 4
+        hugepages_gb = 6
       }
 
       "m5n.2xlarge" = {
         cpuset       = "2-3"
-        hugepages_gb = 4
+        hugepages_gb = 6
       }
 
       "m5.24xlarge" = {
@@ -34,6 +34,27 @@ locals {
     m5n = [
       "m5n.16xlarge",
       "m5n.24xlarge",
+    ]
+
+    m5zn = [
+      "m5zn.12xlarge",
+    ]
+
+    m6in = [
+      # m6in.16xlarge is confirmed single NUMA (different from m5n family)
+      "m6in.24xlarge",
+      "m6in.32xlarge",
+    ]
+
+    m6a = [
+      # m6a.24xlarge" confirmed as single NUMA
+      "m6a.32xlarge",
+      "m6a.48xlarge",
+    ]
+
+    m7i = [
+      # m7in.24xlarge confirmed as single NUMA
+      "m7in.48xlarge",
     ]
   }
 }
