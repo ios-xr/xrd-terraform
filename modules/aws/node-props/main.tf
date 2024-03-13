@@ -54,7 +54,7 @@ locals {
 
     m7i = [
       # m7in.24xlarge confirmed as single NUMA
-      "m7in.48xlarge",
+      "m7i.48xlarge",
     ]
   }
 }

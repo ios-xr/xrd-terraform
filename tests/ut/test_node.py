@@ -243,7 +243,7 @@ def test_unknown_instance_type(ec2, tf: Terraform, base_vars: dict[str, Any]):
     unknown instance type.
 
     """
-    vars = base_vars | {"instance_type": "m7i.48xlarge", "is_xrd_ami": True}
+    vars = base_vars | {"instance_type": "m1.small", "is_xrd_ami": True}
     with pytest.raises(subprocess.CalledProcessError) as excinfo:
         tf.apply(vars=vars)
         assert "Isolated cores was not provided" in str(excinfo.value)
