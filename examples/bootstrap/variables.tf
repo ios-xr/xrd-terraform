@@ -26,6 +26,6 @@ variable "azs" {
 variable "cluster_version" {
   description = "Cluster version"
   type        = string
-  default     = "1.29"
+  default     = "1.30"
   nullable    = false
 }
