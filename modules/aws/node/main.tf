@@ -203,6 +203,8 @@ resource "aws_network_interface" "this" {
   private_ips       = each.value.private_ips
   security_groups   = each.value.security_groups
   source_dest_check = false
+  ipv6_addresses = try(each.value.ipv6_addresses, null)
+  ipv6_prefixes = try(each.value.ipv6_prefixes, null)
 
   attachment {
     device_index = each.key + 1

@@ -34,6 +34,8 @@ resource "aws_subnet" "data" {
   availability_zone = data.aws_subnet.cluster.availability_zone
   cidr_block        = each.value
   vpc_id            = local.bootstrap.vpc_id
+  // XXX
+  ipv6_cidr_block = each.key == "trunk-2" ? "2a05:d018:1ae6:b200::/60" : null
 
   tags = {
     Name = "${local.name_prefix}-${each.key}"
@@ -102,6 +104,7 @@ locals {
           subnet_id       = local.access_a_subnet_id
           private_ips     = ["10.0.10.11"]
           security_groups = [aws_security_group.data.id]
+
         },
         {
           subnet_id       = local.trunk_1_subnet_id
@@ -112,6 +115,8 @@ locals {
           subnet_id       = local.trunk_2_subnet_id
           private_ips     = ["10.0.12.11"]
           security_groups = [aws_security_group.data.id]
+          ipv6_addresses = ["2a05:d018:1ae6:b200::b"]
+          ipv6_prefixes = ["2a05:d018:1ae6:b200:0001::0/80"]
         },
       ]
     }
@@ -140,6 +145,8 @@ locals {
           subnet_id       = local.trunk_2_subnet_id
           private_ips     = ["10.0.12.12"]
           security_groups = [aws_security_group.data.id]
+          ipv6_addresses = ["2a05:d018:1ae6:b200::c"]
+          ipv6_prefixes = ["2a05:d018:1ae6:b200:0002::0/80"]
         },
       ]
     }

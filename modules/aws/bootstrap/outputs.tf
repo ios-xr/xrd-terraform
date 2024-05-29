@@ -72,3 +72,7 @@ output "vpc_id" {
   description = "VPC ID"
   value       = module.vpc.vpc_id
 }
+
+output "vpc_ipv6_cidr_block" {
+  value       = module.vpc.ipv6_cidr_block
+}

@@ -12,6 +12,7 @@ module "vpc" {
   name = local.name_prefix
   azs  = var.azs
   cidr = "10.0.0.0/16"
+  assign_generated_ipv6_cidr_block = var.assign_generated_ipv6_cidr_block
 
   enable_dns_hostnames = true
   enable_nat_gateway   = true

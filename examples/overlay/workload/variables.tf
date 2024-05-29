@@ -16,15 +16,3 @@ variable "image_tag" {
   nullable    = false
   default     = "latest"
 }
-
-variable "xr_root_user" {
-  description = "Root user name to use on XRd instances"
-  type        = string
-  nullable    = false
-}
-
-variable "xr_root_password" {
-  description = "Root user password to use on XRd instances"
-  type        = string
-  nullable    = false
-}

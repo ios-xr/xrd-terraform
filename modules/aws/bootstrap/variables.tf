@@ -31,3 +31,8 @@ variable "name_prefix" {
   type        = string
   default     = null
 }
+
+variable "assign_generated_ipv6_cidr_block" {
+  type = bool
+  default = false
+}

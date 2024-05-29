@@ -25,15 +25,6 @@ locals {
   )
 }
 
-module "node_props" {
-  source = "../../../modules/aws/node-props"
-
-  for_each = data.aws_instance.nodes
-
-  instance_type = each.value.instance_type
-  use_case      = "maximal"
-}
-
 resource "helm_release" "xrd1" {
   name       = "xrd1"
   repository = "https://ios-xr.github.io/xrd-helm"
@@ -43,11 +34,8 @@ resource "helm_release" "xrd1" {
     templatefile(
       "${path.module}/templates/xrd1.yaml.tftpl",
       {
-        xr_root_user     = var.xr_root_user,
-        xr_root_password = var.xr_root_password
         image_repository = local.image_repository
         image_tag        = var.image_tag
-        cpuset           = module.node_props["alpha"].cpuset
       },
     )
   ]
@@ -62,20 +50,17 @@ resource "helm_release" "xrd2" {
     templatefile(
       "${path.module}/templates/xrd2.yaml.tftpl",
       {
-        xr_root_user     = var.xr_root_user,
-        xr_root_password = var.xr_root_password
         image_repository = local.image_repository
         image_tag        = var.image_tag
-        cpuset           = module.node_props["beta"].cpuset
       },
     )
   ]
 }
 
-module "cnf" {
+module "host1" {
   source = "../../../modules/aws/linux-pod-with-net-attach"
 
-  name       = "cnf"
+  name       = "host1"
   device     = "eth1"
   ip_address = "10.0.10.10/24"
   gateway    = "10.0.10.11"
@@ -85,10 +70,10 @@ module "cnf" {
   }
 }
 
-module "peer" {
+module "host2" {
   source = "../../../modules/aws/linux-pod-with-net-attach"
 
-  name       = "peer"
+  name       = "host2"
   device     = "eth2"
   ip_address = "10.0.13.10/24"
   gateway    = "10.0.13.12"

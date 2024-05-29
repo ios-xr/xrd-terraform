@@ -90,3 +90,7 @@ output "name" {
   description = "The name of the VPC specified as argument to this module"
   value       = var.name
 }
+
+output "ipv6_cidr_block" {
+  value       = aws_vpc.this[0].ipv6_cidr_block
+}

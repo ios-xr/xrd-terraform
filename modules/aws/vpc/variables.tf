@@ -16,6 +16,11 @@ variable "cidr" {
   default     = "10.0.0.0/16"
 }
 
+variable "assign_generated_ipv6_cidr_block" {
+  type        = bool
+  default     = false
+}
+
 variable "azs" {
   description = "List of availability zones names or ids in the region"
   type        = list(string)
