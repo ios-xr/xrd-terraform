@@ -8,6 +8,12 @@ variable "azs" {
   nullable    = false
 }
 
+variable "bastion_remote_access_cidr_blocks" {
+  description = "Allowed CIDR blocks for external SSH access to the Bastion instance"
+  type        = list(string)
+  default     = null
+}
+
 variable "cluster_version" {
   description = "Cluster version"
   type        = string

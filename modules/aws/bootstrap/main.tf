@@ -64,10 +64,11 @@ resource "null_resource" "kubeconfig" {
 module "bastion" {
   source = "../../../modules/aws/bastion"
 
-  instance_type = "t3.nano"
-  key_name      = module.key_pair.key_name
-  name          = "${local.name_prefix}-bastion"
-  subnet_id     = module.vpc.public_subnet_ids[0]
+  instance_type      = "t3.nano"
+  key_name           = module.key_pair.key_name
+  name               = "${local.name_prefix}-bastion"
+  remote_access_cidr = var.bastion_remote_access_cidr_blocks
+  subnet_id          = module.vpc.public_subnet_ids[0]
 }
 
 resource "aws_iam_role" "node" {
