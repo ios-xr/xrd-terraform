@@ -61,12 +61,13 @@ required:
         created the repository and upload the image.
      3. Example: `./publish-ecr xrd-vrouter-container-x86.7.9.1.tgz`
   2. Run the `aws-quickstart` script.
-     1. This has two mandatory arguments, the username and password to be
-        used for the XRd root user.
+     1. This has three mandatory arguments: the username and password to be
+        used for the XRd root user, and a comma-separated list of IPv4 CIDR
+        blocks to allow SSH access to the Bastion instance.
      2. This will first build an AMI using the
         [XRd Packer](https://github.com/ios-xr/xrd-packer) templates if one
         is not detected.
-     3. Example: `./aws-quickstart -u user -p password`
+     3. Example: `./aws-quickstart -u user -p password -b 10.0.0.0/8,172.16.0.0/12,192.168.0.0/16`
 
 This will bring up an EKS cluster called 'xrd-cluster', some worker nodes,
 and a dummy topology with a pair of back-to-back XRd instances running an
@@ -140,6 +141,13 @@ terraform -chdir=examples/bootstrap init
 terraform -chdir=examples/bootstrap apply
 ```
 
+This accepts a number of input variables described in
+[`variables.tf`](/examples/bootstrap/variables.tf).  In particular, the
+`bastion_remote_access_cidr_blocks` variable is required, which is a list of
+IPv4 CIDR blocks to allow SSH access to the Bastion instance.  Pass `null` to
+prevent access to the Bastion instance, or `["0.0.0.0/0"]` to allow SSH access
+from any IPv4 address.
+
 Terraform will show you a changeset and ask you to confirm that it should
 proceed.  It takes around 15 minutes to bring up the configuration.
 
@@ -194,7 +202,7 @@ When you've finished with the topology, it can be torn down with:
 ```
 terraform -chdir=examples/overlay/workload destroy -var-file=$PWD/vars.tfvars
 terraform -chdir=examples/overlay/infra destroy
-terraform -chdir=examples/bootstrap destroy
+terraform -chdir=examples/bootstrap destroy -var=bastion_remote_access_cidr_blocks=null
 ```
 
 N.B. It is recommended to pass the same configuration to `terraform destroy`

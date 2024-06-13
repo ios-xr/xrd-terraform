@@ -8,7 +8,7 @@ set -o pipefail
 usage()  {
     >&2 cat << EOF
 USAGE:
-    aws-quickstart [OPTIONS] -u XR_USERNAME -p XR_PASSWORD
+    aws-quickstart [OPTIONS] -u XR_USERNAME -p XR_PASSWORD -b BASTION_REMOTE_ACCESS_CIDR_BLOCKS
 
 EOF
 }
@@ -26,6 +26,9 @@ ARGS:
 
     -p, --password
            XR password.
+
+    -b, --bastion-remote-access-cidr-blocks
+           IPv4 CIDR blocks to allow SSH access to the Bastion instance.
 
 OPTIONS:
     -a, --ami
@@ -48,6 +51,7 @@ DESTROY=""
 KUBERNETES_VERSION="1.30"
 XR_USERNAME=""
 XR_PASSWORD=""
+BASTION_REMOTE_ACCESS_CIDR_BLOCKS=""
 
 # Parse the arguments
 while [ $# -gt 0 ]; do
@@ -58,6 +62,10 @@ while [ $# -gt 0 ]; do
       ;;
     -p|--password )
       XR_PASSWORD="$2"
+      shift
+      ;;
+    -b|--bastion-remote-access-cidr-blocks )
+      BASTION_REMOTE_ACCESS_CIDR_BLOCKS="$2"
       shift
       ;;
     -a|--ami )
@@ -86,6 +94,10 @@ if [ -z "${XR_USERNAME:-}" ] && [ -z "$DESTROY" ]; then
 fi
 if [ -z "${XR_PASSWORD:-}" ] && [ -z "$DESTROY" ]; then
   >&2 echo "error: XR password (-p|--password) must be specified"
+  ERROR=1
+fi
+if [ -z "${BASTION_REMOTE_ACCESS_CIDR_BLOCKS:-}" ] && [ -z "$DESTROY" ]; then
+  >&2 echo "error: Bastion remote access CIDR blocks (-b|--bastion-remote-access-cidr-blocks) must be specified"
   ERROR=1
 fi
 
@@ -144,9 +156,28 @@ terraform_apply () {
 
   trap terraform_destroy ERR EXIT
 
+  if [ "$BASTION_REMOTE_ACCESS_CIDR_BLOCKS" != "null" ]; then
+    # This script takes a comma-separated list as input, but Terraform wants
+    # this as a list of strings in HCL format.
+    #
+    # For example, we must convert:
+    #   10.0.0.0/8,172.16.0.0/12,192.168.0.0/16
+    # to:
+    #   ["10.0.0.0/8","172.16.0.0/12","192.168.0.0/16"]
+    #
+    # Do this in two steps:
+    #   Replace ',' with '","'.
+    #   Prepend '["', and append ']"'.
+    bastion_var_value="${BASTION_REMOTE_ACCESS_CIDR_BLOCKS/,/\",\"}"
+    bastion_var_value="[\"${bastion_var_value}\"]"
+  else
+    bastion_var_value="null"
+  fi
+
   terraform -chdir="$SCRIPT_DIR"/examples/bootstrap apply \
       -auto-approve \
-      -var "cluster_version=$KUBERNETES_VERSION"
+      -var "cluster_version=$KUBERNETES_VERSION" \
+      -var "bastion_remote_access_cidr_blocks=$bastion_var_value"
   terraform -chdir="$SCRIPT_DIR"/examples/overlay/infra apply \
       -auto-approve \
       ${AMI_ID:+"-var node_ami=$AMI_ID"}
@@ -166,7 +197,8 @@ terraform_destroy () {
   terraform -chdir="$SCRIPT_DIR"/examples/overlay/infra destroy \
       -auto-approve
   terraform -chdir="$SCRIPT_DIR"/examples/bootstrap destroy \
-      -auto-approve
+      -auto-approve \
+      -var "bastion_remote_access_cidr_blocks=null"
 }
 
 if [ -z "$DESTROY" ]; then
