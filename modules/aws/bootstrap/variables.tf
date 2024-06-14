@@ -9,7 +9,10 @@ variable "azs" {
 }
 
 variable "bastion_remote_access_cidr_blocks" {
-  description = "Allowed CIDR blocks for external SSH access to the Bastion instance"
+  description = <<-EOT
+  Allowed CIDR blocks for external SSH access to the Bastion instance.
+  If null, then access to the Bastion instance is prevented.
+  EOT
   type        = list(string)
 }
 

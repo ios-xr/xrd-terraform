@@ -41,7 +41,7 @@ terraform destroy
 | Name | Description | Type | Default | Required |
 |------|-------------|------|---------|:--------:|
 | <a name="input_azs"></a> [azs](#input\_azs) | List of exactly two availability zones in the currently configured AWS region.<br>A private subnet and a public subnet is created in each of these availability zones.<br>Each cluster node is launched in one of the private subnets.<br>If null, then the first two availability zones in the currently configured AWS region is used. | `list(string)` | `null` | no |
-| <a name="input_bastion_remote_access_cidr_blocks"></a> [bastion\_remote\_access\_cidr\_blocks](#input\_bastion\_remote\_access\_cidr\_blocks) | Allowed CIDR blocks for external SSH access to the Bastion instance.<br>This must be a list of strings.<br>Pass 'null' to prevent access to the Bastion instance. | `list(string)` | n/a | yes |
+| <a name="input_bastion_remote_access_cidr_blocks"></a> [bastion\_remote\_access\_cidr\_blocks](#input\_bastion\_remote\_access\_cidr\_blocks) | Allowed CIDR blocks for external SSH access to the Bastion instance.<br>This must be a list of strings.<br>If null, then access to the Bastion instance is prevented. | `list(string)` | n/a | yes |
 | <a name="input_cluster_version"></a> [cluster\_version](#input\_cluster\_version) | Cluster version | `string` | `"1.30"` | no |
 | <a name="input_name_prefix"></a> [name\_prefix](#input\_name\_prefix) | Used as a prefix for the 'Name' tag for each created resource.<br>If null, then a random name 'xrd-terraform-[0-9a-z]{8}' is used. | `string` | `null` | no |
 
