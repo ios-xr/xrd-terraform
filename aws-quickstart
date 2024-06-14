@@ -166,9 +166,9 @@ terraform_apply () {
     #   ["10.0.0.0/8","172.16.0.0/12","192.168.0.0/16"]
     #
     # Do this in two steps:
-    #   Replace ',' with '","'.
-    #   Prepend '["', and append ']"'.
-    bastion_var_value="${BASTION_REMOTE_ACCESS_CIDR_BLOCKS/,/\",\"}"
+    #   Replace any ',' with '","'.
+    #   Prepend '["', and append '"]'.
+    bastion_var_value="${BASTION_REMOTE_ACCESS_CIDR_BLOCKS//,/\",\"}"
     bastion_var_value="[\"${bastion_var_value}\"]"
   else
     bastion_var_value="null"
