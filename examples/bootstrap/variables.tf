@@ -23,6 +23,15 @@ variable "azs" {
   }
 }
 
+variable "bastion_remote_access_cidr_blocks" {
+  description = <<-EOT
+  Allowed CIDR blocks for external SSH access to the Bastion instance.
+  This must be a list of strings.
+  If null, then access to the Bastion instance is prevented.
+  EOT
+  type        = list(string)
+}
+
 variable "cluster_version" {
   description = "Cluster version"
   type        = string
