@@ -35,7 +35,7 @@ variable "name" {
 variable "remote_access_cidr" {
   description = "Allowed CIDR blocks for external SSH access to the Bastion instance"
   type        = list(string)
-  default     = ["0.0.0.0/0"]
+  default     = []
   nullable    = false
 }
 

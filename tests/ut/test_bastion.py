@@ -1,6 +1,6 @@
 import uuid
 from pathlib import Path
-from typing import Any
+from typing import Any, Sequence
 
 import botocore.exceptions
 import pytest
@@ -78,31 +78,52 @@ def base_vars(subnet: Subnet, key_pair: KeyPair) -> dict[str, Any]:
     }
 
 
-def _assert_sgrs(sg: SecurityGroup, remote_access_cidr: list[str]) -> None:
+def _assert_sgrs(
+    sg: SecurityGroup,
+    remote_access_cidr: Sequence[str] | None = None,
+) -> None:
     """Assert the 'bastion' security group has the expected ingress rules."""
-    assert len(sg.ip_permissions) == 2
+    # We expect at least one ingress SGR for traffic from self.
+    expected_sgr_count = 1
 
+    if remote_access_cidr:
+        # And two more if any remote access CIDRs are specified; one for ICMP,
+        # and one for SSH traffic.
+        expected_sgr_count += 2
+
+    assert len(sg.ip_permissions) == expected_sgr_count
+
+    self_sgr_found = False
     icmp_sgr_found = False
     ssh_sgr_found = False
+
     for sgr in sg.ip_permissions:
-        assert {x["CidrIp"] for x in sgr["IpRanges"]} == set(
-            remote_access_cidr,
-        )
-
-        if sgr["IpProtocol"] == "icmp":
-            assert not icmp_sgr_found
-            icmp_sgr_found = True
-            assert sgr["FromPort"] == -1
-            assert sgr["ToPort"] == -1
-
-        elif sgr["IpProtocol"] == "tcp":
-            assert not ssh_sgr_found
-            ssh_sgr_found = True
-            assert sgr["FromPort"] == 22
-            assert sgr["ToPort"] == 22
-
+        if sgr["IpProtocol"] == "-1":
+            assert not self_sgr_found
+            assert len(sgr["UserIdGroupPairs"]) == 1
+            assert sgr["UserIdGroupPairs"][0]["GroupId"] == sg.id
+            self_sgr_found = True
         else:
-            raise AssertionError(f"unexpected protocol '{sgr['IpProtocol']}'")
+            assert {x["CidrIp"] for x in sgr["IpRanges"]} == set(
+                remote_access_cidr,
+            )
+
+            if sgr["IpProtocol"] == "icmp":
+                assert not icmp_sgr_found
+                icmp_sgr_found = True
+                assert sgr["FromPort"] == -1
+                assert sgr["ToPort"] == -1
+
+            elif sgr["IpProtocol"] == "tcp":
+                assert not ssh_sgr_found
+                ssh_sgr_found = True
+                assert sgr["FromPort"] == 22
+                assert sgr["ToPort"] == 22
+
+            else:
+                raise AssertionError(
+                    f"unexpected protocol '{sgr['IpProtocol']}'",
+                )
 
 
 def test_defaults(
@@ -129,7 +150,7 @@ def test_defaults(
 
     assert len(instance.security_groups) == 1
     sg = ec2.SecurityGroup(instance.security_groups[0]["GroupId"])
-    _assert_sgrs(sg, ["0.0.0.0/0"])
+    _assert_sgrs(sg)
 
 
 def test_instance_type(

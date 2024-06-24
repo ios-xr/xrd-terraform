@@ -7,6 +7,16 @@ resource "aws_security_group" "this" {
   }
 }
 
+resource "aws_vpc_security_group_ingress_rule" "self" {
+  security_group_id = aws_security_group.this.id
+
+  description                  = "Ingress traffic from self"
+  referenced_security_group_id = aws_security_group.this.id
+  from_port                    = -1
+  to_port                      = -1
+  ip_protocol                  = -1
+}
+
 resource "aws_vpc_security_group_ingress_rule" "ssh" {
   for_each = toset(var.remote_access_cidr)
 
