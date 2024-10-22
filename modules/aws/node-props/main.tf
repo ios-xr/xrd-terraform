@@ -3,12 +3,12 @@ locals {
     "cloud-router" = {
       "m5.2xlarge" = {
         cpuset       = "2-3"
-        hugepages_gb = 4
+        hugepages_gb = 6
       }
 
       "m5n.2xlarge" = {
         cpuset       = "2-3"
-        hugepages_gb = 4
+        hugepages_gb = 6
       }
 
       "m5.24xlarge" = {
@@ -129,7 +129,7 @@ locals {
 }
 
 locals {
-  minimal_hugepages_gb = 4
+  minimal_hugepages_gb = 6
   maximal_hugepages_gb = 6
 
   hugepages_gb = try(
