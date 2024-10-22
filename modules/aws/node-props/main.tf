@@ -150,7 +150,7 @@ locals {
 }
 
 locals {
-  minimal_hugepages_gb = 4
+  minimal_hugepages_gb = 6
   maximal_hugepages_gb = 6
 
   hugepages_gb = try(
