@@ -87,7 +87,7 @@ def test_subnet_count(
         assert sgr["Ipv6Ranges"] == []
         assert sgr["PrefixListIds"] == []
         assert len(sgr["UserIdGroupPairs"]) == 2
-        # Expect two different groups, one in basion security group and the
+        # Expect two different groups, one in bastion security group and the
         # other in its own security group.
         assert (
             {
