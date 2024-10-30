@@ -89,12 +89,10 @@ def test_subnet_count(
         assert len(sgr["UserIdGroupPairs"]) == 2
         # Expect two different groups, one in bastion security group and the
         # other in its own security group.
-        assert (
-            {
-                sgr["UserIdGroupPairs"][0]["GroupId"],
-                sgr["UserIdGroupPairs"][1]["GroupId"],
-            } == {
-                outputs.security_group_id,
-                outputs.bastion_security_group_id,
-            }
-        )
+        assert {
+            sgr["UserIdGroupPairs"][0]["GroupId"],
+            sgr["UserIdGroupPairs"][1]["GroupId"],
+        } == {
+            outputs.security_group_id,
+            outputs.bastion_security_group_id,
+        }
