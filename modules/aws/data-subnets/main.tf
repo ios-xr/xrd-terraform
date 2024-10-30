@@ -22,13 +22,13 @@ resource "aws_security_group" "this" {
     protocol        = -1
     security_groups = [var.bastion_security_group_id]
   }
+
   egress {
     from_port       = 0
     to_port         = 0
     protocol        = -1
     security_groups = [var.bastion_security_group_id]
   }
-
 
   tags = {
     Name = "${var.name_prefix}-data"
