@@ -23,8 +23,7 @@ variable "vpc_id" {
 }
 
 variable "bastion_security_group_id" {
-  description = "Number of subnets to create"
+  description = "Id of the bastion security group"
   type        = string
   nullable    = false
 }
-
