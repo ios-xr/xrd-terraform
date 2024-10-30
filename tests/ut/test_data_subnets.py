@@ -18,6 +18,7 @@ class Outputs(TerraformOutputs):
     ids: dict[str, str]
     names: list[str]
     security_group_id: str
+    bastion_security_group_id: str
 
 
 @pytest.fixture(scope="module")
@@ -85,7 +86,15 @@ def test_subnet_count(
         assert sgr["IpRanges"] == []
         assert sgr["Ipv6Ranges"] == []
         assert sgr["PrefixListIds"] == []
-        assert len(sgr["UserIdGroupPairs"]) == 1
+        assert len(sgr["UserIdGroupPairs"]) == 2
+        # Expect two different groups, one in basion security group and the
+        # other in its own security group.
         assert (
-            sgr["UserIdGroupPairs"][0]["GroupId"] == outputs.security_group_id
+            {
+                sgr["UserIdGroupPairs"][0]["GroupId"],
+                sgr["UserIdGroupPairs"][1]["GroupId"],
+            } == {
+                outputs.security_group_id,
+                outputs.bastion_security_group_id,
+            }
         )
