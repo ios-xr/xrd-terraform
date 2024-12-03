@@ -164,4 +164,3 @@ variable "xrd_vr_cp_num_cpus" {
   type        = number
   default     = null
 }
-=
