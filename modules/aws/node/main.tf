@@ -163,6 +163,9 @@ resource "aws_instance" "this" {
       kubelet_flags = [
         "--node-labels=${local.kubelet_node_labels_arg}"
       ]
+      hugepages_gb   = local.hugepages_gb
+      isolated_cores = local.isolated_cores
+      additional_user_data = var.user_data
     }
   )
 
