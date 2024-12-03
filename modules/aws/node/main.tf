@@ -166,6 +166,7 @@ resource "aws_instance" "this" {
       hugepages_gb   = local.hugepages_gb
       isolated_cores = local.isolated_cores
       additional_user_data = var.user_data
+      xrd_bootstrap  = local.is_xrd_ami
     }
   )
 
