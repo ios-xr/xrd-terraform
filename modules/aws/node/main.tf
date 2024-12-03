@@ -159,7 +159,7 @@ resource "aws_instance" "this" {
       name = data.aws_eks_cluster.this.name
       api_endpoint = data.aws_eks_cluster.this.endpoint
       certificate_authority = data.aws_eks_cluster.this.certificate_authority[0].data
-      cidr = data.aws_eks_cluster.this.vpc_config[0].public_access_cidr
+      cidr = data.aws_eks_cluster.this.vpc_config[0].public_access_cidrs[0]
     }
   )
 
