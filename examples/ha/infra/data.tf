@@ -8,7 +8,7 @@ data "aws_ami" "eks_optimized" {
 
   filter {
     name   = "name"
-    values = ["amazon-eks-node-${data.aws_eks_cluster.this.version}-*"]
+    values = ["amazon-eks-node-al2023-x86_64-standard-${data.aws_eks_cluster.this.version}-*"]
   }
 
   filter {

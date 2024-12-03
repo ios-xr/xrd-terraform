@@ -1,7 +1,9 @@
-#!/bin/bash
-%{~ if xrd_bootstrap }
-HUGEPAGES_GB=${hugepages_gb} ISOLATED_CORES=${isolated_cores} /etc/xrd/bootstrap.sh
-%{~ endif }
-/etc/eks/bootstrap.sh ${cluster_name} --kubelet-extra-args '${kubelet_extra_args}'
-${additional_user_data}
-reboot
+---
+apiVersion: node.eks.aws/v1alpha1
+kind: NodeConfig
+spec:
+  cluster:
+    name: ${name}
+    apiServerEndpoint: ${api_endpoint}
+    certificateAuthority: ${certificate_authority}
+    cidr: ${cidr}

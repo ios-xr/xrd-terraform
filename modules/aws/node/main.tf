@@ -156,20 +156,10 @@ resource "aws_instance" "this" {
   user_data = templatefile(
     "${path.module}/templates/user-data.tftpl",
     {
-      xrd_bootstrap  = local.is_xrd_ami
-      hugepages_gb   = local.hugepages_gb
-      isolated_cores = local.isolated_cores
-      cluster_name   = var.cluster_name
-      kubelet_extra_args = format(
-        "%s%s",
-        (
-          local.kubelet_node_labels_arg != null ?
-          "--node-labels ${local.kubelet_node_labels_arg}" :
-          ""
-        ),
-        var.kubelet_extra_args != null ? " ${var.kubelet_extra_args}" : "",
-      )
-      additional_user_data = var.user_data
+      name = data.aws_eks_cluster.this.name
+      api_endpoint = data.aws_eks_cluster.this.endpoint
+      certificate_authority = data.aws_eks_cluster.this.certificate_authority[0].data
+      cidr = data.aws_eks_cluster.this.vpc_config[0].public_access_cidr
     }
   )
 
