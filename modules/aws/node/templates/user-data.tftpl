@@ -13,12 +13,5 @@ spec:
     apiServerEndpoint: ${api_endpoint}
     certificateAuthority: ${certificate_authority}
     cidr: ${cidr}
-  %{~ if length(kubelet_flags) > 0 ~}
-  kubelet:
-    flags:
-    %{~ for flag in kubelet_flags }
-    - ${flag}
-    %{~ endfor }
-  %{~ endif }
 
 --BOUNDARY--
