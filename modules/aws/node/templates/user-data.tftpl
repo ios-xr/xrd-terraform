@@ -5,10 +5,7 @@ Content-Type: multipart/mixed; boundary="BOUNDARY"
 Content-Type: text/x-shellscript; charset="us-ascii"
 
 #!/bin/bash
-%{~ if xrd_bootstrap }
 HUGEPAGES_GB=${hugepages_gb} ISOLATED_CORES=${isolated_cores} /etc/xrd/bootstrap.sh
-%{~ endif }
-${additional_user_data}
 
 --BOUNDARY
 Content-Type: application/node.eks.aws
@@ -22,12 +19,10 @@ spec:
     apiServerEndpoint: ${api_endpoint}
     certificateAuthority: ${certificate_authority}
     cidr: ${cidr}
-  %{~ if length(kubelet_flags) > 0 ~}
   kubelet:
     flags:
     %{~ for flag in kubelet_flags }
     - ${flag}
     %{~ endfor }
-  %{~ endif }
 
 --BOUNDARY--
