@@ -8,7 +8,6 @@ Content-Type: text/x-shellscript; charset="us-ascii"
 %{~ if xrd_bootstrap }
 HUGEPAGES_GB=${hugepages_gb} ISOLATED_CORES=${isolated_cores} /etc/xrd/bootstrap.sh
 %{~ endif }
-${additional_user_data}
 
 --BOUNDARY
 Content-Type: application/node.eks.aws
@@ -31,10 +30,9 @@ spec:
   %{~ endif }
 
 --BOUNDARY
-  Content-Type: text/x-shellscript; charset="us-ascii"
+Content-Type: text/x-shellscript; charset="us-ascii"
 
-  #!/bin/bash
-  ${additional_user_data}
-  reboot
+${additional_user_data}
+reboot
 
 --BOUNDARY--
