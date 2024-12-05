@@ -9,7 +9,7 @@ Content-Type: text/x-shellscript; charset="us-ascii"
 HUGEPAGES_GB=${hugepages_gb} ISOLATED_CORES=${isolated_cores} /etc/xrd/bootstrap.sh
 %{~ endif }
 ${additional_user_data}
-%{~ if xrd_bootstrap || lengtht(additional_user_data) > 0 }
+%{~ if xrd_bootstrap || length(additional_user_data) > 0 }
 reboot
 %{~ endif }
 
