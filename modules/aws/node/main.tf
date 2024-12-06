@@ -167,6 +167,7 @@ resource "aws_instance" "this" {
       isolated_cores = local.isolated_cores
       additional_user_data = var.user_data
       xrd_bootstrap  = local.is_xrd_ami
+      private_ip     = var.private_ip_address
     }
   )
 
