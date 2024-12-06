@@ -192,6 +192,11 @@ resource "aws_instance" "this" {
 }
 
 resource "aws_network_interface" "this" {
+  # Wait for kubelet to start before attaching the network interfaces.
+  depends_on = [
+    kubernetes_job.wait
+  ]
+
   for_each = {
     for i, ni in var.network_interfaces :
     i => ni
