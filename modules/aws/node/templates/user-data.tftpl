@@ -12,7 +12,7 @@ spec:
     name: ${name}
     apiServerEndpoint: ${api_endpoint}
     certificateAuthority: ${certificate_authority}
-    cidr: ${cidr}
+    cidr: 10.0.100.0/24
   kubelet:
     flags:
     %{~ for flag in kubelet_flags }
