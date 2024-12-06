@@ -159,7 +159,7 @@ resource "aws_instance" "this" {
       name = data.aws_eks_cluster.this.name
       api_endpoint = data.aws_eks_cluster.this.endpoint
       certificate_authority = data.aws_eks_cluster.this.certificate_authority[0].data
-      cidr = var.private_ip_address
+      cidr = data.aws_eks_cluster.this.kubernetes_network_config[0].service_ipv4_cidr
       kubelet_flags = [
         "--node-labels=${local.kubelet_node_labels_arg}"
       ]

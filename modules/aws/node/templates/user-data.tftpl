@@ -2,17 +2,28 @@ MIME-Version: 1.0
 Content-Type: multipart/mixed; boundary="BOUNDARY"
 
 --BOUNDARY
+Content-Type: text/x-shellscript; charset="us-ascii"
+
+#!/bin/bash
+%{~ if xrd_bootstrap }
+HUGEPAGES_GB=${hugepages_gb} ISOLATED_CORES=${isolated_cores} /etc/xrd/bootstrap.sh
+%{~ endif }
+${additional_user_data}
+reboot
+
+
+--BOUNDARY
 Content-Type: application/node.eks.aws
 
 ---
 apiVersion: node.eks.aws/v1alpha1
-kind: NodeConfig
+kind: NodeCnfig
 spec:
   cluster:
     name: ${name}
     apiServerEndpoint: ${api_endpoint}
     certificateAuthority: ${certificate_authority}
-    cidr: 10.0.100.0/24
+    cidr: ${cidr}
   kubelet:
     flags:
     %{~ for flag in kubelet_flags }
