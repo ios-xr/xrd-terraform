@@ -57,6 +57,19 @@ resource "aws_security_group" "data" {
   }
 }
 
+data "http" "multus_yaml" {
+  url = "https://raw.githubusercontent.com/aws/amazon-vpc-cni-k8s/master/config/multus/v4.0.2-eksbuild.1/multus-daemonset-thick.yml"
+}
+
+
+resource "kubernetes_manifest" "multus" {
+  for_each = toset(compact(split("---", data.http.multus_yaml.response_body)))
+  depends_on = [module.node]
+
+  manifest = yamldecode(each.key)
+}
+
+
 module "eks_config" {
   source = "../../../modules/aws/eks-config"
 
