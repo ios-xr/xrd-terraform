@@ -53,3 +53,9 @@ resource "helm_release" "ebs_csi" {
   }
   wait = false
 }
+
+resource "kubernetes_manifest" "multus" {
+  for_each = toset(compact(split("---", data.http.multus_yaml.response_body)))
+
+  manifest = yamldecode(each.key)
+}

@@ -84,6 +84,13 @@ module "xrd_ami" {
   count  = var.node_ami == null ? 1 : 0
 
   cluster_version = data.aws_eks_cluster.this.version
+
+  filters = [
+    {
+      name   = "tag:Amazon_Linux_Version"
+      values = ["AL2023"]
+    }
+  ]
 }
 
 locals {
