@@ -34,6 +34,9 @@ In addition, the following tools are recommended:
 
 ### AMI
 
+The Terraform modules in this repository require the use of AL2023 for the
+Linux version for all AMIs.
+
 The Terraform modules in this repository rely on the AMIs used for worker
 nodes to be optimized for XRd. The easiest way to achieve this is to use the
 [XRd Packer](https://github.com/ios-xr/xrd-packer) templates to generate

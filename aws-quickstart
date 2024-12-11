@@ -141,7 +141,6 @@ ensure_ami_exists () {
     --filters \
       "Name=tag:Generated_By,Values=xrd-packer" \
       "Name=tag:Kubernetes_Version,Values=${KUBERNETES_VERSION}" \
-      "Name=tag:Amazon_Linux_Version,Values=AL2023" \
     --query "Images[*].[ImageId]" \
     --output text \
     | head -n 1)
