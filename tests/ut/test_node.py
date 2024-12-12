@@ -1,9 +1,9 @@
 import base64
 import json
 import subprocess
+import textwrap
 import uuid
 from pathlib import Path
-import textwrap
 from typing import Any
 
 import pytest
@@ -318,8 +318,7 @@ def test_kubelet_extra_args(ec2, tf: Terraform, base_vars: dict[str, Any]):
         "    flags:\n"
         f"    - --node-labels=ios-xr.cisco.com/name={vars['name']}\n"
         "    - foo\n"
-        "    - bar\n"
-        in user_data
+        "    - bar\n" in user_data
     )
 
 

@@ -156,19 +156,19 @@ resource "aws_instance" "this" {
   user_data = templatefile(
     "${path.module}/templates/user-data.tftpl",
     {
-      name = data.aws_eks_cluster.this.name
-      api_endpoint = data.aws_eks_cluster.this.endpoint
+      name                  = data.aws_eks_cluster.this.name
+      api_endpoint          = data.aws_eks_cluster.this.endpoint
       certificate_authority = data.aws_eks_cluster.this.certificate_authority[0].data
-      cidr = data.aws_eks_cluster.this.kubernetes_network_config[0].service_ipv4_cidr
+      cidr                  = data.aws_eks_cluster.this.kubernetes_network_config[0].service_ipv4_cidr
       kubelet_flags = concat(
         ["--node-labels=${local.kubelet_node_labels_arg}"],
         var.kubelet_extra_args
       )
-      hugepages_gb   = local.hugepages_gb
-      isolated_cores = local.isolated_cores
+      hugepages_gb         = local.hugepages_gb
+      isolated_cores       = local.isolated_cores
       additional_user_data = var.user_data
-      xrd_bootstrap  = local.is_xrd_ami
-      private_ip     = var.private_ip_address
+      xrd_bootstrap        = local.is_xrd_ami
+      private_ip           = var.private_ip_address
     }
   )
 
