@@ -15,9 +15,9 @@ spec:
     cidr: ${cidr}
   kubelet:
     flags:
-    %{~ for flag in kubelet_flags }
+    %{~ for flag in kubelet_flags ~}
     - ${flag}
-    %{~ endfor }
+    %{~ endfor ~}
 
 --BOUNDARY
 Content-Type: text/x-shellscript; charset="us-ascii"
