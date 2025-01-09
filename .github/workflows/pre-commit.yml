@@ -17,6 +17,10 @@ jobs:
         with:
           fetch-depth: 0
 
+      - uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: "1.7.1"
+
       - name: "Setup prerequisites"
         # yamllint disable rule:line-length
         run: |
