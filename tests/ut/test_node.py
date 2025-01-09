@@ -1,6 +1,7 @@
 import base64
 import json
 import subprocess
+import textwrap
 import uuid
 from pathlib import Path
 from typing import Any
@@ -15,6 +16,7 @@ from mypy_boto3_ec2.service_resource import (
     Subnet,
     Vpc,
 )
+from mypy_boto3_eks import EKSClient
 from mypy_boto3_iam import IAMServiceResource
 from mypy_boto3_iam.service_resource import InstanceProfile
 
@@ -67,6 +69,14 @@ def subnet(vpc: Vpc) -> Subnet:
 
 
 @pytest.fixture
+def other_subnet(vpc: Vpc) -> Subnet:
+    return vpc.create_subnet(
+        AvailabilityZone="eu-west-1a",
+        CidrBlock="10.0.1.0/24",
+    )
+
+
+@pytest.fixture
 def key_pair(ec2: EC2ServiceResource) -> KeyPair:
     return ec2.create_key_pair(KeyName=str(uuid.uuid4()))
 
@@ -92,6 +102,7 @@ def iam_instance_profile(iam: IAMServiceResource) -> InstanceProfile:
         "arn:aws:iam::aws:policy/AmazonEKSWorkerNodePolicy",
         "arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly",
         "arn:aws:iam::aws:policy/AmazonEKS_CNI_Policy",
+        "arn:aws:iam::aws:policy/AmazonEKSClusterPolicy",
     ):
         role.attach_policy(PolicyArn=policy_arn)
 
@@ -116,11 +127,34 @@ def security_group(ec2: EC2ServiceResource, vpc: Vpc) -> SecurityGroup:
     return sg
 
 
+@pytest.fixture()
+def eks_cluster(
+    eks_client: EKSClient,
+    iam_instance_profile: InstanceProfile,
+    subnet: Subnet,
+    other_subnet: Subnet,
+    security_group: SecurityGroup,
+) -> dict[str, Any]:
+    name = str(uuid.uuid4())
+    return eks_client.create_cluster(
+        name=name,
+        roleArn=iam_instance_profile.roles_attribute[0]["Arn"],
+        resourcesVpcConfig={
+            "subnetIds": [subnet.id, other_subnet.id],
+            "securityGroupIds": [security_group.id],
+            "endpointPublicAccess": False,
+            "endpointPrivateAccess": False,
+            "publicAccessCidrs": [],
+        },
+    )
+
+
 @pytest.fixture
 def base_vars(
     subnet: Subnet,
     key_pair: KeyPair,
     iam_instance_profile: InstanceProfile,
+    eks_cluster: dict[str, Any],
 ) -> dict[str, Any]:
     # This AMI should exist in the Moto server.
     # Refer to https://github.com/getmoto/moto/blob/master/moto/ec2/resources/amis.json.
@@ -128,7 +162,7 @@ def base_vars(
 
     return {
         "ami": ami,
-        "cluster_name": str(uuid.uuid4()),
+        "cluster_name": eks_cluster["cluster"]["name"],
         "name": str(uuid.uuid4()),
         "private_ip_address": "10.0.0.10",
         "security_groups": [],
@@ -162,7 +196,12 @@ def _assert_tag(instance: Instance, tag_key: str, tag_value: str) -> None:
         raise AssertionError(f"tag '{tag_key}' does not exist")
 
 
-def test_defaults(ec2, tf: Terraform, base_vars: dict[str, Any]):
+def test_defaults(
+    ec2,
+    tf: Terraform,
+    base_vars: dict[str, Any],
+    eks_cluster: dict[str, Any],
+):
     tf.apply(vars=base_vars)
     outputs = Outputs.from_terraform(tf)
     instance = ec2.Instance(outputs.id)
@@ -182,7 +221,23 @@ def test_defaults(ec2, tf: Terraform, base_vars: dict[str, Any]):
         "Value"
     ]
     user_data = base64.b64decode(user_data).decode()
-    assert f"/etc/eks/bootstrap.sh {base_vars['cluster_name']}" in user_data
+    expected_node_config = textwrap.dedent(
+        f"""\
+        ---
+        apiVersion: node.eks.aws/v1alpha1
+        kind: NodeConfig
+        spec:
+          cluster:
+            name: {base_vars['cluster_name']}
+            apiServerEndpoint: {eks_cluster['cluster']['endpoint']}
+            certificateAuthority: {eks_cluster['cluster']['certificateAuthority']['data']}
+            cidr: {eks_cluster['cluster']['kubernetesNetworkConfig']['serviceIpv4Cidr']}
+          kubelet:
+            flags:
+            - --node-labels=ios-xr.cisco.com/name={base_vars['name']}""",
+    )
+
+    assert expected_node_config in user_data
 
     # There should be no public IP address assigned.
     assert not instance.public_ip_address
@@ -250,7 +305,7 @@ def test_unknown_instance_type(ec2, tf: Terraform, base_vars: dict[str, Any]):
 
 
 def test_kubelet_extra_args(ec2, tf: Terraform, base_vars: dict[str, Any]):
-    vars = base_vars | {"kubelet_extra_args": "foo bar baz"}
+    vars = base_vars | {"kubelet_extra_args": ["foo", "bar"]}
     tf.apply(vars=vars)
     outputs = Outputs.from_terraform(tf)
     instance = ec2.Instance(outputs.id)
@@ -260,8 +315,10 @@ def test_kubelet_extra_args(ec2, tf: Terraform, base_vars: dict[str, Any]):
     ]
     user_data = base64.b64decode(user_data).decode()
     assert (
-        f"""--kubelet-extra-args '--node-labels ios-xr.cisco.com/name={base_vars["name"]} foo bar baz'"""
-        in user_data
+        "    flags:\n"
+        f"    - --node-labels=ios-xr.cisco.com/name={vars['name']}\n"
+        "    - foo\n"
+        "    - bar\n" in user_data
     )
 
 
