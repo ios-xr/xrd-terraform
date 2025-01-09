@@ -7,7 +7,7 @@ xrd${i + 1}:
     pullPolicy: Always
   resources:
     limits:
-      memory: 8Gi
+      memory: 10Gi
       hugepages-1Gi: ${hugepages[node_name]}Gi
   securityContext:
     privileged: true
