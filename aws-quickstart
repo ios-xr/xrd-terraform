@@ -40,15 +40,15 @@ OPTIONS:
             Destroy the workload and infrastructure.
 
     --kubernetes-version
-            Kubernetes version to use.  This must be one of: 1.25, 1.26, 1.27, 1.28, 1.29, 1.30, 1.31
-            (default: 1.31).
+            Kubernetes version to use.  This must be one of: 1.25, 1.26, 1.27, 1.28, 1.29, 1.30, 1.31, 1.32
+            (default: 1.32).
 EOF
 }
 
 # Default arguments.
 AMI_ID=""
 DESTROY=""
-KUBERNETES_VERSION="1.31"
+KUBERNETES_VERSION="1.32"
 XR_USERNAME=""
 XR_PASSWORD=""
 BASTION_REMOTE_ACCESS_CIDR_BLOCKS=""
@@ -107,8 +107,9 @@ if [ "${KUBERNETES_VERSION}" != "1.25" ] &&
    [ "${KUBERNETES_VERSION}" != "1.28" ] &&
    [ "${KUBERNETES_VERSION}" != "1.29" ] &&
    [ "${KUBERNETES_VERSION}" != "1.30" ] &&
-   [ "${KUBERNETES_VERSION}" != "1.31" ]; then
-    >&2 echo "error: Kubernetes version (--kubernetes-version) must be one of: 1.25, 1.26, 1.27, 1.28, 1.29, 1.30, 1.31"
+   [ "${KUBERNETES_VERSION}" != "1.31" ] &&
+   [ "${KUBERNETES_VERSION}" != "1.32" ]; then
+    >&2 echo "error: Kubernetes version (--kubernetes-version) must be one of: 1.25, 1.26, 1.27, 1.28, 1.29, 1.30, 1.31, 1.32"
     ERROR=1
 fi
 
