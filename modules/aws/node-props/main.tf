@@ -25,6 +25,16 @@ locals {
         cpuset       = "15-31"
         hugepages_gb = 6
       }
+
+      "m6in.24xlarge" = {
+        cpuset       = "7-23"
+        hugepages_gb = 6
+      }
+
+      "m6in.32xlarge" = {
+        cpuset       = "15-31"
+        hugepages_gb = 6
+      }
     }
   }
 }
