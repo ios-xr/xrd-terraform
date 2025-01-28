@@ -12,12 +12,27 @@ locals {
       }
 
       "m5.24xlarge" = {
-        cpuset       = "12-23"
+        cpuset       = "7-23"
         hugepages_gb = 6
       }
 
       "m5n.24xlarge" = {
-        cpuset       = "12-23"
+        cpuset       = "7-23"
+        hugepages_gb = 6
+      }
+
+      "m6in.16xlarge" = {
+        cpuset       = "15-31"
+        hugepages_gb = 6
+      }
+
+      "m6in.24xlarge" = {
+        cpuset       = "7-23"
+        hugepages_gb = 6
+      }
+
+      "m6in.32xlarge" = {
+        cpuset       = "15-31"
         hugepages_gb = 6
       }
     }
