@@ -22,7 +22,7 @@ locals {
       }
 
       "m6in.16xlarge" = {
-        cpuset       = "7-23"
+        cpuset       = "15-31"
         hugepages_gb = 6
       }
 
