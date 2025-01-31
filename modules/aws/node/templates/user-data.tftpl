@@ -8,6 +8,8 @@ Content-Type: application/node.eks.aws
 apiVersion: node.eks.aws/v1alpha1
 kind: NodeConfig
 spec:
+  featureGates:
+    InstanceIdNodeName: true
   cluster:
     name: ${name}
     apiServerEndpoint: ${api_endpoint}
