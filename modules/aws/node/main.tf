@@ -39,13 +39,15 @@ locals {
 module "node_props" {
   source = "../node-props"
 
+  count = local.node_props_required ? 1 : 0
+
   instance_type = var.instance_type
   use_case      = "maximal"
 }
 
 locals {
   hugepages_gb = try(
-    coalesce(var.hugepages_gb, local.node_props_required ? module.node_props.hugepages_gb : null)),
+    coalesce(var.hugepages_gb, try(module.node_props[0].hugepages_gb, null)),
     null,
   )
 
@@ -53,7 +55,7 @@ locals {
     var.isolated_cores != null ?
     null :
     try(
-      coalesce(var.xrd_vr_cpuset, local.node_props_required ? module.node_props.cpuset : null),
+      coalesce(var.xrd_vr_cpuset, try(module.node_props[0].cpuset, null)),
       null,
     )
   )
@@ -70,7 +72,7 @@ locals {
     var.isolated_cores != null ?
     null :
     try(
-      coalesce(var.xrd_vr_cp_num_cpus, local.node_props_required ? module.node_props.cp_num_cpus : null),
+      coalesce(var.xrd_vr_cp_num_cpus, try(module.node_props[0].cp_num_cpus, null)),
       null,
     )
   )
