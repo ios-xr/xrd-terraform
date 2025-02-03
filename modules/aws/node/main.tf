@@ -39,15 +39,13 @@ locals {
 module "node_props" {
   source = "../node-props"
 
-  count = local.node_props_required ? 1 : 0
-
   instance_type = var.instance_type
   use_case      = "maximal"
 }
 
 locals {
   hugepages_gb = try(
-    coalesce(var.hugepages_gb, try(module.node_props[0].hugepages_gb, null)),
+    coalesce(var.hugepages_gb, local.node_props_required ? module.node_props.hugepages_gb : null),
     null,
   )
 
@@ -55,7 +53,7 @@ locals {
     var.isolated_cores != null ?
     null :
     try(
-      coalesce(var.xrd_vr_cpuset, try(module.node_props[0].cpuset, null)),
+      coalesce(var.xrd_vr_cpuset, local.node_props_required ? module.node_props.cpuset : null),
       null,
     )
   )
@@ -72,7 +70,7 @@ locals {
     var.isolated_cores != null ?
     null :
     try(
-      coalesce(var.xrd_vr_cp_num_cpus, try(module.node_props[0].cp_num_cpus, null)),
+      coalesce(var.xrd_vr_cp_num_cpus, local.node_props_required ? module.node_props.cp_num_cpus : null),
       null,
     )
   )
@@ -156,20 +154,19 @@ resource "aws_instance" "this" {
   user_data = templatefile(
     "${path.module}/templates/user-data.tftpl",
     {
-      xrd_bootstrap  = local.is_xrd_ami
-      hugepages_gb   = local.hugepages_gb
-      isolated_cores = local.isolated_cores
-      cluster_name   = var.cluster_name
-      kubelet_extra_args = format(
-        "%s%s",
-        (
-          local.kubelet_node_labels_arg != null ?
-          "--node-labels ${local.kubelet_node_labels_arg}" :
-          ""
-        ),
-        var.kubelet_extra_args != null ? " ${var.kubelet_extra_args}" : "",
+      name                  = data.aws_eks_cluster.this.name
+      api_endpoint          = data.aws_eks_cluster.this.endpoint
+      certificate_authority = data.aws_eks_cluster.this.certificate_authority[0].data
+      cidr                  = data.aws_eks_cluster.this.kubernetes_network_config[0].service_ipv4_cidr
+      kubelet_flags = concat(
+        ["--node-labels=${local.kubelet_node_labels_arg}"],
+        var.kubelet_extra_args
       )
+      hugepages_gb         = local.hugepages_gb
+      isolated_cores       = local.isolated_cores
       additional_user_data = var.user_data
+      xrd_bootstrap        = local.is_xrd_ami
+      private_ip           = var.private_ip_address
     }
   )
 
@@ -194,6 +191,11 @@ resource "aws_instance" "this" {
 }
 
 resource "aws_network_interface" "this" {
+  # Wait for kubelet to start before attaching the network interfaces.
+  depends_on = [
+    kubernetes_job.wait
+  ]
+
   for_each = {
     for i, ni in var.network_interfaces :
     i => ni
