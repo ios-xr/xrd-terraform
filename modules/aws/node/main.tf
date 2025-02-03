@@ -45,7 +45,7 @@ module "node_props" {
 
 locals {
   hugepages_gb = try(
-    coalesce(var.hugepages_gb, local.node_props_required ? module.node_props.hugepages_gb : null)),
+    coalesce(var.hugepages_gb, local.node_props_required ? module.node_props.hugepages_gb : null),
     null,
   )
 
