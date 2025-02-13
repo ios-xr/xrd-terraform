@@ -95,7 +95,7 @@ module "peer" {
   source = "../../../modules/aws/linux-pod-with-net-attach"
 
   name       = "peer"
-  device     = "eth1"
+  device     = "ens6"
   ip_address = "10.0.10.12/24"
   gateway    = "10.0.10.20"
   routes     = ["10.0.11.0/24", "10.0.13.0/24"]
@@ -108,7 +108,7 @@ module "cnf_vrid1" {
   source = "../../../modules/aws/linux-pod-with-net-attach"
 
   name       = "cnf-vrid1"
-  device     = "eth2"
+  device     = "ens7"
   ip_address = "10.0.11.12/24"
   gateway    = "10.0.11.20"
   routes     = ["10.0.10.0/24"]
@@ -121,7 +121,7 @@ module "cnf_vrid2" {
   source = "../../../modules/aws/linux-pod-with-net-attach"
 
   name       = "cnf-vrid2"
-  device     = "eth3"
+  device     = "ens8"
   ip_address = "10.0.13.12/24"
   gateway    = "10.0.13.1"
   routes     = ["10.0.10.0/24"]

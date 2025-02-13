@@ -19,15 +19,6 @@ provider "kubernetes" {
   config_path = local.bootstrap.kubeconfig_path
 }
 
-resource "aws_vpc_endpoint" "ec2" {
-  private_dns_enabled = true
-  security_group_ids  = [data.aws_eks_cluster.this.vpc_config[0].cluster_security_group_id]
-  service_name        = "com.amazonaws.${data.aws_region.current.name}.ec2"
-  subnet_ids          = [data.aws_subnet.cluster.id]
-  vpc_endpoint_type   = "Interface"
-  vpc_id              = data.aws_vpc.this.id
-}
-
 resource "aws_route_table" "cnf_vrid2" {
   vpc_id = data.aws_vpc.this.id
 
@@ -221,4 +212,19 @@ module "ha_app_irsa" {
   service_account = "*"
   role_name       = "${local.bootstrap.name_prefix}-ha-app"
   role_policies   = [aws_iam_policy.ha_app.arn]
+}
+
+resource "aws_vpc_endpoint" "ec2" {
+  # This must be created after the nodes come up.
+  depends_on = [
+    module.node[0],
+    module.node[1],
+    module.node[2]
+  ]
+  private_dns_enabled = true
+  security_group_ids  = [data.aws_eks_cluster.this.vpc_config[0].cluster_security_group_id]
+  service_name        = "com.amazonaws.${data.aws_region.current.name}.ec2"
+  subnet_ids          = [data.aws_subnet.cluster.id]
+  vpc_endpoint_type   = "Interface"
+  vpc_id              = data.aws_vpc.this.id
 }

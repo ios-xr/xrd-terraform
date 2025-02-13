@@ -95,11 +95,11 @@ variable "isolated_cores" {
 
 variable "kubelet_extra_args" {
   description = <<-EOT
-  Extra arguments to pass to kubelet when booting the node.
+  List of extra command-line kubelet arguments to be appended to the defaults.
   Note that node labels must be specified via the 'labels' variable.
   EOT
-  type        = string
-  default     = null
+  type        = list(string)
+  default     = []
 }
 
 variable "labels" {

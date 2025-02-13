@@ -34,6 +34,9 @@ In addition, the following tools are recommended:
 
 ### AMI
 
+The Terraform modules in this repository require the use of AL2023 for the
+Linux version for all AMIs.
+
 The Terraform modules in this repository rely on the AMIs used for worker
 nodes to be optimized for XRd. The easiest way to achieve this is to use the
 [XRd Packer](https://github.com/ios-xr/xrd-packer) templates to generate
@@ -233,6 +236,12 @@ AWS resources.
 
 For more information on how to use these modules to build your own Terraform
 configurations, see the [development](DEVELOPMENT.md) page.
+
+## Amazon Linux 2
+
+Amazon Linux 2 is EOL.
+
+For an Amazon Linux 2 compatible version of XRd Terraform, see the version tagged AL2.
 
 ## Troubleshooting
 

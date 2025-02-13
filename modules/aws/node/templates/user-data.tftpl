@@ -1,7 +1,32 @@
+MIME-Version: 1.0
+Content-Type: multipart/mixed; boundary="BOUNDARY"
+
+--BOUNDARY
+Content-Type: application/node.eks.aws
+
+---
+apiVersion: node.eks.aws/v1alpha1
+kind: NodeConfig
+spec:
+  cluster:
+    name: ${name}
+    apiServerEndpoint: ${api_endpoint}
+    certificateAuthority: ${certificate_authority}
+    cidr: ${cidr}
+  kubelet:
+    flags:
+    %{~ for flag in kubelet_flags ~}
+    - ${flag}
+    %{~ endfor ~}
+
+--BOUNDARY
+Content-Type: text/x-shellscript; charset="us-ascii"
+
 #!/bin/bash
 %{~ if xrd_bootstrap }
 HUGEPAGES_GB=${hugepages_gb} ISOLATED_CORES=${isolated_cores} /etc/xrd/bootstrap.sh
 %{~ endif }
-/etc/eks/bootstrap.sh ${cluster_name} --kubelet-extra-args '${kubelet_extra_args}'
 ${additional_user_data}
 reboot
+
+--BOUNDARY--
