@@ -11,6 +11,16 @@ locals {
         hugepages_gb = 6
       }
 
+      "m5.12xlarge" = {
+        cpuset       = "7-23"
+        hugepages_gb = 6
+      }
+
+      "m5n.12xlarge" = {
+        cpuset       = "7-23"
+        hugepages_gb = 6
+      }
+
       "m5.24xlarge" = {
         cpuset       = "7-23"
         hugepages_gb = 6
