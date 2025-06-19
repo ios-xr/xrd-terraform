@@ -130,6 +130,7 @@ def test_defaults(
         "1.29",
         "1.30",
         "1.31",
+        "1.32",
     ),
 )
 def test_cluster_version(

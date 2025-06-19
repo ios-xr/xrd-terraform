@@ -26,7 +26,7 @@ When you are finished, make sure you first destroy any other configurations laye
 terraform destroy
 ```
 
-<!-- BEGINNING OF PRE-COMMIT-TERRAFORM DOCS HOOK -->
+<!-- BEGIN_TF_DOCS -->
 ## Requirements
 
 | Name | Version |
@@ -50,4 +50,4 @@ terraform destroy
 | Name | Description |
 |------|-------------|
 | <a name="output_bootstrap"></a> [bootstrap](#output\_bootstrap) | Bootstrap module outputs |
-<!-- END OF PRE-COMMIT-TERRAFORM DOCS HOOK -->
+<!-- END_TF_DOCS -->
