@@ -47,10 +47,12 @@ resource "helm_release" "ebs_csi" {
   repository = "https://kubernetes-sigs.github.io/aws-ebs-csi-driver"
   chart      = "aws-ebs-csi-driver"
   namespace  = "kube-system"
-  set {
-    name  = "controller.serviceAccount.annotations.eks\\.amazonaws\\.com/role-arn"
-    value = module.ebs_csi_irsa.role_arn
-  }
+  set = [
+    {
+      name  = "controller.serviceAccount.annotations.eks\\.amazonaws\\.com/role-arn"
+      value = module.ebs_csi_irsa.role_arn
+    }
+  ]
   wait = false
 }
 
