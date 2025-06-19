@@ -21,6 +21,8 @@ jobs:
         with:
           terraform_version: "1.7.1"
 
+      - run: terraform init
+
       - name: "Setup prerequisites"
         # yamllint disable rule:line-length
         run: |
