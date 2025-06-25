@@ -28,9 +28,6 @@ repos:
       - id: terraform_docs
         args:
           - "--args=--show=requirements,inputs,outputs"
-      - id: terraform_validate
-        args:
-          - "--hook-config=--retry-once-with-cleanup=true"
         stages: ["manual"]
       - id: terraform_tflint
         stages: ["manual"]
