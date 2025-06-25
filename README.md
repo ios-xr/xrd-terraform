@@ -241,7 +241,7 @@ configurations, see the [development](DEVELOPMENT.md) page.
 
 Amazon Linux 2 is EOL.
 
-For an Amazon Linux 2 compatible version of XRd Terraform, see the version tagged AL2.
+For an Amazon Linux 2 compatible version of XRd Terraform, check out the Amazon_Linux_2_version branch of this repository.
 
 ## Troubleshooting
 
