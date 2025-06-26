@@ -1,4 +1,4 @@
-#!/bin/bashAdd commentMore actions
+#!/bin/bash
 # Validate all Terraform modules in the repository
 
 set -e
