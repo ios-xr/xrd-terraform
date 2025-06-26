@@ -234,6 +234,10 @@ AWS resources.
 For more information on how to use these modules to build your own Terraform
 configurations, see the [development](DEVELOPMENT.md) page.
 
+## Amazon Linux 2023
+
+To use the latest Amazon Linux compatible version of XRd Terraform (for AL2023), check out the main branch of this repository.
+
 ## Troubleshooting
 
 This section lists some common errors and how to fix them.

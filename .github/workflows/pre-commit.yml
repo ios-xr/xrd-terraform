@@ -32,6 +32,11 @@ jobs:
         with:
           cache: "pip"
 
+      # Run terraform validate script so same script can be used in pre-commitAdd commentMore actions
+      # as in nightly pipeline
+      - name: "Terraform validate"
+        run: "tests/terraform_validate.sh"
+
       - uses: pre-commit/action@v3.0.0
         with:
           extra_args: "--hook-stage manual --all-files"
