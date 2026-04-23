@@ -124,7 +124,6 @@ def test_defaults(
 @pytest.mark.parametrize(
     "cluster_version",
     (
-        "1.29",
         "1.30",
         "1.31",
         "1.32",
